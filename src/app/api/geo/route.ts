@@ -52,7 +52,7 @@ export async function POST(req: Request) {
   const ctx = await currentWorkspace();
   if (!ctx) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
 
-  const profile = profiles.findByWorkspace(ctx.workspace.id);
+  const profile = await profiles.findByWorkspace(ctx.workspace.id);
   if (!profile) {
     return NextResponse.json({ error: "Complète d'abord ton profil SaaS." }, { status: 400 });
   }
@@ -64,7 +64,7 @@ export async function POST(req: Request) {
   const url = parsed.data.url.trim();
 
   const plan = ctx.workspace.plan;
-  const used = visibilityScans.countThisMonth(ctx.workspace.id);
+  const used = await visibilityScans.countThisMonth(ctx.workspace.id);
   const quota = SCAN_QUOTA[plan];
   if (used >= quota) {
     return NextResponse.json(
@@ -83,7 +83,7 @@ export async function POST(req: Request) {
   }
 
   const workspaceId = ctx.workspace.id;
-  const scanIndex = visibilityScans.listByWorkspace(workspaceId).length;
+  const scanIndex = (await visibilityScans.listByWorkspace(workspaceId)).length;
   const withRecommendations = plan !== "starter";
 
   const encoder = new TextEncoder();
@@ -145,7 +145,7 @@ export async function POST(req: Request) {
         ? buildRecommendations(results, profile)
         : [];
 
-      const scan = visibilityScans.create(workspaceId, {
+      const scan = await visibilityScans.create(workspaceId, {
         url,
         results,
         globalScore: metrics.globalScore,

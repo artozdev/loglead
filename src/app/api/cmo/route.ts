@@ -7,7 +7,7 @@ export async function GET() {
   if (!ctx) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
   return NextResponse.json({
     plan: ctx.workspace.plan,
-    config: cmoConfig.get(ctx.workspace.id),
-    actions: cmoActions.listByWorkspace(ctx.workspace.id),
+    config: await cmoConfig.get(ctx.workspace.id),
+    actions: await cmoActions.listByWorkspace(ctx.workspace.id),
   });
 }

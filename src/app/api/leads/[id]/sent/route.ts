@@ -15,15 +15,15 @@ export async function POST(
     return NextResponse.json({ error: "Réservé aux offres Growth et Pro." }, { status: 403 });
   }
   const { id } = await params;
-  const lead = leads.findById(id, ctx.workspace.id);
+  const lead = await leads.findById(id, ctx.workspace.id);
   if (!lead) return NextResponse.json({ error: "Introuvable" }, { status: 404 });
 
   // Move to "contacted" if still new.
   if (lead.status === "new") {
-    leads.update(id, ctx.workspace.id, { status: "contacted" });
-    leadEvents.create(id, "status_changed", { from: "new", to: "contacted" });
+    await leads.update(id, ctx.workspace.id, { status: "contacted" });
+    await leadEvents.create(id, "status_changed", { from: "new", to: "contacted" });
   }
-  leadEvents.create(id, "email_sent", {});
+  await leadEvents.create(id, "email_sent", {});
   await scoreLead(id, ctx.workspace.id);
   return NextResponse.json({ ok: true });
 }

@@ -26,7 +26,7 @@ export async function GET() {
     return NextResponse.json({ error: "Réservé aux offres Growth et Pro." }, { status: 403 });
   }
 
-  const all = leads.listByWorkspace(ctx.workspace.id);
+  const all = await leads.listByWorkspace(ctx.workspace.id);
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).getTime();
 
   const added = weekSplit(all);

@@ -15,9 +15,9 @@ export async function POST(req: Request) {
   }
 
   const instruction = parsed.data.instruction.trim();
-  cmoConfig.upsert(ctx.workspace.id, { lastInstruction: instruction });
+  await cmoConfig.upsert(ctx.workspace.id, { lastInstruction: instruction });
 
-  const action = cmoActions.create(ctx.workspace.id, {
+  const action = await cmoActions.create(ctx.workspace.id, {
     type: "strategy",
     title: "Brief intégré",
     message: `Compris. J'intègre « ${instruction} » dans le plan de la semaine et j'ajuste les prochains contenus en conséquence.`,

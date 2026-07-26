@@ -14,6 +14,6 @@ export async function POST(req: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Requête invalide" }, { status: 400 });
   }
-  workspaces.setPlan(ctx.workspace.id, parsed.data.plan);
+  await workspaces.setPlan(ctx.workspace.id, parsed.data.plan);
   return NextResponse.json({ ok: true, plan: parsed.data.plan });
 }

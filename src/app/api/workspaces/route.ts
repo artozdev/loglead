@@ -11,7 +11,7 @@ const createSchema = z.object({
 export async function GET() {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
-  return NextResponse.json({ workspaces: workspaces.listForUser(user.id) });
+  return NextResponse.json({ workspaces: await workspaces.listForUser(user.id) });
 }
 
 export async function POST(req: Request) {
@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const workspace = workspaces.create(parsed.data.name.trim(), user.id);
+  const workspace = await workspaces.create(parsed.data.name.trim(), user.id);
   await setActiveWorkspace(workspace.id);
   return NextResponse.json({ workspace });
 }

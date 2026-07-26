@@ -20,7 +20,7 @@ export async function PATCH(
   }
 
   const { id } = await params;
-  const conv = conversations.findById(id, ctx.workspace.id);
+  const conv = await conversations.findById(id, ctx.workspace.id);
   if (!conv) return NextResponse.json({ error: "Conversation introuvable." }, { status: 404 });
 
   const parsed = schema.safeParse(await req.json().catch(() => null));
@@ -28,6 +28,6 @@ export async function PATCH(
     return NextResponse.json({ error: "Requête invalide" }, { status: 400 });
   }
 
-  conversations.setStatus(id, parsed.data.status);
+  await conversations.setStatus(id, parsed.data.status);
   return NextResponse.json({ ok: true });
 }

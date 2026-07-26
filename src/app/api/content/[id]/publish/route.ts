@@ -20,7 +20,7 @@ export async function POST(
   }
 
   const { id } = await params;
-  const existing = contentItems.findById(id, ctx.workspace.id);
+  const existing = await contentItems.findById(id, ctx.workspace.id);
   if (!existing) return NextResponse.json({ error: "Introuvable" }, { status: 404 });
   if (!existing.scheduledDate) {
     return NextResponse.json(
@@ -29,7 +29,7 @@ export async function POST(
     );
   }
 
-  const item = contentItems.update(id, ctx.workspace.id, { status: "published" });
+  const item = await contentItems.update(id, ctx.workspace.id, { status: "published" });
   return NextResponse.json({
     item,
     message: `Publié sur ${platformLabel(existing.platform)} via l'agrégateur (démo).`,

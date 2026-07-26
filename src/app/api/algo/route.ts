@@ -8,7 +8,7 @@ export async function POST() {
   const ctx = await currentWorkspace();
   if (!ctx) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
 
-  const profile = profiles.findByWorkspace(ctx.workspace.id);
+  const profile = await profiles.findByWorkspace(ctx.workspace.id);
   if (!profile) {
     return NextResponse.json(
       { error: "Complète ton profil de marque d'abord." },

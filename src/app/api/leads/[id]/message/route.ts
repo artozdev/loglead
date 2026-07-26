@@ -16,13 +16,13 @@ export async function POST(
   }
 
   const { id } = await params;
-  const lead = leads.findById(id, ctx.workspace.id);
+  const lead = await leads.findById(id, ctx.workspace.id);
   if (!lead) return NextResponse.json({ error: "Introuvable" }, { status: 404 });
-  const profile = profiles.findByWorkspace(ctx.workspace.id);
+  const profile = await profiles.findByWorkspace(ctx.workspace.id);
   if (!profile) return NextResponse.json({ error: "Profil manquant." }, { status: 400 });
 
   const sourceTitle = lead.sourceContentId
-    ? contentItems.findById(lead.sourceContentId, ctx.workspace.id)?.title
+    ? (await contentItems.findById(lead.sourceContentId, ctx.workspace.id))?.title
     : undefined;
 
   try {

@@ -35,7 +35,7 @@ export async function GET() {
   if (!planAllows(ctx.workspace.plan, "campaigns")) {
     return NextResponse.json({ error: "Réservé aux offres Growth et Pro." }, { status: 403 });
   }
-  const list = campaigns.listByWorkspace(ctx.workspace.id).map((c) => {
+  const list = (await campaigns.listByWorkspace(ctx.workspace.id)).map((c) => {
     const roll = campaignLeads(ctx.workspace.id, c);
     return { ...c, leadsCount: roll.total, avgScore: roll.avgScore };
   });
@@ -49,7 +49,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Les campagnes multicanales sont réservées aux offres Growth et Pro." }, { status: 403 });
   }
 
-  const profile = profiles.findByWorkspace(ctx.workspace.id);
+  const profile = await profiles.findByWorkspace(ctx.workspace.id);
   if (!profile) {
     return NextResponse.json({ error: "Complète ton profil avant de lancer une campagne." }, { status: 400 });
   }
@@ -68,7 +68,7 @@ export async function POST(req: Request) {
   try {
     variants = await declineCampaign(profile, coreMessage, channels as CampaignChannel[], {
       firstName: firstNameOf(ctx.user.email),
-      existingPosts: contentItems.listByWorkspace(ctx.workspace.id).map((c) => c.body),
+      existingPosts: (await contentItems.listByWorkspace(ctx.workspace.id)).map((c) => c.body),
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Déclinaison impossible.";
@@ -76,7 +76,7 @@ export async function POST(req: Request) {
   }
 
   // Create the campaign first so publication ids/metrics can seed off its id.
-  const campaign = campaigns.create(ctx.workspace.id, {
+  const campaign = await campaigns.create(ctx.workspace.id, {
     name: campaignName,
     coreMessage,
     status: "scheduled",
@@ -85,7 +85,7 @@ export async function POST(req: Request) {
 
   const publications: CampaignPublication[] = variants.map((v) => {
     const slot = planSlot(v.channel);
-    const item = contentItems.create(ctx.workspace.id, {
+    const item = await contentItems.create(ctx.workspace.id, {
       type: "linkedin_post",
       platform: "linkedin",
       title: `${campaignName} · ${campaignChannelLabel(v.channel)}`,
@@ -111,6 +111,6 @@ export async function POST(req: Request) {
     };
   });
 
-  const full = campaigns.update(campaign.id, ctx.workspace.id, { publications });
+  const full = await campaigns.update(campaign.id, ctx.workspace.id, { publications });
   return NextResponse.json({ campaign: full, demo: isDemoMode() });
 }

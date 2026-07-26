@@ -33,15 +33,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Requête invalide" }, { status: 400 });
   }
 
-  const conv = conversations.findById(parsed.data.conversationId, ctx.workspace.id);
-  const lead = conv ? leads.findById(conv.leadId, ctx.workspace.id) : undefined;
-  const profile = profiles.findByWorkspace(ctx.workspace.id);
+  const conv = await conversations.findById(parsed.data.conversationId, ctx.workspace.id);
+  const lead = conv ? await leads.findById(conv.leadId, ctx.workspace.id) : undefined;
+  const profile = await profiles.findByWorkspace(ctx.workspace.id);
   if (!conv || !lead || !profile) {
     return NextResponse.json({ error: "Conversation introuvable." }, { status: 404 });
   }
 
   const sourceTitle = lead.sourceContentId
-    ? contentItems.findById(lead.sourceContentId, ctx.workspace.id)?.title
+    ? (await contentItems.findById(lead.sourceContentId, ctx.workspace.id))?.title
     : undefined;
   const channelLabel = parsed.data.channel || leadChannelLabel(lead.channel);
   const messages = inboxMessages

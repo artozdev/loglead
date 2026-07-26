@@ -24,7 +24,7 @@ export async function POST(req: Request) {
   const ctx = await currentWorkspace();
   if (!ctx) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
 
-  const profile = profiles.findByWorkspace(ctx.workspace.id);
+  const profile = await profiles.findByWorkspace(ctx.workspace.id);
   if (!profile) return NextResponse.json({ error: "Profil requis." }, { status: 400 });
 
   if (!rateLimit(`gen:${ctx.workspace.id}`, 10, 60_000)) {
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
   const d = parsed.data;
 
   try {
-    const existingPosts = contentItems.listByWorkspace(ctx.workspace.id).map((c) => c.body);
+    const existingPosts = (await contentItems.listByWorkspace(ctx.workspace.id)).map((c) => c.body);
     const variant = await refineVariant(
       profile,
       { network: d.network, format: d.format, topic: d.topic, technique: d.technique },

@@ -42,17 +42,17 @@ export async function GET() {
   }
 
   const wid = ctx.workspace.id;
-  const allLeads = leads.listByWorkspace(wid);
+  const allLeads = await leads.listByWorkspace(wid);
   const leadById = new Map(allLeads.map((l) => [l.id, l]));
   const segs = segmentsRepo.listByWorkspace(wid);
 
-  const convs = conversations.listByWorkspace(wid).flatMap((c) => {
+  const convs = (await conversations.listByWorkspace(wid)).flatMap((c) => {
     const lead = leadById.get(c.leadId);
     if (!lead) return []; // lead deleted since (RGPD) — hide the thread
-    const messages = inboxMessages.listByConversation(c.id);
+    const messages = await inboxMessages.listByConversation(c.id);
     const last = messages[messages.length - 1];
     const source = lead.sourceContentId
-      ? contentItems.findById(lead.sourceContentId, wid)?.title ?? null
+      ? (await contentItems.findById(lead.sourceContentId, wid))?.title ?? null
       : null;
     const seg = primarySegment(lead, segs);
     // Unread = the last message is an inbound one we haven't read.
@@ -80,7 +80,7 @@ export async function GET() {
           sector: detectSector(lead),
           sourceTitle: source,
           segment: seg ? { id: seg.id, name: seg.name } : null,
-          events: leadEvents.listByLead(lead.id).map((e) => ({ label: eventLabel(e), at: e.createdAt })),
+          events: (await leadEvents.listByLead(lead.id)).map((e) => ({ label: eventLabel(e), at: e.createdAt })),
         },
         messages,
         preview: last?.content.slice(0, 90) ?? null,
@@ -95,7 +95,7 @@ export async function GET() {
 
   // Metrics — sent this month, reply rate, waiting, converted.
   const monthPrefix = new Date().toISOString().slice(0, 7);
-  const all = inboxMessages.listByWorkspace(wid);
+  const all = await inboxMessages.listByWorkspace(wid);
   const sentThisMonth = all.filter(
     (m) => m.direction === "outbound" && m.sentAt.startsWith(monthPrefix),
   ).length;
@@ -143,7 +143,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Requête invalide" }, { status: 400 });
   }
 
-  const lead = leads.findById(parsed.data.leadId, ctx.workspace.id);
+  const lead = await leads.findById(parsed.data.leadId, ctx.workspace.id);
   if (!lead) return NextResponse.json({ error: "Lead introuvable." }, { status: 404 });
   if (!lead.email) {
     return NextResponse.json(
@@ -152,7 +152,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const existing = conversations.findByLead(lead.id, ctx.workspace.id);
-  const conv = existing ?? conversations.create(ctx.workspace.id, lead.id);
+  const existing = await conversations.findByLead(lead.id, ctx.workspace.id);
+  const conv = existing ?? await conversations.create(ctx.workspace.id, lead.id);
   return NextResponse.json({ conversation: conv });
 }

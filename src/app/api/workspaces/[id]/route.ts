@@ -12,7 +12,7 @@ export async function DELETE(
   if (!user) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
 
   const { id } = await params;
-  const list = workspaces.listForUser(user.id);
+  const list = await workspaces.listForUser(user.id);
   if (!list.some((w) => w.id === id)) {
     return NextResponse.json({ error: "Introuvable" }, { status: 404 });
   }
@@ -23,7 +23,7 @@ export async function DELETE(
     );
   }
 
-  workspaceMembers.remove(user.id, id);
+  await workspaceMembers.remove(user.id, id);
   // Point the active workspace at a remaining one.
   const remaining = list.find((w) => w.id !== id)!;
   await setActiveWorkspace(remaining.id);

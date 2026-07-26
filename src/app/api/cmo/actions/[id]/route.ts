@@ -28,7 +28,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Requête invalide" }, { status: 400 });
   }
 
-  const action = cmoActions.findById(id, ctx.workspace.id);
+  const action = await cmoActions.findById(id, ctx.workspace.id);
   if (!action) return NextResponse.json({ error: "Introuvable" }, { status: 404 });
 
   const wid = ctx.workspace.id;
@@ -36,18 +36,18 @@ export async function PATCH(
 
   switch (parsed.data.op) {
     case "approve": {
-      const updated = cmoActions.update(id, wid, {
+      const updated = await cmoActions.update(id, wid, {
         status: "approved",
         approvedAt: nowIso,
       });
       return NextResponse.json({ action: updated });
     }
     case "reject": {
-      const updated = cmoActions.update(id, wid, { status: "rejected" });
+      const updated = await cmoActions.update(id, wid, { status: "rejected" });
       return NextResponse.json({ action: updated });
     }
     case "edit": {
-      const updated = cmoActions.update(id, wid, {
+      const updated = await cmoActions.update(id, wid, {
         body: parsed.data.body ?? action.body,
       });
       return NextResponse.json({ action: updated });
@@ -59,15 +59,15 @@ export async function PATCH(
           { status: 400 },
         );
       }
-      const item = contentItems.create(wid, {
+      const item = await contentItems.create(wid, {
         type: contentTypeFor[action.platform],
         platform: action.platform,
         title: action.title,
         body: action.body,
         source: "cmo",
       });
-      const autopilot = cmoConfig.get(wid).autopilot;
-      const updated = cmoActions.update(id, wid, {
+      const autopilot = await cmoConfig.get(wid).autopilot;
+      const updated = await cmoActions.update(id, wid, {
         status: "published",
         publishedAt: nowIso,
         contentItemId: item.id,
@@ -78,8 +78,8 @@ export async function PATCH(
       return NextResponse.json({ action: updated });
     }
     case "cancel": {
-      if (action.contentItemId) contentItems.remove(action.contentItemId, wid);
-      const updated = cmoActions.update(id, wid, {
+      if (action.contentItemId) await contentItems.remove(action.contentItemId, wid);
+      const updated = await cmoActions.update(id, wid, {
         status: "pending",
         publishedAt: null,
         cancelUntil: null,

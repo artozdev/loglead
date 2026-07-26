@@ -21,7 +21,7 @@ export async function GET() {
   if (!planAllows(ctx.workspace.plan, "leads")) {
     return NextResponse.json({ error: "Réservé aux offres Growth et Pro." }, { status: 403 });
   }
-  const weights = leadScoreConfig.get(ctx.workspace.id)?.weights ?? DEFAULT_SCORE_WEIGHTS;
+  const weights = (await leadScoreConfig.get(ctx.workspace.id))?.weights ?? DEFAULT_SCORE_WEIGHTS;
   return NextResponse.json({ weights, criteria: SCORE_CRITERIA });
 }
 
@@ -44,11 +44,11 @@ export async function PUT(req: Request) {
     );
   }
 
-  const config = leadScoreConfig.upsert(ctx.workspace.id, parsed.data);
+  const config = await leadScoreConfig.upsert(ctx.workspace.id, parsed.data);
 
   // Re-score every lead in the workspace so the new weighting takes effect
   // everywhere. Best-effort per lead (scoreLead never throws).
-  const all = leads.listByWorkspace(ctx.workspace.id);
+  const all = await leads.listByWorkspace(ctx.workspace.id);
   for (const l of all) {
     await scoreLead(l.id, ctx.workspace.id);
   }

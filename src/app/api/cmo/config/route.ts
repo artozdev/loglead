@@ -21,7 +21,7 @@ export async function POST(req: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Requête invalide" }, { status: 400 });
   }
-  const config = cmoConfig.upsert(ctx.workspace.id, {
+  const config = await cmoConfig.upsert(ctx.workspace.id, {
     ...parsed.data,
     priorities: parsed.data.priorities.map((p) => p.trim()).filter(Boolean),
     activatedAt: new Date().toISOString(),
@@ -49,6 +49,6 @@ export async function PATCH(req: Request) {
   // Autonomy 5 implies autopilot, and vice-versa.
   const patch = { ...parsed.data };
   if (patch.autopilot === true) patch.autonomyLevel = 5;
-  const config = cmoConfig.upsert(ctx.workspace.id, patch);
+  const config = await cmoConfig.upsert(ctx.workspace.id, patch);
   return NextResponse.json({ config });
 }

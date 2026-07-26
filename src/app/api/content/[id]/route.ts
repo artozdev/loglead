@@ -35,7 +35,7 @@ export async function PATCH(
     );
   }
 
-  const item = contentItems.update(id, ctx.workspace.id, parsed.data);
+  const item = await contentItems.update(id, ctx.workspace.id, parsed.data);
   if (!item) return NextResponse.json({ error: "Introuvable" }, { status: 404 });
   return NextResponse.json({ item });
 }
@@ -48,7 +48,7 @@ export async function DELETE(
   if (!ctx) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
 
   const { id } = await params;
-  const ok = contentItems.remove(id, ctx.workspace.id);
+  const ok = await contentItems.remove(id, ctx.workspace.id);
   if (!ok) return NextResponse.json({ error: "Introuvable" }, { status: 404 });
   return NextResponse.json({ ok: true });
 }

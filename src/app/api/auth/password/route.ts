@@ -27,6 +27,6 @@ export async function POST(req: Request) {
     );
   }
 
-  users.updatePassword(user.id, hashPassword(parsed.data.newPassword));
+  await users.updatePassword(user.id, hashPassword(parsed.data.newPassword));
   return NextResponse.json({ ok: true });
 }

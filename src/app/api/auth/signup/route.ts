@@ -21,16 +21,16 @@ export async function POST(req: Request) {
   }
   const { email, password } = parsed.data;
 
-  if (users.findByEmail(email)) {
+  if (await users.findByEmail(email)) {
     return NextResponse.json(
       { error: "Un compte existe déjà avec cet email." },
       { status: 409 },
     );
   }
 
-  const user = users.create(email, hashPassword(password));
+  const user = await users.create(email, hashPassword(password));
   // Bootstrap the founder's first workspace (renamed during onboarding).
-  const workspace = workspaces.create("Ma startup", user.id);
+  const workspace = await workspaces.create("Ma startup", user.id);
   await signIn(user.id);
   await setActiveWorkspace(workspace.id);
 

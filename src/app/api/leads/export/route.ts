@@ -15,10 +15,10 @@ export async function GET(req: Request) {
   const idsParam = new URL(req.url).searchParams.get("ids");
   const ids = idsParam ? new Set(idsParam.split(",")) : null;
   const titleById = new Map(
-    contentItems.listByWorkspace(ctx.workspace.id).map((c) => [c.id, c.title]),
+    (await contentItems.listByWorkspace(ctx.workspace.id)).map((c) => [c.id, c.title]),
   );
 
-  let list = leads.listByWorkspace(ctx.workspace.id);
+  let list = await leads.listByWorkspace(ctx.workspace.id);
   if (ids) list = list.filter((l) => ids.has(l.id));
 
   const header = [

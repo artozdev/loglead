@@ -19,6 +19,6 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: "Requête invalide" }, { status: 400 });
   }
 
-  users.updateEmailPrefs(user.id, parsed.data);
+  await users.updateEmailPrefs(user.id, parsed.data);
   return NextResponse.json({ ok: true });
 }

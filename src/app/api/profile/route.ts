@@ -23,7 +23,7 @@ export async function GET() {
   const ctx = await currentWorkspace();
   if (!ctx) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
   return NextResponse.json({
-    profile: profiles.findByWorkspace(ctx.workspace.id) ?? null,
+    profile: await profiles.findByWorkspace(ctx.workspace.id) ?? null,
   });
 }
 
@@ -44,12 +44,12 @@ export async function PUT(req: Request) {
     .filter(Boolean)
     .slice(0, 3);
 
-  const profile = profiles.upsert(ctx.workspace.id, {
+  const profile = await profiles.upsert(ctx.workspace.id, {
     ...parsed.data,
     competitors,
   });
   // Keep the workspace name in sync with the brand (names the first workspace).
-  workspaces.rename(ctx.workspace.id, parsed.data.saasName);
+  await workspaces.rename(ctx.workspace.id, parsed.data.saasName);
 
   return NextResponse.json({ profile });
 }

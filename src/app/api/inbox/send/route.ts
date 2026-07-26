@@ -35,8 +35,8 @@ export async function POST(req: Request) {
     );
   }
 
-  const conv = conversations.findById(parsed.data.conversationId, ctx.workspace.id);
-  const lead = conv ? leads.findById(conv.leadId, ctx.workspace.id) : undefined;
+  const conv = await conversations.findById(parsed.data.conversationId, ctx.workspace.id);
+  const lead = conv ? await leads.findById(conv.leadId, ctx.workspace.id) : undefined;
   if (!conv || !lead) {
     return NextResponse.json({ error: "Conversation introuvable." }, { status: 404 });
   }
@@ -81,16 +81,16 @@ export async function POST(req: Request) {
     // Left unwired until a key is configured; falls through to recording below.
   }
 
-  const message = inboxMessages.create(conv.id, {
+  const message = await inboxMessages.create(conv.id, {
     direction: "outbound",
     content: parsed.data.content,
     isAiGenerated: parsed.data.isAiGenerated,
   });
-  conversations.touch(conv.id);
-  conversations.setStatus(conv.id, "waiting"); // awaiting the lead's reply
-  leadEvents.create(lead.id, "email_sent", { via: "logreach", channel });
+  await conversations.touch(conv.id);
+  await conversations.setStatus(conv.id, "waiting"); // awaiting the lead's reply
+  await leadEvents.create(lead.id, "email_sent", { via: "logreach", channel });
   if (lead.status === "new") {
-    leads.update(lead.id, ctx.workspace.id, { status: "contacted" });
+    await leads.update(lead.id, ctx.workspace.id, { status: "contacted" });
   }
 
   return NextResponse.json({ message, channel });

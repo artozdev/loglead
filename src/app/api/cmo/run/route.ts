@@ -11,7 +11,7 @@ export async function POST() {
     return NextResponse.json({ error: "Réservé à l'offre Pro." }, { status: 403 });
   }
 
-  const profile = profiles.findByWorkspace(ctx.workspace.id);
+  const profile = await profiles.findByWorkspace(ctx.workspace.id);
   if (!profile) {
     return NextResponse.json(
       { error: "Complète ton profil de marque d'abord." },
@@ -20,7 +20,7 @@ export async function POST() {
   }
 
   try {
-    const config = cmoConfig.get(ctx.workspace.id);
+    const config = await cmoConfig.get(ctx.workspace.id);
     const actions = await runCmo(ctx.workspace.id, profile, config.lastInstruction);
     return NextResponse.json({ actions, demo: isDemoMode() });
   } catch (err) {

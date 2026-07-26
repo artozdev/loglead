@@ -32,7 +32,7 @@ export async function POST(req: Request) {
   const ctx = await currentWorkspace();
   if (!ctx) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
 
-  const profile = profiles.findByWorkspace(ctx.workspace.id);
+  const profile = await profiles.findByWorkspace(ctx.workspace.id);
   if (!profile) {
     return NextResponse.json(
       { error: "Complète ton profil avant de cloner une structure." },
@@ -58,7 +58,7 @@ export async function POST(req: Request) {
   const targetNetwork = parsed.data.targetNetwork ?? PLATFORM_TO_NETWORK[platform] ?? "linkedin";
 
   try {
-    const existingPosts = contentItems.listByWorkspace(ctx.workspace.id).map((c) => c.body);
+    const existingPosts = (await contentItems.listByWorkspace(ctx.workspace.id)).map((c) => c.body);
     const result = await cloneStructure(
       profile,
       { url: parsed.data.url, text: parsed.data.text, platform, targetNetwork },

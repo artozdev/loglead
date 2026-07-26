@@ -28,7 +28,7 @@ export async function POST(req: Request) {
   const ctx = await currentWorkspace();
   if (!ctx) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
 
-  const profile = profiles.findByWorkspace(ctx.workspace.id);
+  const profile = await profiles.findByWorkspace(ctx.workspace.id);
   if (!profile) {
     return NextResponse.json(
       { error: "Complète ton profil avant de générer." },
@@ -52,7 +52,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const existingPosts = contentItems.listByWorkspace(ctx.workspace.id).map((c) => c.body);
+    const existingPosts = (await contentItems.listByWorkspace(ctx.workspace.id)).map((c) => c.body);
     const variants = await generateFromBrief(profile, parsed.data, {
       firstName: firstNameOf(ctx.user.email),
       existingPosts,

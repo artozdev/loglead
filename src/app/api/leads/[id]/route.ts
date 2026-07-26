@@ -16,10 +16,10 @@ export async function GET(
     return NextResponse.json({ error: "Réservé aux offres Growth et Pro." }, { status: 403 });
   }
   const { id } = await params;
-  const lead = leads.findById(id, ctx.workspace.id);
+  const lead = await leads.findById(id, ctx.workspace.id);
   if (!lead) return NextResponse.json({ error: "Introuvable" }, { status: 404 });
-  const weights = leadScoreConfig.get(ctx.workspace.id)?.weights ?? DEFAULT_SCORE_WEIGHTS;
-  return NextResponse.json({ lead, events: leadEvents.listByLead(id), weights });
+  const weights = (await leadScoreConfig.get(ctx.workspace.id))?.weights ?? DEFAULT_SCORE_WEIGHTS;
+  return NextResponse.json({ lead, events: await leadEvents.listByLead(id), weights });
 }
 
 const patchSchema = z
@@ -48,7 +48,7 @@ export async function PATCH(
   }
 
   const { id } = await params;
-  const existing = leads.findById(id, ctx.workspace.id);
+  const existing = await leads.findById(id, ctx.workspace.id);
   if (!existing) return NextResponse.json({ error: "Introuvable" }, { status: 404 });
 
   const parsed = patchSchema.safeParse(await req.json().catch(() => null));
@@ -65,15 +65,15 @@ export async function PATCH(
   if (d.phone !== undefined) patch.phone = d.phone || null;
   if (d.sourceContentId !== undefined) patch.sourceContentId = d.sourceContentId || null;
 
-  let lead = leads.update(id, ctx.workspace.id, patch);
+  let lead = await leads.update(id, ctx.workspace.id, patch);
 
   const statusChanged = Boolean(d.status && d.status !== existing.status);
   const noteChanged = d.notes !== undefined && d.notes !== (existing.notes ?? "");
   if (statusChanged) {
-    leadEvents.create(id, "status_changed", { from: existing.status, to: d.status });
+    await leadEvents.create(id, "status_changed", { from: existing.status, to: d.status });
   }
   if (noteChanged) {
-    leadEvents.create(id, "note_added", {});
+    await leadEvents.create(id, "note_added", {});
   }
 
   // Recompute the qualification score on every meaningful interaction. Events
@@ -95,7 +95,7 @@ export async function DELETE(
   }
 
   const { id } = await params;
-  const ok = leads.remove(id, ctx.workspace.id);
+  const ok = await leads.remove(id, ctx.workspace.id);
   if (!ok) return NextResponse.json({ error: "Introuvable" }, { status: 404 });
   return NextResponse.json({ ok: true });
 }

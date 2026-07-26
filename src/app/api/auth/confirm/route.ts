@@ -15,9 +15,9 @@ export async function GET(req: Request) {
     purpose === "confirm" &&
     userId &&
     Date.now() - Number(ts) <= MAX_AGE_MS &&
-    users.findById(userId)
+    await users.findById(userId)
   ) {
-    users.markEmailVerified(userId);
+    await users.markEmailVerified(userId);
     return NextResponse.redirect(new URL("/dashboard", url.origin));
   }
   return NextResponse.redirect(new URL("/login", url.origin));

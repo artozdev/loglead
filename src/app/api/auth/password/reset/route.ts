@@ -19,15 +19,15 @@ export async function POST(req: Request) {
   }
 
   const tokenHash = createHash("sha256").update(parsed.data.token).digest("hex");
-  const reset = passwordResets.findValid(tokenHash);
-  if (!reset || !users.findById(reset.userId)) {
+  const reset = await passwordResets.findValid(tokenHash);
+  if (!reset || !await users.findById(reset.userId)) {
     return NextResponse.json(
       { error: "Ce lien a expiré ou n'est plus valide.", expired: true },
       { status: 400 },
     );
   }
 
-  users.updatePassword(reset.userId, hashPassword(parsed.data.password));
-  passwordResets.markUsed(reset.id);
+  await users.updatePassword(reset.userId, hashPassword(parsed.data.password));
+  await passwordResets.markUsed(reset.id);
   return NextResponse.json({ ok: true });
 }

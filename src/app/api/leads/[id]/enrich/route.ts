@@ -41,10 +41,10 @@ export async function POST(
   }
 
   const { id } = await params;
-  const lead = leads.findById(id, ctx.workspace.id);
+  const lead = await leads.findById(id, ctx.workspace.id);
   if (!lead) return NextResponse.json({ error: "Introuvable" }, { status: 404 });
 
-  const profile = profiles.findByWorkspace(ctx.workspace.id);
+  const profile = await profiles.findByWorkspace(ctx.workspace.id);
 
   const patch: Partial<LeadInput> = {};
   if (!lead.email) patch.email = mockEmail(lead.firstName, lead.lastName, lead.company);
@@ -55,10 +55,10 @@ export async function POST(
     patch.interests = mockInterests(`${lead.company ?? ""}${lead.firstName}`);
   }
   patch.enrichedAt = new Date().toISOString();
-  const updated = leads.update(id, ctx.workspace.id, patch) ?? lead;
+  const updated = await leads.update(id, ctx.workspace.id, patch) ?? lead;
 
   const sourceTitle = lead.sourceContentId
-    ? contentItems.findById(lead.sourceContentId, ctx.workspace.id)?.title
+    ? (await contentItems.findById(lead.sourceContentId, ctx.workspace.id))?.title
     : undefined;
   let message = null;
   try {
@@ -75,7 +75,7 @@ export async function POST(
     /* message is best-effort */
   }
 
-  leadEvents.create(id, "enriched", { foundEmail: Boolean(patch.email) });
+  await leadEvents.create(id, "enriched", { foundEmail: Boolean(patch.email) });
   // Fresh firmographics → recompute the qualification score.
   const scored = await scoreLead(id, ctx.workspace.id);
   return NextResponse.json({ lead: scored ?? updated, message });

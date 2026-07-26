@@ -14,7 +14,7 @@ export async function GET(
     return NextResponse.json({ error: "Réservé aux offres Growth et Pro." }, { status: 403 });
   }
   const { id } = await params;
-  const campaign = campaigns.findById(id, ctx.workspace.id);
+  const campaign = await campaigns.findById(id, ctx.workspace.id);
   if (!campaign) return NextResponse.json({ error: "Introuvable" }, { status: 404 });
   return NextResponse.json({ campaign, rollup: campaignLeads(ctx.workspace.id, campaign) });
 }
@@ -29,12 +29,12 @@ export async function DELETE(
     return NextResponse.json({ error: "Réservé aux offres Growth et Pro." }, { status: 403 });
   }
   const { id } = await params;
-  const campaign = campaigns.findById(id, ctx.workspace.id);
+  const campaign = await campaigns.findById(id, ctx.workspace.id);
   if (!campaign) return NextResponse.json({ error: "Introuvable" }, { status: 404 });
   // Also remove the scheduled content items this campaign created.
   for (const p of campaign.publications) {
-    if (p.contentItemId) contentItems.remove(p.contentItemId, ctx.workspace.id);
+    if (p.contentItemId) await contentItems.remove(p.contentItemId, ctx.workspace.id);
   }
-  campaigns.remove(id, ctx.workspace.id);
+  await campaigns.remove(id, ctx.workspace.id);
   return NextResponse.json({ ok: true });
 }

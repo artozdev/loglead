@@ -17,7 +17,7 @@ const schema = z.object({
 
 export async function POST(req: Request) {
   const wid = new URL(req.url).searchParams.get("w");
-  if (!wid || !workspaces.findById(wid)) {
+  if (!wid || !await workspaces.findById(wid)) {
     return NextResponse.json({ error: "Webhook invalide" }, { status: 404 });
   }
 
@@ -27,9 +27,9 @@ export async function POST(req: Request) {
   }
   const d = parsed.data;
   const sourceContentId =
-    d.utm_content && contentItems.findById(d.utm_content, wid) ? d.utm_content : null;
+    d.utm_content && await contentItems.findById(d.utm_content, wid) ? d.utm_content : null;
 
-  const lead = leads.create(wid, {
+  const lead = await leads.create(wid, {
     firstName: d.firstName,
     lastName: d.lastName,
     email: d.email || null,
@@ -39,7 +39,7 @@ export async function POST(req: Request) {
     sourceContentId,
     status: "new",
   });
-  leadEvents.create(lead.id, "added", {
+  await leadEvents.create(lead.id, "added", {
     channel: "website",
     utm_source: d.utm_source ?? null,
   });

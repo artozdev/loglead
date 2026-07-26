@@ -43,7 +43,7 @@ export async function POST(req: Request) {
 
   const competitors = d.competitors.map((c) => c.trim()).filter(Boolean).slice(0, 3);
 
-  const profile = profiles.upsert(ctx.workspace.id, {
+  const profile = await profiles.upsert(ctx.workspace.id, {
     saasName: d.saasName,
     offer: d.offer,
     valueProp: d.valueProp,
@@ -61,8 +61,8 @@ export async function POST(req: Request) {
     problem: d.problem || undefined,
     frequency: d.frequency,
   });
-  workspaces.rename(ctx.workspace.id, d.saasName);
-  onboardingProgress.complete(ctx.workspace.id);
+  await workspaces.rename(ctx.workspace.id, d.saasName);
+  await onboardingProgress.complete(ctx.workspace.id);
 
   // Email 2 — welcome brief. Sent immediately in the MVP (the spec's 5-minute
   // delay needs a job queue — swap `void sendEmail` for a queued job later).

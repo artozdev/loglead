@@ -15,10 +15,10 @@ export async function GET(req: Request) {
   const today = new Date().toISOString().slice(0, 10);
   let sent = 0;
 
-  for (const ws of workspaces.listAll()) {
+  for (const ws of await workspaces.listAll()) {
     if (ws.plan !== "pro") continue;
-    if (!cmoConfig.get(ws.id).activatedAt) continue;
-    const owner = users.findById(ws.ownerId);
+    if (!await cmoConfig.get(ws.id).activatedAt) continue;
+    const owner = await users.findById(ws.ownerId);
     if (!owner || owner.emailPrefs?.dailyBrief === false) continue;
 
     const items = contentItems
@@ -33,7 +33,7 @@ export async function GET(req: Request) {
       }));
     if (items.length === 0) continue; // nothing planned today → no email
 
-    const scans = visibilityScans.listByWorkspace(ws.id).filter((s) => s.queryRows);
+    const scans = (await visibilityScans.listByWorkspace(ws.id)).filter((s) => s.queryRows);
     const geoScore = scans[0]?.globalScore ?? null;
     const geoDelta = scans[0] && scans[1] ? scans[0].globalScore - scans[1].globalScore : null;
 

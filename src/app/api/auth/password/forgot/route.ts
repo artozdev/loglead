@@ -24,12 +24,12 @@ export async function POST(req: Request) {
     );
   }
 
-  const user = users.findByEmail(email);
+  const user = await users.findByEmail(email);
   if (user) {
     // Only the SHA-256 hash is persisted; the raw token lives in the email link.
     const token = randomBytes(32).toString("hex");
     const tokenHash = createHash("sha256").update(token).digest("hex");
-    passwordResets.create(user.id, tokenHash);
+    await passwordResets.create(user.id, tokenHash);
     await sendEmail({
       to: user.email,
       subject: "Réinitialise ton mot de passe LogLead",

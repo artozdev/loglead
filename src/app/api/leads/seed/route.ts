@@ -35,11 +35,11 @@ export async function POST() {
     return NextResponse.json({ error: "Réservé aux offres Growth et Pro." }, { status: 403 });
   }
 
-  if (leads.listByWorkspace(ctx.workspace.id).length > 0) {
+  if ((await leads.listByWorkspace(ctx.workspace.id)).length > 0) {
     return NextResponse.json({ skipped: true });
   }
 
-  const srcId = contentItems.listByWorkspace(ctx.workspace.id)[0]?.id ?? null;
+  const srcId = await contentItems.listByWorkspace(ctx.workspace.id)[0]?.id ?? null;
   let created = 0;
   DEMO.forEach((d, i) => {
     const input: LeadInput = {
@@ -53,10 +53,10 @@ export async function POST() {
       sourceContentId: i % 3 === 0 ? srcId : null,
       status: d.status,
     };
-    const lead = leads.create(ctx.workspace.id, input);
-    leadEvents.create(lead.id, "added", { channel: d.channel, demo: true });
+    const lead = await leads.create(ctx.workspace.id, input);
+    await leadEvents.create(lead.id, "added", { channel: d.channel, demo: true });
     if (d.status !== "new") {
-      leadEvents.create(lead.id, "status_changed", { from: "new", to: d.status });
+      await leadEvents.create(lead.id, "status_changed", { from: "new", to: d.status });
     }
     created++;
   });

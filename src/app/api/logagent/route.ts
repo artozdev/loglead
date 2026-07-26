@@ -35,23 +35,23 @@ export async function GET(req: Request) {
   }
 
   const id = new URL(req.url).searchParams.get("conversationId");
-  const used = agentMessages.creditsUsedThisMonth(ctx.workspace.id);
+  const used = await agentMessages.creditsUsedThisMonth(ctx.workspace.id);
 
   if (id) {
-    const conv = agentConversations.findById(id, ctx.workspace.id);
+    const conv = await agentConversations.findById(id, ctx.workspace.id);
     if (!conv) return NextResponse.json({ error: "Conversation introuvable." }, { status: 404 });
     return NextResponse.json({
       conversation: conv,
-      messages: agentMessages.listByConversation(id),
+      messages: await agentMessages.listByConversation(id),
       credits: { used, quota: AGENT_MONTHLY_QUOTA },
     });
   }
 
   return NextResponse.json({
-    conversations: agentConversations.listByWorkspace(ctx.workspace.id).map((c) => ({
+    conversations: (await agentConversations.listByWorkspace(ctx.workspace.id)).map((c) => ({
       ...c,
       // Preview = first user message of the thread.
-      preview: agentMessages.listByConversation(c.id).find((m) => m.role === "user")?.content ?? c.title,
+      preview: (await agentMessages.listByConversation(c.id)).find((m) => m.role === "user")?.content ?? c.title,
     })),
     credits: { used, quota: AGENT_MONTHLY_QUOTA },
   });
@@ -68,7 +68,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Trop de messages d'affilée — patiente un instant." }, { status: 429 });
   }
 
-  const profile = profiles.findByWorkspace(ctx.workspace.id);
+  const profile = await profiles.findByWorkspace(ctx.workspace.id);
   if (!profile) {
     return NextResponse.json({ error: "Complète d'abord ton profil SaaS." }, { status: 400 });
   }
@@ -83,7 +83,7 @@ export async function POST(req: Request) {
   const { message } = parsed.data;
 
   // Credit check before doing any work.
-  const used = agentMessages.creditsUsedThisMonth(ctx.workspace.id);
+  const used = await agentMessages.creditsUsedThisMonth(ctx.workspace.id);
   const cost = AGENT_CREDIT_COSTS[detectAction(message)];
   if (used + cost > AGENT_MONTHLY_QUOTA) {
     return NextResponse.json(
@@ -97,10 +97,10 @@ export async function POST(req: Request) {
 
   const conv =
     (parsed.data.conversationId
-      ? agentConversations.findById(parsed.data.conversationId, ctx.workspace.id)
-      : undefined) ?? agentConversations.create(ctx.workspace.id, truncate(message, 60));
+      ? await agentConversations.findById(parsed.data.conversationId, ctx.workspace.id)
+      : undefined) ?? await agentConversations.create(ctx.workspace.id, truncate(message, 60));
 
-  agentMessages.create(conv.id, { role: "user", content: message });
+  await agentMessages.create(conv.id, { role: "user", content: message });
 
   try {
     const result = await runAgent({
@@ -110,14 +110,14 @@ export async function POST(req: Request) {
       message,
     });
     const charged = AGENT_CREDIT_COSTS[result.action];
-    const assistant = agentMessages.create(conv.id, {
+    const assistant = await agentMessages.create(conv.id, {
       role: "assistant",
       content: result.content,
       payload: result.payload,
       reasoning: result.reasoning,
       credits: charged,
     });
-    agentConversations.touch(conv.id);
+    await agentConversations.touch(conv.id);
 
     return NextResponse.json({
       conversationId: conv.id,

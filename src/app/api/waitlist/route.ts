@@ -13,7 +13,7 @@ export async function GET(req: Request) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
   const feature = new URL(req.url).searchParams.get("feature") ?? "";
-  return NextResponse.json({ subscribed: waitlist.isSubscribed(feature, user.email) });
+  return NextResponse.json({ subscribed: await waitlist.isSubscribed(feature, user.email) });
 }
 
 export async function POST(req: Request) {
@@ -25,6 +25,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
   }
 
-  const { already } = waitlist.add(parsed.data.feature, parsed.data.email, user.id);
+  const { already } = await waitlist.add(parsed.data.feature, parsed.data.email, user.id);
   return NextResponse.json({ ok: true, already });
 }

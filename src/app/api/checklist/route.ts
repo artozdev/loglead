@@ -21,10 +21,10 @@ export async function POST(req: Request) {
   }
 
   if (parsed.data.step) {
-    profiles.completeChecklistStep(ctx.workspace.id, parsed.data.step);
+    await profiles.completeChecklistStep(ctx.workspace.id, parsed.data.step);
   }
   if (parsed.data.dismissed !== undefined) {
-    profiles.setChecklistDismissed(ctx.workspace.id, parsed.data.dismissed);
+    await profiles.setChecklistDismissed(ctx.workspace.id, parsed.data.dismissed);
   }
   return NextResponse.json({ ok: true });
 }

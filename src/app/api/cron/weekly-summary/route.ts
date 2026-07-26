@@ -24,14 +24,14 @@ export async function GET(req: Request) {
   const inWeek = (iso: string) => new Date(iso).getTime() >= since;
   let sent = 0;
 
-  for (const ws of workspaces.listAll()) {
-    const owner = users.findById(ws.ownerId);
-    const profile = profiles.findByWorkspace(ws.id);
+  for (const ws of await workspaces.listAll()) {
+    const owner = await users.findById(ws.ownerId);
+    const profile = await profiles.findByWorkspace(ws.id);
     if (!owner || !profile) continue;
     if (owner.emailPrefs?.weeklySummary === false) continue;
 
-    const content = contentItems.listByWorkspace(ws.id).filter((c) => inWeek(c.createdAt));
-    const analyses = contentAnalyses.listByWorkspace(ws.id).filter((a) => inWeek(a.createdAt));
+    const content = (await contentItems.listByWorkspace(ws.id)).filter((c) => inWeek(c.createdAt));
+    const analyses = (await contentAnalyses.listByWorkspace(ws.id)).filter((a) => inWeek(a.createdAt));
     if (content.length === 0 && analyses.length === 0) continue; // idle week → skip
 
     const avgScore =
@@ -39,7 +39,7 @@ export async function GET(req: Request) {
         ? 0
         : Math.round(analyses.reduce((a, x) => a + x.globalScore, 0) / analyses.length);
 
-    const scans = visibilityScans.listByWorkspace(ws.id).filter((s) => s.queryRows);
+    const scans = (await visibilityScans.listByWorkspace(ws.id)).filter((s) => s.queryRows);
     const geoScore = scans[0]?.globalScore ?? null;
     const geoDelta = scans[0] && scans[1] ? scans[0].globalScore - scans[1].globalScore : null;
 

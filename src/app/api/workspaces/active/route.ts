@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Requête invalide" }, { status: 400 });
   }
 
-  if (!workspaceMembers.isMember(user.id, parsed.data.workspaceId)) {
+  if (!await workspaceMembers.isMember(user.id, parsed.data.workspaceId)) {
     return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
   }
 

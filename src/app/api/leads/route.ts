@@ -35,7 +35,7 @@ export async function GET(req: Request) {
   const pageSize = PAGE_SIZES.includes(requestedSize) ? requestedSize : 10;
 
   const segs = segmentsRepo.listByWorkspace(ctx.workspace.id);
-  let list = leads.listByWorkspace(ctx.workspace.id);
+  let list = await leads.listByWorkspace(ctx.workspace.id);
   // Restrict to one segment's members (segment detail view).
   if (segmentId) {
     const seg = segs.find((s) => s.id === segmentId);
@@ -111,7 +111,7 @@ export async function POST(req: Request) {
     );
   }
   const d = parsed.data;
-  const lead = leads.create(ctx.workspace.id, {
+  const lead = await leads.create(ctx.workspace.id, {
     firstName: d.firstName,
     lastName: d.lastName,
     email: d.email || null,
@@ -124,7 +124,7 @@ export async function POST(req: Request) {
     status: d.status,
     notes: d.notes,
   });
-  leadEvents.create(lead.id, "added", { channel: lead.channel });
+  await leadEvents.create(lead.id, "added", { channel: lead.channel });
   void notifyNewLead(lead); // Email 9 (respects the settings toggle)
   return NextResponse.json({ lead });
 }

@@ -17,23 +17,23 @@ export async function GET(req: Request) {
   const in3days = new Date(Date.now() + 3 * 86_400_000).toISOString().slice(0, 10);
   let sent = 0;
 
-  for (const ws of workspaces.listAll()) {
+  for (const ws of await workspaces.listAll()) {
     if (!ws.trialEndsAt) continue;
     const endDay = ws.trialEndsAt.slice(0, 10);
-    const owner = users.findById(ws.ownerId);
+    const owner = await users.findById(ws.ownerId);
     if (!owner) continue;
     const firstName = firstNameFromEmail(owner.email);
 
     if (endDay === in3days) {
-      const geo = visibilityScans.listByWorkspace(ws.id).find((s) => s.queryRows);
+      const geo = (await visibilityScans.listByWorkspace(ws.id)).find((s) => s.queryRows);
       await sendEmail({
         to: owner.email,
         subject: "Il te reste 3 jours d'essai — ne perds pas ta progression",
         template: TrialEndingEmail({
           firstName,
           stats: {
-            generated: contentItems.listByWorkspace(ws.id).length,
-            analyses: contentAnalyses.listByWorkspace(ws.id).length,
+            generated: (await contentItems.listByWorkspace(ws.id)).length,
+            analyses: (await contentAnalyses.listByWorkspace(ws.id)).length,
             geoScore: geo?.globalScore ?? null,
           },
           appUrl: appUrl(),

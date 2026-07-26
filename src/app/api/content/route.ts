@@ -30,7 +30,7 @@ const createSchema = z.object({
 export async function GET() {
   const ctx = await currentWorkspace();
   if (!ctx) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
-  return NextResponse.json({ items: contentItems.listByWorkspace(ctx.workspace.id) });
+  return NextResponse.json({ items: await contentItems.listByWorkspace(ctx.workspace.id) });
 }
 
 export async function POST(req: Request) {
@@ -45,7 +45,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const item = contentItems.create(ctx.workspace.id, {
+  const item = await contentItems.create(ctx.workspace.id, {
     ...parsed.data,
     scheduledDate: parsed.data.scheduledDate ?? null,
   });

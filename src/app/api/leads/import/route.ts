@@ -63,7 +63,7 @@ export async function POST(req: Request) {
       last = parts.slice(1).join(" ");
     }
     if (!first) continue;
-    const lead = leads.create(ctx.workspace.id, {
+    const lead = await leads.create(ctx.workspace.id, {
       firstName: first,
       lastName: last,
       email: ei >= 0 && r[ei]?.trim() ? r[ei].trim() : null,
@@ -75,7 +75,7 @@ export async function POST(req: Request) {
       sourceContentId: null,
       status: "new",
     });
-    leadEvents.create(lead.id, "added", { channel: "linkedin", imported: true });
+    await leadEvents.create(lead.id, "added", { channel: "linkedin", imported: true });
     imported++;
   }
   return NextResponse.json({ imported });

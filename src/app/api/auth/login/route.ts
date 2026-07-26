@@ -18,7 +18,7 @@ export async function POST(req: Request) {
   }
   const { email, password } = parsed.data;
 
-  const user = users.findByEmail(email);
+  const user = await users.findByEmail(email);
   if (!user || !verifyPassword(password, user.passwordHash)) {
     return NextResponse.json(
       { error: "Email ou mot de passe incorrect." },

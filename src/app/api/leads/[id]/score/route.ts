@@ -17,7 +17,7 @@ export async function POST(
   }
 
   const { id } = await params;
-  const existing = leads.findById(id, ctx.workspace.id);
+  const existing = await leads.findById(id, ctx.workspace.id);
   if (!existing) return NextResponse.json({ error: "Introuvable" }, { status: 404 });
 
   const lead = await scoreLead(id, ctx.workspace.id);
@@ -27,6 +27,6 @@ export async function POST(
       { status: 502 },
     );
   }
-  leadEvents.create(id, "scored", { total: lead.score });
+  await leadEvents.create(id, "scored", { total: lead.score });
   return NextResponse.json({ lead });
 }
