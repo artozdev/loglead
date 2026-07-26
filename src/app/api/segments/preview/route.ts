@@ -23,8 +23,7 @@ export async function POST(req: Request) {
   const parsed = schema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ count: 0 });
 
-  const count = leadsRepo
-    .listByWorkspace(ctx.workspace.id)
+  const count = (await leadsRepo.listByWorkspace(ctx.workspace.id))
     .filter((l) => matchesCriteria(l, parsed.data)).length;
   return NextResponse.json({ count });
 }

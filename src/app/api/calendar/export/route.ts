@@ -63,8 +63,7 @@ export async function GET(req: Request) {
   const format = new URL(req.url).searchParams.get("format") === "ics"
     ? "ics"
     : "csv";
-  const scheduled = contentItems
-    .listByWorkspace(ctx.workspace.id)
+  const scheduled = (await contentItems.listByWorkspace(ctx.workspace.id))
     .filter((i) => i.scheduledDate)
     .sort((a, b) => (a.scheduledDate! < b.scheduledDate! ? -1 : 1));
 

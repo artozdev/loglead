@@ -17,12 +17,11 @@ export async function GET(req: Request) {
 
   for (const ws of await workspaces.listAll()) {
     if (ws.plan !== "pro") continue;
-    if (!await cmoConfig.get(ws.id).activatedAt) continue;
+    if (!(await cmoConfig.get(ws.id)).activatedAt) continue;
     const owner = await users.findById(ws.ownerId);
     if (!owner || owner.emailPrefs?.dailyBrief === false) continue;
 
-    const items = contentItems
-      .listByWorkspace(ws.id)
+    const items = (await contentItems.listByWorkspace(ws.id))
       .filter((c) => c.scheduledDate === today)
       .sort((a, b) => (a.scheduledTime ?? "09:00").localeCompare(b.scheduledTime ?? "09:00"))
       .map((c) => ({

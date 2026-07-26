@@ -17,7 +17,7 @@ export default async function SettingsPage({
   // Tab validation happens in SettingsHub (single source of truth for tab ids).
   const { tab: initialTab } = await searchParams;
   const user = await requireUser();
-  const workspaces = workspacesRepo.listForUser(user.id);
+  const workspaces = await workspacesRepo.listForUser(user.id);
   const active = await getActiveWorkspace(user);
   const profile = active ? await profiles.findByWorkspace(active.id) ?? null : null;
 

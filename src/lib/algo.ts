@@ -23,11 +23,11 @@ export async function getAlgoInsights(
   profile: Profile,
   opts: { force?: boolean } = {},
 ): Promise<AlgoInsights> {
-  const existing = repo.get(workspaceId);
+  const existing = await repo.get(workspaceId);
   if (!opts.force && isFresh(existing)) return existing!;
 
   const networks = await generateAlgoInsights(profile);
-  return repo.upsert(workspaceId, {
+  return await repo.upsert(workspaceId, {
     generatedAt: new Date().toISOString(),
     demo: isDemoMode(),
     networks,

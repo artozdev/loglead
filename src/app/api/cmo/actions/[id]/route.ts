@@ -66,7 +66,7 @@ export async function PATCH(
         body: action.body,
         source: "cmo",
       });
-      const autopilot = await cmoConfig.get(wid).autopilot;
+      const autopilot = (await cmoConfig.get(wid)).autopilot;
       const updated = await cmoActions.update(id, wid, {
         status: "published",
         publishedAt: nowIso,

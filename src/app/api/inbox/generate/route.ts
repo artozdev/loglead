@@ -44,8 +44,7 @@ export async function POST(req: Request) {
     ? (await contentItems.findById(lead.sourceContentId, ctx.workspace.id))?.title
     : undefined;
   const channelLabel = parsed.data.channel || leadChannelLabel(lead.channel);
-  const messages = inboxMessages
-    .listByConversation(conv.id)
+  const messages = (await inboxMessages.listByConversation(conv.id))
     .map((m) => ({ direction: m.direction, content: m.content }));
   const last = messages[messages.length - 1];
 

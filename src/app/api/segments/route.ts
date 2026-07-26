@@ -27,8 +27,8 @@ export async function GET() {
     return NextResponse.json({ error: "Réservé aux offres Growth et Pro." }, { status: 403 });
   }
 
-  const allLeads = leadsRepo.listByWorkspace(ctx.workspace.id);
-  const segs = segmentsRepo.listByWorkspace(ctx.workspace.id);
+  const allLeads = await leadsRepo.listByWorkspace(ctx.workspace.id);
+  const segs = await segmentsRepo.listByWorkspace(ctx.workspace.id);
   const rows = segs.map((s) => ({ segment: s, metrics: segmentMetrics(leadsInSegment(allLeads, s)) }));
 
   const active = segs.filter((s) => !s.isArchived);
@@ -58,6 +58,6 @@ export async function POST(req: Request) {
     );
   }
 
-  const segment = segmentsRepo.create(ctx.workspace.id, parsed.data);
+  const segment = await segmentsRepo.create(ctx.workspace.id, parsed.data);
   return NextResponse.json({ segment });
 }

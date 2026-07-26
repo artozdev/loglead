@@ -37,7 +37,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (!parsed.success) {
     return NextResponse.json({ error: "Requête invalide" }, { status: 400 });
   }
-  const segment = segmentsRepo.update(id, ctx!.workspace.id, parsed.data);
+  const segment = await segmentsRepo.update(id, ctx!.workspace.id, parsed.data);
   if (!segment) return NextResponse.json({ error: "Segment introuvable." }, { status: 404 });
   return NextResponse.json({ segment });
 }
@@ -46,7 +46,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   const { ctx, error } = await guard();
   if (error) return error;
   const { id } = await params;
-  const ok = segmentsRepo.remove(id, ctx!.workspace.id);
+  const ok = await segmentsRepo.remove(id, ctx!.workspace.id);
   if (!ok) return NextResponse.json({ error: "Segment introuvable." }, { status: 404 });
   return NextResponse.json({ ok: true });
 }

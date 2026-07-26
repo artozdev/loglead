@@ -16,10 +16,10 @@ export default async function SegmentDetailPage({
   if (!planAllows(workspace.plan, "leads")) redirect("/pricing");
 
   const { id } = await params;
-  const segment = segmentsRepo.findById(id, workspace.id);
+  const segment = await segmentsRepo.findById(id, workspace.id);
   if (!segment) notFound();
 
-  const members = leadsInSegment(leadsRepo.listByWorkspace(workspace.id), segment);
+  const members = leadsInSegment(await leadsRepo.listByWorkspace(workspace.id), segment);
   const m = segmentMetrics(members);
   const meta = SEGMENT_TYPE_META[segment.type];
   const contents = (await contentItems.listByWorkspace(workspace.id)).map((c) => ({ id: c.id, title: c.title }));

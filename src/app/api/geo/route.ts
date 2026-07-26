@@ -39,8 +39,7 @@ export async function GET(req: Request) {
   const ctx = await currentWorkspace();
   if (!ctx) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
   const scanId = new URL(req.url).searchParams.get("scanId");
-  const scan = visibilityScans
-    .listByWorkspace(ctx.workspace.id)
+  const scan = (await visibilityScans.listByWorkspace(ctx.workspace.id))
     .find((s) => s.id === scanId && s.queryRows);
   if (!scan) return NextResponse.json({ error: "Scan introuvable." }, { status: 404 });
   return NextResponse.json({ scan });

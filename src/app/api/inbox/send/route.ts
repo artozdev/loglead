@@ -48,8 +48,7 @@ export async function POST(req: Request) {
   // Monthly quota (Growth: 100 — Pro: unlimited).
   const quota = inboxMonthlyQuota(ctx.workspace.plan);
   const monthPrefix = new Date().toISOString().slice(0, 7);
-  const sentThisMonth = inboxMessages
-    .listByWorkspace(ctx.workspace.id)
+  const sentThisMonth = (await inboxMessages.listByWorkspace(ctx.workspace.id))
     .filter((m) => m.direction === "outbound" && m.sentAt.startsWith(monthPrefix)).length;
   if (sentThisMonth >= quota) {
     return NextResponse.json(

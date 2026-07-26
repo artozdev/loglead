@@ -34,7 +34,7 @@ export async function GET(req: Request) {
   const requestedSize = Number(sp.get("pageSize") || "10");
   const pageSize = PAGE_SIZES.includes(requestedSize) ? requestedSize : 10;
 
-  const segs = segmentsRepo.listByWorkspace(ctx.workspace.id);
+  const segs = await segmentsRepo.listByWorkspace(ctx.workspace.id);
   let list = await leads.listByWorkspace(ctx.workspace.id);
   // Restrict to one segment's members (segment detail view).
   if (segmentId) {
