@@ -32,7 +32,7 @@ export async function requireProfile(): Promise<{
   profile: Profile;
 }> {
   const { user, workspace } = await requireWorkspace();
-  const profile = profiles.findByWorkspace(workspace.id);
+  const profile = await profiles.findByWorkspace(workspace.id);
   if (!profile) redirect("/onboarding");
   return { user, workspace, profile };
 }

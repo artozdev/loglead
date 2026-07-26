@@ -65,14 +65,14 @@ export type CampaignLeadRollup = {
 
 // Real attribution: a lead belongs to the campaign when its sourceContentId is
 // one of the campaign's publication content items.
-export function campaignLeads(workspaceId: string, campaign: Campaign): CampaignLeadRollup {
+export async function campaignLeads(workspaceId: string, campaign: Campaign): Promise<CampaignLeadRollup> {
   const contentToChannel = new Map<string, CampaignChannel>();
   for (const p of campaign.publications) {
     if (p.contentItemId) contentToChannel.set(p.contentItemId, p.channel);
   }
-  const matched = leadsRepo
-    .listByWorkspace(workspaceId)
-    .filter((l) => l.sourceContentId && contentToChannel.has(l.sourceContentId));
+  const matched = (await leadsRepo.listByWorkspace(workspaceId)).filter(
+    (l) => l.sourceContentId && contentToChannel.has(l.sourceContentId),
+  );
 
   const perChannel: Partial<Record<CampaignChannel, number>> = {};
   const leads = matched.map((l) => {

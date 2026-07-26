@@ -95,7 +95,7 @@ export async function getCurrentUser(): Promise<User | null> {
   const store = await cookies();
   const userId = verifyToken(store.get(COOKIE_NAME)?.value);
   if (!userId) return null;
-  return users.findById(userId) ?? null;
+  return (await users.findById(userId)) ?? null;
 }
 
 export { COOKIE_NAME };

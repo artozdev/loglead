@@ -440,19 +440,19 @@ const B2B_HOT = 85;
 const compactNum = (n: number) =>
   new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(n);
 
-function buildB2b(
+async function buildB2b(
   workspaceId: string,
   plan: Plan,
-  content: ReturnType<typeof contentRepo.listByWorkspace>,
+  content: Awaited<ReturnType<typeof contentRepo.listByWorkspace>>,
   now: Date,
-): B2bData {
+): Promise<B2bData> {
   const isPro = plan === "pro";
   const nowMs = now.getTime();
   const WEEK = 7 * 86_400_000;
   const thisMonth = monthPrefix(now);
   const prevMonth = monthPrefix(new Date(now.getFullYear(), now.getMonth() - 1, 1));
 
-  const leadsList = planAllows(plan, "leads") ? leadsRepo.listByWorkspace(workspaceId) : [];
+  const leadsList = planAllows(plan, "leads") ? await leadsRepo.listByWorkspace(workspaceId) : [];
   const qualified = leadsList.filter((l) => (l.score ?? 0) >= B2B_QUALIFIED);
   const qualifiedCur = qualified.filter((l) => l.createdAt.slice(0, 7) === thisMonth).length;
   const qualifiedPrev = qualified.filter((l) => l.createdAt.slice(0, 7) === prevMonth).length;
@@ -460,7 +460,7 @@ function buildB2b(
   const inDiscussion = leadsList.filter((l) => l.status === "in_discussion");
 
   // GEO
-  const scans = visibilityRepo.listByWorkspace(workspaceId);
+  const scans = await visibilityRepo.listByWorkspace(workspaceId);
   const geoOf = (s: (typeof scans)[number]) =>
     s.queryRows ? s.globalScore : Math.round((s.globalScore / 6) * 100);
   const geo = scans[0] ? geoOf(scans[0]) : null;
@@ -601,19 +601,19 @@ function buildB2b(
   return { isPro, cards, growth, pipeline, qualifiedLeads, growthPartner };
 }
 
-export function buildHomeData(
+export async function buildHomeData(
   workspaceId: string,
   workspaceName: string,
   email: string,
   plan: Plan,
-): HomeData {
+): Promise<HomeData> {
   const now = new Date();
   const nowMs = now.getTime();
   const thisMonth = monthPrefix(now);
   const prevMonth = monthPrefix(new Date(now.getFullYear(), now.getMonth() - 1, 1));
 
-  const content = contentRepo.listByWorkspace(workspaceId); // newest first
-  const analyses = analysesRepo.listByWorkspace(workspaceId);
+  const content = await contentRepo.listByWorkspace(workspaceId); // newest first
+  const analyses = await analysesRepo.listByWorkspace(workspaceId);
 
   const createdIn = (prefix: string) =>
     content.filter((c) => c.createdAt.slice(0, 7) === prefix);
@@ -681,7 +681,7 @@ export function buildHomeData(
 
   // GEO — latest scan score /100, delta vs the previous scan. Legacy scans
   // stored X/6; normalize them to the 0-100 scale.
-  const scans = visibilityRepo.listByWorkspace(workspaceId); // newest first
+  const scans = await visibilityRepo.listByWorkspace(workspaceId); // newest first
   const geoScore = (s: (typeof scans)[number]) =>
     s.queryRows ? s.globalScore : Math.round((s.globalScore / 6) * 100);
   const latestScan = scans[0];
@@ -705,7 +705,7 @@ export function buildHomeData(
   // Leads is a Growth/Pro module — surface a "new leads this month" KPI when unlocked.
   const leadsEnabled = planAllows(plan, "leads");
   if (leadsEnabled) {
-    const leadsList = leadsRepo.listByWorkspace(workspaceId);
+    const leadsList = await leadsRepo.listByWorkspace(workspaceId);
     const leadsCur = leadsList.filter((l) => l.createdAt.slice(0, 7) === thisMonth).length;
     const leadsPrev = leadsList.filter((l) => l.createdAt.slice(0, 7) === prevMonth).length;
     kpis.push({
@@ -811,44 +811,42 @@ export function buildHomeData(
   let recentLeads: RecentLead[] = [];
 
   if (inboxEnabled) {
-    const allLeads = leadsRepo.listByWorkspace(workspaceId); // newest first
+    const allLeads = await leadsRepo.listByWorkspace(workspaceId); // newest first
     const leadById = new Map(allLeads.map((l) => [l.id, l]));
 
-    inboxPreview = conversationsRepo
-      .listByWorkspace(workspaceId)
-      .flatMap((c) => {
-        const lead = leadById.get(c.leadId);
-        if (!lead) return [];
-        const msgs = inboxRepo.listByConversation(c.id);
-        const last = msgs[msgs.length - 1];
-        const unread = last?.direction === "inbound" && !last.readAt;
-        // "Intéressé" once the lead replied / is in discussion; "À relancer"
-        // when we're waiting on them for 3+ days.
-        const waitingDays =
-          c.status === "waiting" && c.lastMessageAt
-            ? Math.floor((nowMs - new Date(c.lastMessageAt).getTime()) / 86_400_000)
-            : 0;
-        const badge: InboxPreviewItem["badge"] =
-          lead.status === "in_discussion" || lead.status === "converted"
-            ? "interested"
-            : waitingDays >= 3
-              ? "followup"
-              : null;
-        return [
-          {
-            id: c.id,
-            leadId: lead.id,
-            leadName: `${lead.firstName} ${lead.lastName}`.trim(),
-            channel: lead.channel,
-            channelLabel: leadChannelLabel(lead.channel),
-            preview: last ? truncate(last.content.replace(/\s+/g, " "), 70) : "Aucun message",
-            time: relTime(c.lastMessageAt ?? c.createdAt, nowMs),
-            unread,
-            badge,
-          },
-        ];
-      })
-      .slice(0, 5);
+    const convos = await conversationsRepo.listByWorkspace(workspaceId);
+    const items: InboxPreviewItem[] = [];
+    for (const c of convos) {
+      const lead = leadById.get(c.leadId);
+      if (!lead) continue;
+      const msgs = await inboxRepo.listByConversation(c.id);
+      const last = msgs[msgs.length - 1];
+      const unread = last?.direction === "inbound" && !last.readAt;
+      // "Intéressé" once the lead replied / is in discussion; "À relancer"
+      // when we're waiting on them for 3+ days.
+      const waitingDays =
+        c.status === "waiting" && c.lastMessageAt
+          ? Math.floor((nowMs - new Date(c.lastMessageAt).getTime()) / 86_400_000)
+          : 0;
+      const badge: InboxPreviewItem["badge"] =
+        lead.status === "in_discussion" || lead.status === "converted"
+          ? "interested"
+          : waitingDays >= 3
+            ? "followup"
+            : null;
+      items.push({
+        id: c.id,
+        leadId: lead.id,
+        leadName: `${lead.firstName} ${lead.lastName}`.trim(),
+        channel: lead.channel,
+        channelLabel: leadChannelLabel(lead.channel),
+        preview: last ? truncate(last.content.replace(/\s+/g, " "), 70) : "Aucun message",
+        time: relTime(c.lastMessageAt ?? c.createdAt, nowMs),
+        unread,
+        badge,
+      });
+    }
+    inboxPreview = items.slice(0, 5);
     inboxUnread = inboxPreview.filter((c) => c.unread).length;
 
     recentLeads = allLeads.slice(0, 4).map((l) => ({
@@ -876,7 +874,7 @@ export function buildHomeData(
     workspaceName,
     dateLabel: dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1),
     empty,
-    b2b: buildB2b(workspaceId, plan, content, now),
+    b2b: await buildB2b(workspaceId, plan, content, now),
     leadsEnabled,
     kpis,
     upcoming,

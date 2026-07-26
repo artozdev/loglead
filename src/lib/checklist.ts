@@ -15,11 +15,11 @@ export type ChecklistData = {
   completed: string[]; // step ids
 };
 
-export function buildChecklist(workspaceId: string, profile: Profile): ChecklistData {
+export async function buildChecklist(workspaceId: string, profile: Profile): Promise<ChecklistData> {
   if (profile.checklistDismissed) return { visible: false, completed: [] };
 
   const completed = new Set(profile.checklistSteps ?? []);
-  const content = contentItems.listByWorkspace(workspaceId);
+  const content = await contentItems.listByWorkspace(workspaceId);
 
   if (profile.siteUrl) completed.add("profile");
   if (content.length > 0) completed.add("studio");

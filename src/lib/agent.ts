@@ -100,8 +100,8 @@ function fmtDate(iso: string): string {
 }
 
 // Search the workspace's leads on job title / company / name / notes.
-export function toolSearchLeads(workspaceId: string, message: string, criteria: Criteria) {
-  const all = leadsRepo.listByWorkspace(workspaceId);
+export async function toolSearchLeads(workspaceId: string, message: string, criteria: Criteria) {
+  const all = await leadsRepo.listByWorkspace(workspaceId);
   const kw = keywords(message);
   const hayOf = (l: (typeof all)[number]) =>
     `${l.firstName} ${l.lastName} ${l.company ?? ""} ${l.jobTitle ?? ""} ${l.notes ?? ""}`.toLowerCase();
@@ -135,28 +135,33 @@ export function toolSearchLeads(workspaceId: string, message: string, criteria: 
 }
 
 // Recent LogReach conversations, newest first, with unread counts.
-export function toolReadMessages(workspaceId: string) {
-  const leadById = new Map(leadsRepo.listByWorkspace(workspaceId).map((l) => [l.id, l]));
-  const items = convRepo
-    .listByWorkspace(workspaceId)
-    .flatMap((c) => {
-      const lead = leadById.get(c.leadId);
-      if (!lead) return [];
-      const msgs = inboxMessages.listByConversation(c.id);
-      const last = msgs[msgs.length - 1];
-      const unread = msgs.filter((m) => m.direction === "inbound" && !m.readAt).length;
-      return [
-        {
-          id: c.id,
-          name: `${lead.firstName} ${lead.lastName}`.trim(),
-          subtitle: last ? last.content.replace(/\s+/g, " ").slice(0, 80) : "Aucun message",
-          unread,
-          date: fmtDate(c.lastMessageAt ?? c.createdAt),
-          firstName: lead.firstName,
-        },
-      ];
-    })
-    .slice(0, 6);
+export async function toolReadMessages(workspaceId: string) {
+  const leadById = new Map((await leadsRepo.listByWorkspace(workspaceId)).map((l) => [l.id, l]));
+  const convos = await convRepo.listByWorkspace(workspaceId);
+  const all: {
+    id: string;
+    name: string;
+    subtitle: string;
+    unread: number;
+    date: string;
+    firstName: string;
+  }[] = [];
+  for (const c of convos) {
+    const lead = leadById.get(c.leadId);
+    if (!lead) continue;
+    const msgs = await inboxMessages.listByConversation(c.id);
+    const last = msgs[msgs.length - 1];
+    const unread = msgs.filter((m) => m.direction === "inbound" && !m.readAt).length;
+    all.push({
+      id: c.id,
+      name: `${lead.firstName} ${lead.lastName}`.trim(),
+      subtitle: last ? last.content.replace(/\s+/g, " ").slice(0, 80) : "Aucun message",
+      unread,
+      date: fmtDate(c.lastMessageAt ?? c.createdAt),
+      firstName: lead.firstName,
+    });
+  }
+  const items = all.slice(0, 6);
   return { items, unreadNames: items.filter((i) => i.unread > 0).map((i) => i.firstName) };
 }
 
@@ -175,7 +180,7 @@ function extractTopic(message: string): string {
 export async function toolGenerateContent(profile: Profile, message: string, firstName: string) {
   const m = message.toLowerCase();
   const network = /reddit/.test(m) ? "reddit" : /\b(x|twitter|thread|tweet)\b/.test(m) ? "x" : "linkedin";
-  const existing = contentItems.listByWorkspace(profile.workspaceId).map((c) => c.body);
+  const existing = (await contentItems.listByWorkspace(profile.workspaceId)).map((c) => c.body);
   const variants = await generateFromBrief(
     profile,
     { network, format: network === "x" ? "Thread" : "Post texte court", topic: extractTopic(message) },
@@ -188,8 +193,8 @@ export async function toolGenerateContent(profile: Profile, message: string, fir
   };
 }
 
-export function toolAnalyze(workspaceId: string, profile: Profile) {
-  const scans = visibilityScans.listByWorkspace(workspaceId).filter((s) => s.queryRows);
+export async function toolAnalyze(workspaceId: string, profile: Profile) {
+  const scans = (await visibilityScans.listByWorkspace(workspaceId)).filter((s) => s.queryRows);
   const latest = scans[0];
   const competitors = profile.competitors.filter(Boolean);
   const rows: { label: string; value: string }[] = [
@@ -207,15 +212,15 @@ export function toolAnalyze(workspaceId: string, profile: Profile) {
   return { rows, hasScan: Boolean(latest) };
 }
 
-export function toolReport(workspaceId: string) {
-  const content = contentItems.listByWorkspace(workspaceId);
+export async function toolReport(workspaceId: string) {
+  const content = await contentItems.listByWorkspace(workspaceId);
   const month = new Date().toISOString().slice(0, 7);
   const thisMonth = content.filter((c) => c.createdAt.slice(0, 7) === month);
   const published = thisMonth.filter((c) => c.status === "published").length;
   const scheduled = content.filter((c) => c.scheduledDate).length;
-  const allLeads = leadsRepo.listByWorkspace(workspaceId);
+  const allLeads = await leadsRepo.listByWorkspace(workspaceId);
   const newLeads = allLeads.filter((l) => l.createdAt.slice(0, 7) === month).length;
-  const geo = visibilityScans.listByWorkspace(workspaceId).find((s) => s.queryRows);
+  const geo = (await visibilityScans.listByWorkspace(workspaceId)).find((s) => s.queryRows);
   return {
     rows: [
       { label: "Contenus créés ce mois", value: String(thisMonth.length) },
@@ -284,7 +289,7 @@ export async function runAgent(args: {
   const crit = extractCriteria(message);
 
   if (action === "search_leads") {
-    const { items, matchedCount, scanned } = toolSearchLeads(workspaceId, message, crit);
+    const { items, matchedCount, scanned } = await toolSearchLeads(workspaceId, message, crit);
     const reasoning = `Recherche dans tes leads · critères : ${criteriaLabel(crit)} · ${scanned} leads parcourus → ${matchedCount} correspondance${matchedCount > 1 ? "s" : ""}.`;
     if (items.length === 0) {
       const what = criteriaLabel(crit);
@@ -311,7 +316,7 @@ export async function runAgent(args: {
   }
 
   if (action === "reply") {
-    const { items, unreadNames } = toolReadMessages(workspaceId);
+    const { items, unreadNames } = await toolReadMessages(workspaceId);
     const unreadCount = items.filter((i) => i.unread > 0).length;
     const reasoning = `Lecture de tes conversations LogReach · ${items.length} conversation${items.length > 1 ? "s" : ""} · ${unreadCount} non lu${unreadCount > 1 ? "s" : ""}.`;
     if (items.length === 0) {
@@ -346,7 +351,7 @@ export async function runAgent(args: {
   }
 
   if (action === "analyze") {
-    const { rows, hasScan } = toolAnalyze(workspaceId, profile);
+    const { rows, hasScan } = await toolAnalyze(workspaceId, profile);
     const comps = profile.competitors.filter(Boolean);
     const reasoning = `Analyse concurrentielle · ${hasScan ? "dernier scan GEO" : "aucun scan GEO"} · ${comps.length} concurrent${comps.length > 1 ? "s" : ""} suivi${comps.length > 1 ? "s" : ""}.`;
     const fallback = hasScan
@@ -362,7 +367,7 @@ export async function runAgent(args: {
   }
 
   if (action === "report") {
-    const r = toolReport(workspaceId);
+    const r = await toolReport(workspaceId);
     const reasoning = `Rapport de performance · période : ce mois · ${r.created} contenus, ${r.newLeads} leads analysés.`;
     const fallback = `Ce mois : ${r.created} contenu${r.created > 1 ? "s" : ""} créé${r.created > 1 ? "s" : ""}, ${r.published} publié${r.published > 1 ? "s" : ""}, ${r.newLeads} nouveau${r.newLeads > 1 ? "x" : ""} lead${r.newLeads > 1 ? "s" : ""}. Le ratio publication/création est ton point faible — je planifie tes brouillons sur les créneaux optimaux ?`;
     const facts = r.rows.map((x) => `- ${x.label} : ${x.value}`).join("\n");
@@ -375,7 +380,7 @@ export async function runAgent(args: {
   }
 
   // Generic chat — still grounded in the workspace.
-  const r = toolReport(workspaceId);
+  const r = await toolReport(workspaceId);
   const fallback = `Je suis ton CMO : je trouve des leads, j'écris tes contenus, je réponds à tes DMs et je surveille ta visibilité IA. Là tout de suite : ${r.created} contenu${r.created > 1 ? "s" : ""} ce mois et ${r.newLeads} nouveau${r.newLeads > 1 ? "x" : ""} lead${r.newLeads > 1 ? "s" : ""}. Par quoi on commence — leads ou contenu ?`;
   const facts = `Contexte : ${r.created} contenus ce mois, ${r.published} publiés, ${r.newLeads} nouveaux leads.`;
   return {

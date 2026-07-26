@@ -24,7 +24,7 @@ export async function setActiveWorkspace(id: string): Promise<void> {
 
 // Returns the active workspace for the user, or null if they have none yet.
 export async function getActiveWorkspace(user: User): Promise<Workspace | null> {
-  const list = workspaces.listForUser(user.id);
+  const list = await workspaces.listForUser(user.id);
   if (list.length === 0) return null;
 
   const store = await cookies();

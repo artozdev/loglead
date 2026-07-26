@@ -47,15 +47,15 @@ export async function scoreLead(
   workspaceId: string,
 ): Promise<Lead | undefined> {
   try {
-    const lead = leads.findById(leadId, workspaceId);
+    const lead = await leads.findById(leadId, workspaceId);
     if (!lead) return undefined;
-    const profile = profiles.findByWorkspace(workspaceId);
+    const profile = await profiles.findByWorkspace(workspaceId);
     if (!profile) return lead; // can't qualify without the founder's profile / ICP
 
-    const events = leadEvents.listByLead(leadId);
-    const weights = leadScoreConfig.get(workspaceId)?.weights ?? DEFAULT_SCORE_WEIGHTS;
+    const events = await leadEvents.listByLead(leadId);
+    const weights = (await leadScoreConfig.get(workspaceId))?.weights ?? DEFAULT_SCORE_WEIGHTS;
     const sourceTitle = lead.sourceContentId
-      ? contentItems.findById(lead.sourceContentId, workspaceId)?.title
+      ? (await contentItems.findById(lead.sourceContentId, workspaceId))?.title
       : undefined;
 
     const q = await qualifyLead({
@@ -76,7 +76,7 @@ export async function scoreLead(
       weights,
     });
 
-    return leads.update(leadId, workspaceId, {
+    return await leads.update(leadId, workspaceId, {
       score: q.total,
       scoreBreakdown: q.breakdown,
       signals: q.signals,
