@@ -35,10 +35,12 @@ export async function GET() {
   if (!planAllows(ctx.workspace.plan, "campaigns")) {
     return NextResponse.json({ error: "Réservé aux offres Growth et Pro." }, { status: 403 });
   }
-  const list = (await campaigns.listByWorkspace(ctx.workspace.id)).map((c) => {
-    const roll = campaignLeads(ctx.workspace.id, c);
-    return { ...c, leadsCount: roll.total, avgScore: roll.avgScore };
-  });
+  const list = await Promise.all(
+    (await campaigns.listByWorkspace(ctx.workspace.id)).map(async (c) => {
+      const roll = await campaignLeads(ctx.workspace.id, c);
+      return { ...c, leadsCount: roll.total, avgScore: roll.avgScore };
+    }),
+  );
   return NextResponse.json({ campaigns: list });
 }
 
@@ -83,7 +85,8 @@ export async function POST(req: Request) {
     publications: [],
   });
 
-  const publications: CampaignPublication[] = variants.map((v) => {
+  const publications: CampaignPublication[] = [];
+  for (const v of variants) {
     const slot = planSlot(v.channel);
     const item = await contentItems.create(ctx.workspace.id, {
       type: "linkedin_post",
@@ -96,7 +99,7 @@ export async function POST(req: Request) {
       scheduledTime: slot.time,
     });
     const m = seedMetrics(campaign.id, v.channel);
-    return {
+    publications.push({
       id: randomUUID(),
       channel: v.channel,
       content: v.content,
@@ -108,8 +111,8 @@ export async function POST(req: Request) {
       views: m.views,
       likes: m.likes,
       comments: m.comments,
-    };
-  });
+    });
+  }
 
   const full = await campaigns.update(campaign.id, ctx.workspace.id, { publications });
   return NextResponse.json({ campaign: full, demo: isDemoMode() });

@@ -48,11 +48,13 @@ export async function GET(req: Request) {
   }
 
   return NextResponse.json({
-    conversations: (await agentConversations.listByWorkspace(ctx.workspace.id)).map((c) => ({
-      ...c,
-      // Preview = first user message of the thread.
-      preview: (await agentMessages.listByConversation(c.id)).find((m) => m.role === "user")?.content ?? c.title,
-    })),
+    conversations: await Promise.all(
+      (await agentConversations.listByWorkspace(ctx.workspace.id)).map(async (c) => ({
+        ...c,
+        // Preview = first user message of the thread.
+        preview: (await agentMessages.listByConversation(c.id)).find((m) => m.role === "user")?.content ?? c.title,
+      })),
+    ),
     credits: { used, quota: AGENT_MONTHLY_QUOTA },
   });
 }

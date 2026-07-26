@@ -13,7 +13,7 @@ export default async function PostGeneratorPage({
   const { user, workspace, profile } = await requireProfile();
   const sp = await searchParams;
 
-  const item = sp.content ? contentItems.findById(sp.content, workspace.id) : undefined;
+  const item = sp.content ? await contentItems.findById(sp.content, workspace.id) : undefined;
 
   const local = (user.email.split("@")[0] || user.email).replace(/[._-]+/g, " ").trim();
   const firstName =

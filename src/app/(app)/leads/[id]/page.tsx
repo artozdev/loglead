@@ -15,12 +15,13 @@ export default async function LeadDetailPage({
     redirect("/pricing");
   }
   const { id } = await params;
-  const lead = leads.findById(id, workspace.id);
+  const lead = await leads.findById(id, workspace.id);
   if (!lead) notFound();
 
-  const contents = contentItems
-    .listByWorkspace(workspace.id)
-    .map((c) => ({ id: c.id, title: c.title }));
+  const contents = (await contentItems.listByWorkspace(workspace.id)).map((c) => ({
+    id: c.id,
+    title: c.title,
+  }));
 
   return (
     <LeadDetail leadId={id} isPro={workspace.plan === "pro"} contents={contents} />

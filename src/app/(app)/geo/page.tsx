@@ -9,7 +9,7 @@ export default async function GeoPage() {
   const { workspace, profile } = await requireProfile();
   const plan = workspace.plan;
 
-  const all = visibilityScans.listByWorkspace(workspace.id);
+  const all = await visibilityScans.listByWorkspace(workspace.id);
   // Legacy scans stored X/6 — normalize to 0-100 for a single scale.
   const norm = (scan: (typeof all)[number]) =>
     scan.queryRows ? scan.globalScore : Math.round((scan.globalScore / 6) * 100);
@@ -31,7 +31,7 @@ export default async function GeoPage() {
   const latest = geoScans[0];
   const prevGeo = geoScans[1];
 
-  const used = visibilityScans.countThisMonth(workspace.id);
+  const used = await visibilityScans.countThisMonth(workspace.id);
   const quota = SCAN_QUOTA[plan];
 
   return (

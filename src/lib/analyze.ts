@@ -32,7 +32,7 @@ export async function runAnalysis(
     kind,
     platform,
   });
-  return contentAnalyses.create(workspaceId, {
+  return await contentAnalyses.create(workspaceId, {
     url: input.url,
     platform,
     kind,

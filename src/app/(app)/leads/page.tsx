@@ -10,9 +10,10 @@ export default async function LeadsPage() {
   if (!planAllows(workspace.plan, "leads")) {
     redirect("/pricing");
   }
-  const contents = contentItems
-    .listByWorkspace(workspace.id)
-    .map((c) => ({ id: c.id, title: c.title }));
+  const contents = (await contentItems.listByWorkspace(workspace.id)).map((c) => ({
+    id: c.id,
+    title: c.title,
+  }));
 
   return (
     <LeadsHub

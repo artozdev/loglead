@@ -7,14 +7,14 @@ import { appUrl, firstNameFromEmail, sendEmail } from "./send";
 // Email 9 — notify the workspace owner that a lead just landed. Fire-and-
 // forget: callers `void` it, and sendEmail never throws.
 export async function notifyNewLead(lead: Lead): Promise<void> {
-  const workspace = workspaces.findById(lead.workspaceId);
-  const owner = workspace ? users.findById(workspace.ownerId) : undefined;
+  const workspace = await workspaces.findById(lead.workspaceId);
+  const owner = workspace ? await users.findById(workspace.ownerId) : undefined;
   if (!owner) return;
   // Respect the "Nouveau lead capté" settings toggle (default: on).
   if (owner.emailPrefs?.newLead === false) return;
 
   const sourceTitle = lead.sourceContentId
-    ? contentItems.findById(lead.sourceContentId, lead.workspaceId)?.title ?? null
+    ? (await contentItems.findById(lead.sourceContentId, lead.workspaceId))?.title ?? null
     : null;
   const leadName = `${lead.firstName} ${lead.lastName}`.trim();
 

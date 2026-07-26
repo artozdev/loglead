@@ -85,7 +85,7 @@ export async function campaignLeads(workspaceId: string, campaign: Campaign): Pr
       channel,
     };
   });
-  const scored = leads.filter((l) => l.score > 0);
+  const scored = await leads.filter((l) => l.score > 0);
   const avgScore = scored.length
     ? Math.round(scored.reduce((a, l) => a + l.score, 0) / scored.length)
     : 0;

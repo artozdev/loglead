@@ -18,7 +18,7 @@ export default async function LogAgentPage() {
     <LogAgentBoard
       firstName={firstName}
       initialCredits={{
-        used: agentMessages.creditsUsedThisMonth(workspace.id),
+        used: await agentMessages.creditsUsedThisMonth(workspace.id),
         quota: AGENT_MONTHLY_QUOTA,
       }}
     />

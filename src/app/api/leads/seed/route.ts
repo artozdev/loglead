@@ -39,9 +39,9 @@ export async function POST() {
     return NextResponse.json({ skipped: true });
   }
 
-  const srcId = await contentItems.listByWorkspace(ctx.workspace.id)[0]?.id ?? null;
+  const srcId = (await contentItems.listByWorkspace(ctx.workspace.id))[0]?.id ?? null;
   let created = 0;
-  DEMO.forEach((d, i) => {
+  for (const [i, d] of DEMO.entries()) {
     const input: LeadInput = {
       firstName: d.firstName,
       lastName: d.lastName,
@@ -59,6 +59,6 @@ export async function POST() {
       await leadEvents.create(lead.id, "status_changed", { from: "new", to: d.status });
     }
     created++;
-  });
+  }
   return NextResponse.json({ created });
 }

@@ -11,7 +11,7 @@ export default async function CmoPage() {
     return <CmoUpsell currentPlan={workspace.plan} />;
   }
 
-  const config = cmoConfig.get(workspace.id);
+  const config = await cmoConfig.get(workspace.id);
   if (!config.activatedAt) {
     return <CmoSetup />;
   }
@@ -19,7 +19,7 @@ export default async function CmoPage() {
   return (
     <CmoWorkspace
       initialConfig={config}
-      initialActions={cmoActions.listByWorkspace(workspace.id)}
+      initialActions={await cmoActions.listByWorkspace(workspace.id)}
       workspaceName={workspace.name}
     />
   );

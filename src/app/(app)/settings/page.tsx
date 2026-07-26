@@ -19,14 +19,14 @@ export default async function SettingsPage({
   const user = await requireUser();
   const workspaces = workspacesRepo.listForUser(user.id);
   const active = await getActiveWorkspace(user);
-  const profile = active ? profiles.findByWorkspace(active.id) ?? null : null;
+  const profile = active ? await profiles.findByWorkspace(active.id) ?? null : null;
 
   const now = new Date();
   const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   const inMonth = (iso: string) => iso.slice(0, 7) === thisMonth;
 
-  const content = active ? contentItems.listByWorkspace(active.id) : [];
-  const analyses = active ? contentAnalyses.listByWorkspace(active.id) : [];
+  const content = active ? await contentItems.listByWorkspace(active.id) : [];
+  const analyses = active ? await contentAnalyses.listByWorkspace(active.id) : [];
   const usage = {
     content: content.filter((c) => inMonth(c.createdAt)).length,
     analyses: analyses.filter((a) => inMonth(a.createdAt)).length,

@@ -22,7 +22,7 @@ export default async function SegmentDetailPage({
   const members = leadsInSegment(leadsRepo.listByWorkspace(workspace.id), segment);
   const m = segmentMetrics(members);
   const meta = SEGMENT_TYPE_META[segment.type];
-  const contents = contentItems.listByWorkspace(workspace.id).map((c) => ({ id: c.id, title: c.title }));
+  const contents = (await contentItems.listByWorkspace(workspace.id)).map((c) => ({ id: c.id, title: c.title }));
 
   const created = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric" }).format(
     new Date(segment.createdAt),

@@ -44,49 +44,52 @@ export async function GET() {
   const wid = ctx.workspace.id;
   const allLeads = await leads.listByWorkspace(wid);
   const leadById = new Map(allLeads.map((l) => [l.id, l]));
-  const segs = segmentsRepo.listByWorkspace(wid);
+  const segs = await segmentsRepo.listByWorkspace(wid);
 
-  const convs = (await conversations.listByWorkspace(wid)).flatMap((c) => {
-    const lead = leadById.get(c.leadId);
-    if (!lead) return []; // lead deleted since (RGPD) — hide the thread
-    const messages = await inboxMessages.listByConversation(c.id);
-    const last = messages[messages.length - 1];
-    const source = lead.sourceContentId
-      ? (await contentItems.findById(lead.sourceContentId, wid))?.title ?? null
-      : null;
-    const seg = primarySegment(lead, segs);
-    // Unread = the last message is an inbound one we haven't read.
-    const unread = last?.direction === "inbound" && !last.readAt;
-    return [
-      {
-        id: c.id,
-        channel: c.channel,
-        status: c.status,
-        lastMessageAt: c.lastMessageAt,
-        createdAt: c.createdAt,
-        unread,
-        lead: {
-          id: lead.id,
-          firstName: lead.firstName,
-          lastName: lead.lastName,
-          email: lead.email,
-          phone: lead.phone,
-          company: lead.company ?? null,
-          jobTitle: lead.jobTitle ?? null,
-          linkedinUrl: lead.linkedinUrl ?? null,
-          channel: lead.channel,
-          status: lead.status,
-          notes: lead.notes ?? "",
-          sector: detectSector(lead),
-          sourceTitle: source,
-          segment: seg ? { id: seg.id, name: seg.name } : null,
-          events: (await leadEvents.listByLead(lead.id)).map((e) => ({ label: eventLabel(e), at: e.createdAt })),
-        },
-        messages,
-        preview: last?.content.slice(0, 90) ?? null,
-      },
-    ];
-  });
+  const convs = (
+    await Promise.all(
+      (await conversations.listByWorkspace(wid)).map(async (c) => {
+        const lead = leadById.get(c.leadId);
+        if (!lead) return null; // lead deleted since (RGPD) — hide the thread
+        const messages = await inboxMessages.listByConversation(c.id);
+        const last = messages[messages.length - 1];
+        const source = lead.sourceContentId
+          ? (await contentItems.findById(lead.sourceContentId, wid))?.title ?? null
+          : null;
+        const seg = primarySegment(lead, segs);
+        // Unread = the last message is an inbound one we haven't read.
+        const unread = last?.direction === "inbound" && !last.readAt;
+        const events = (await leadEvents.listByLead(lead.id)).map((e) => ({ label: eventLabel(e), at: e.createdAt }));
+        return {
+          id: c.id,
+          channel: c.channel,
+          status: c.status,
+          lastMessageAt: c.lastMessageAt,
+          createdAt: c.createdAt,
+          unread,
+          lead: {
+            id: lead.id,
+            firstName: lead.firstName,
+            lastName: lead.lastName,
+            email: lead.email,
+            phone: lead.phone,
+            company: lead.company ?? null,
+            jobTitle: lead.jobTitle ?? null,
+            linkedinUrl: lead.linkedinUrl ?? null,
+            channel: lead.channel,
+            status: lead.status,
+            notes: lead.notes ?? "",
+            sector: detectSector(lead),
+            sourceTitle: source,
+            segment: seg ? { id: seg.id, name: seg.name } : null,
+            events,
+          },
+          messages,
+          preview: last?.content.slice(0, 90) ?? null,
+        };
+      }),
+    )
+  ).filter((x): x is NonNullable<typeof x> => x !== null);
 
   // Channel counts for the left-hand channel tabs (by lead acquisition channel).
   const channelCounts = Object.fromEntries(

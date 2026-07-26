@@ -13,7 +13,7 @@ export default async function AppLayout({
   const user = await requireUser();
   const active = await getActiveWorkspace(user);
   const onboarded = active
-    ? Boolean(profiles.findByWorkspace(active.id))
+    ? Boolean(await profiles.findByWorkspace(active.id))
     : false;
 
   const store = await cookies();
@@ -24,7 +24,7 @@ export default async function AppLayout({
   // Demo notifications, scoped to the active workspace.
   const notifications: AppNotification[] = [];
   if (active) {
-    for (const c of contentItems.listByWorkspace(active.id).slice(0, 4)) {
+    for (const c of (await contentItems.listByWorkspace(active.id)).slice(0, 4)) {
       notifications.push({
         id: c.id,
         title: "Nouveau contenu prêt",
@@ -51,9 +51,10 @@ export default async function AppLayout({
     (name.split(" ").map((w) => w[0]).join("").slice(0, 2) || user.email.slice(0, 2)).toUpperCase();
   const avatarLabel = initials;
 
-  const wsList = workspacesRepo
-    .listForUser(user.id)
-    .map((w) => ({ id: w.id, name: w.name }));
+  const wsList = (await workspacesRepo.listForUser(user.id)).map((w) => ({
+    id: w.id,
+    name: w.name,
+  }));
 
   return (
     <AppShell

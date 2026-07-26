@@ -7,7 +7,7 @@ export default async function AlgoInsiderPage() {
   const { workspace, profile } = await requireProfile();
   // Onboarding checklist trigger: first visit of the Algo Insider (idempotent).
   if (!(profile.checklistSteps ?? []).includes("algo_insider")) {
-    profiles.completeChecklistStep(workspace.id, "algo_insider");
+    await profiles.completeChecklistStep(workspace.id, "algo_insider");
   }
   const niche = profile.sector || profile.icp || "";
   const insights = await getAlgoInsights(workspace.id, profile);

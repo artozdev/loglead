@@ -13,8 +13,8 @@ export default async function CampaignDetailPage({
   const { workspace } = await requireProfile();
   if (!planAllows(workspace.plan, "campaigns")) redirect("/pricing");
   const { id } = await params;
-  const campaign = campaigns.findById(id, workspace.id);
+  const campaign = await campaigns.findById(id, workspace.id);
   if (!campaign) notFound();
-  const rollup = campaignLeads(workspace.id, campaign);
+  const rollup = await campaignLeads(workspace.id, campaign);
   return <CampaignDetail campaign={campaign} rollup={rollup} />;
 }

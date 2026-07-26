@@ -4,6 +4,6 @@ import { requireProfile } from "@/lib/guards";
 
 export default async function ContentAnalyzerPage() {
   const { workspace } = await requireProfile();
-  const history = contentAnalyses.listByWorkspace(workspace.id);
+  const history = await contentAnalyses.listByWorkspace(workspace.id);
   return <ContentAnalyzerBoard history={history} />;
 }

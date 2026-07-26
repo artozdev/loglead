@@ -16,7 +16,7 @@ export async function GET(
   const { id } = await params;
   const campaign = await campaigns.findById(id, ctx.workspace.id);
   if (!campaign) return NextResponse.json({ error: "Introuvable" }, { status: 404 });
-  return NextResponse.json({ campaign, rollup: campaignLeads(ctx.workspace.id, campaign) });
+  return NextResponse.json({ campaign, rollup: await campaignLeads(ctx.workspace.id, campaign) });
 }
 
 export async function DELETE(

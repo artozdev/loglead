@@ -26,7 +26,7 @@ export async function runCmo(
 
   const items = await generateCmoBatch(profile, brief, instruction);
   for (const it of items) {
-    cmoActions.create(workspaceId, {
+    await cmoActions.create(workspaceId, {
       type: it.type,
       title: it.title,
       message: it.message,
@@ -35,5 +35,5 @@ export async function runCmo(
       suggestedTime: it.type === "content" ? it.suggestedTime : undefined,
     });
   }
-  return cmoActions.listByWorkspace(workspaceId);
+  return await cmoActions.listByWorkspace(workspaceId);
 }

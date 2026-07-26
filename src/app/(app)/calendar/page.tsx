@@ -13,7 +13,7 @@ const RECOMMENDED_DAYS: Record<Platform, number[]> = {
 
 export default async function CalendarPage() {
   const { workspace, profile } = await requireProfile();
-  const items = contentItems.listByWorkspace(workspace.id);
+  const items = await contentItems.listByWorkspace(workspace.id);
   const primary = profile.platforms[0] ?? "linkedin";
 
   return (
