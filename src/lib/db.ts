@@ -2,6 +2,7 @@ import { randomUUID } from "crypto";
 import fs from "fs";
 import path from "path";
 import { decryptField, encryptField } from "./crypto";
+import { hasSupabase, readState, writeState } from "./supabase";
 import type {
   AgentConversation,
   AgentMessage,
@@ -100,40 +101,53 @@ const EMPTY: Schema = {
   agentMessages: [],
 };
 
-function read(): Schema {
+// Fill in any missing top-level collections (schema evolution / partial state).
+function hydrate(parsed: Partial<Schema>) {
+  return {
+    users: parsed.users ?? [],
+    workspaces: parsed.workspaces ?? [],
+    workspaceMembers: parsed.workspaceMembers ?? [],
+    profiles: parsed.profiles ?? [],
+    contentItems: parsed.contentItems ?? [],
+    onboardingProgress: parsed.onboardingProgress ?? [],
+    cmoConfig: parsed.cmoConfig ?? [],
+    cmoActions: parsed.cmoActions ?? [],
+    leads: parsed.leads ?? [],
+    leadEvents: parsed.leadEvents ?? [],
+    leadScoreConfig: parsed.leadScoreConfig ?? [],
+    campaigns: parsed.campaigns ?? [],
+    algoInsights: parsed.algoInsights ?? [],
+    contentAnalyses: parsed.contentAnalyses ?? [],
+    featureWaitlist: parsed.featureWaitlist ?? [],
+    visibilityScans: parsed.visibilityScans ?? [],
+    passwordResets: parsed.passwordResets ?? [],
+    conversations: parsed.conversations ?? [],
+    inboxMessages: parsed.inboxMessages ?? [],
+    segments: parsed.segments ?? [],
+    agentConversations: parsed.agentConversations ?? [],
+    agentMessages: parsed.agentMessages ?? [],
+  };
+}
+
+// Persistence: Supabase (production / when configured) or the local JSON file
+// (dev fallback). Async because the DB is over the network.
+async function read() {
+  if (hasSupabase()) {
+    const data = await readState<Partial<Schema>>();
+    return hydrate(data ?? {});
+  }
   try {
-    const raw = fs.readFileSync(DATA_FILE, "utf8");
-    const parsed = JSON.parse(raw) as Partial<Schema>;
-    return {
-      users: parsed.users ?? [],
-      workspaces: parsed.workspaces ?? [],
-      workspaceMembers: parsed.workspaceMembers ?? [],
-      profiles: parsed.profiles ?? [],
-      contentItems: parsed.contentItems ?? [],
-      onboardingProgress: parsed.onboardingProgress ?? [],
-      cmoConfig: parsed.cmoConfig ?? [],
-      cmoActions: parsed.cmoActions ?? [],
-      leads: parsed.leads ?? [],
-      leadEvents: parsed.leadEvents ?? [],
-      leadScoreConfig: parsed.leadScoreConfig ?? [],
-      campaigns: parsed.campaigns ?? [],
-      algoInsights: parsed.algoInsights ?? [],
-      contentAnalyses: parsed.contentAnalyses ?? [],
-      featureWaitlist: parsed.featureWaitlist ?? [],
-      visibilityScans: parsed.visibilityScans ?? [],
-      passwordResets: parsed.passwordResets ?? [],
-      conversations: parsed.conversations ?? [],
-      inboxMessages: parsed.inboxMessages ?? [],
-      segments: parsed.segments ?? [],
-      agentConversations: parsed.agentConversations ?? [],
-      agentMessages: parsed.agentMessages ?? [],
-    };
+    return hydrate(JSON.parse(fs.readFileSync(DATA_FILE, "utf8")) as Partial<Schema>);
   } catch {
     return structuredClone(EMPTY);
   }
 }
 
-function write(db: Schema): void {
+async function write(db: Schema) {
+  if (hasSupabase()) {
+    await writeState(db);
+    return;
+  }
   fs.mkdirSync(DATA_DIR, { recursive: true });
   const tmp = `${DATA_FILE}.${process.pid}.tmp`;
   fs.writeFileSync(tmp, JSON.stringify(db, null, 2), "utf8");
@@ -145,16 +159,16 @@ const now = () => new Date().toISOString();
 // ----- Users ---------------------------------------------------------------
 
 export const users = {
-  findByEmail(email: string): User | undefined {
-    return read().users.find(
+  async findByEmail(email: string) {
+    return (await read()).users.find(
       (u) => u.email.toLowerCase() === email.toLowerCase(),
     );
   },
-  findById(id: string): User | undefined {
-    return read().users.find((u) => u.id === id);
+  async findById(id: string) {
+    return (await read()).users.find((u) => u.id === id);
   },
-  create(email: string, passwordHash: string): User {
-    const db = read();
+  async create(email: string, passwordHash: string) {
+    const db = (await read());
     const user: User = {
       id: randomUUID(),
       email: email.toLowerCase(),
@@ -162,35 +176,35 @@ export const users = {
       createdAt: now(),
     };
     db.users.push(user);
-    write(db);
+    await write(db);
     return user;
   },
-  updatePassword(id: string, passwordHash: string): void {
-    const db = read();
+  async updatePassword(id: string, passwordHash: string) {
+    const db = (await read());
     db.users = db.users.map((u) => (u.id === id ? { ...u, passwordHash } : u));
-    write(db);
+    await write(db);
   },
-  updateEmailPrefs(id: string, prefs: User["emailPrefs"]): void {
-    const db = read();
+  async updateEmailPrefs(id: string, prefs: User["emailPrefs"]) {
+    const db = (await read());
     db.users = db.users.map((u) =>
       u.id === id ? { ...u, emailPrefs: { ...u.emailPrefs, ...prefs } } : u,
     );
-    write(db);
+    await write(db);
   },
-  markEmailVerified(id: string): void {
-    const db = read();
+  async markEmailVerified(id: string) {
+    const db = (await read());
     db.users = db.users.map((u) =>
       u.id === id ? { ...u, emailVerifiedAt: now() } : u,
     );
-    write(db);
+    await write(db);
   },
 };
 
 // ----- Password resets (one-time tokens, hash only) --------------------------
 
 export const passwordResets = {
-  create(userId: string, tokenHash: string): PasswordReset {
-    const db = read();
+  async create(userId: string, tokenHash: string) {
+    const db = (await read());
     // Any previous pending token for this user becomes unusable.
     db.passwordResets = db.passwordResets.filter((r) => r.userId !== userId);
     const reset: PasswordReset = {
@@ -202,39 +216,39 @@ export const passwordResets = {
       createdAt: now(),
     };
     db.passwordResets.push(reset);
-    write(db);
+    await write(db);
     return reset;
   },
-  findValid(tokenHash: string): PasswordReset | undefined {
-    return read().passwordResets.find(
+  async findValid(tokenHash: string) {
+    return (await read()).passwordResets.find(
       (r) => r.tokenHash === tokenHash && r.usedAt === null && r.expiresAt > now(),
     );
   },
-  markUsed(id: string): void {
-    const db = read();
+  async markUsed(id: string) {
+    const db = (await read());
     db.passwordResets = db.passwordResets.map((r) =>
       r.id === id ? { ...r, usedAt: now() } : r,
     );
-    write(db);
+    await write(db);
   },
 };
 
 // ----- Feature waitlist (coming-soon signups) ------------------------------
 
 export const waitlist = {
-  isSubscribed(feature: string, email: string): boolean {
+  async isSubscribed(feature: string, email: string) {
     const e = email.toLowerCase();
-    return read().featureWaitlist.some(
+    return (await read()).featureWaitlist.some(
       (w) => w.feature === feature && w.email.toLowerCase() === e,
     );
   },
   // Idempotent: returns { already: true } if this email is already on the list.
-  add(
+  async add(
     feature: string,
     email: string,
     userId: string,
-  ): { entry: WaitlistEntry; already: boolean } {
-    const db = read();
+  ) {
+    const db = (await read());
     const e = email.toLowerCase();
     const existing = db.featureWaitlist.find(
       (w) => w.feature === feature && w.email.toLowerCase() === e,
@@ -248,7 +262,7 @@ export const waitlist = {
       createdAt: now(),
     };
     db.featureWaitlist.push(entry);
-    write(db);
+    await write(db);
     return { entry, already: false };
   },
 };
@@ -256,11 +270,11 @@ export const waitlist = {
 // ----- Workspaces & members ------------------------------------------------
 
 export const workspaces = {
-  listAll(): Workspace[] {
-    return read().workspaces;
+  async listAll() {
+    return (await read()).workspaces;
   },
-  create(name: string, ownerId: string): Workspace {
-    const db = read();
+  async create(name: string, ownerId: string) {
+    const db = (await read());
     const ws: Workspace = {
       id: randomUUID(),
       name,
@@ -276,30 +290,30 @@ export const workspaces = {
       role: "owner",
       createdAt: now(),
     });
-    write(db);
+    await write(db);
     return ws;
   },
-  findById(id: string): Workspace | undefined {
-    return read().workspaces.find((w) => w.id === id);
+  async findById(id: string) {
+    return (await read()).workspaces.find((w) => w.id === id);
   },
-  rename(id: string, name: string): Workspace | undefined {
-    const db = read();
+  async rename(id: string, name: string) {
+    const db = (await read());
     let updated: Workspace | undefined;
     db.workspaces = db.workspaces.map((w) => {
       if (w.id !== id) return w;
       updated = { ...w, name };
       return updated;
     });
-    if (updated) write(db);
+    if (updated) await write(db);
     return updated;
   },
-  setPlan(id: string, plan: Plan): void {
-    const db = read();
+  async setPlan(id: string, plan: Plan) {
+    const db = (await read());
     db.workspaces = db.workspaces.map((w) => (w.id === id ? { ...w, plan } : w));
-    write(db);
+    await write(db);
   },
-  listForUser(userId: string): Workspace[] {
-    const db = read();
+  async listForUser(userId: string) {
+    const db = (await read());
     const ids = new Set(
       db.workspaceMembers
         .filter((m) => m.userId === userId)
@@ -312,8 +326,8 @@ export const workspaces = {
 };
 
 export const workspaceMembers = {
-  add(userId: string, workspaceId: string, role: WorkspaceRole): WorkspaceMember {
-    const db = read();
+  async add(userId: string, workspaceId: string, role: WorkspaceRole) {
+    const db = (await read());
     const member: WorkspaceMember = {
       id: randomUUID(),
       userId,
@@ -322,25 +336,25 @@ export const workspaceMembers = {
       createdAt: now(),
     };
     db.workspaceMembers.push(member);
-    write(db);
+    await write(db);
     return member;
   },
-  find(userId: string, workspaceId: string): WorkspaceMember | undefined {
-    return read().workspaceMembers.find(
+  async find(userId: string, workspaceId: string) {
+    return (await read()).workspaceMembers.find(
       (m) => m.userId === userId && m.workspaceId === workspaceId,
     );
   },
-  isMember(userId: string, workspaceId: string): boolean {
+  async isMember(userId: string, workspaceId: string) {
     return Boolean(this.find(userId, workspaceId));
   },
-  remove(userId: string, workspaceId: string): boolean {
-    const db = read();
+  async remove(userId: string, workspaceId: string) {
+    const db = (await read());
     const before = db.workspaceMembers.length;
     db.workspaceMembers = db.workspaceMembers.filter(
       (m) => !(m.userId === userId && m.workspaceId === workspaceId),
     );
     if (db.workspaceMembers.length === before) return false;
-    write(db);
+    await write(db);
     return true;
   },
 };
@@ -353,18 +367,18 @@ export type ProfileInput = Omit<
 >;
 
 export const profiles = {
-  findByWorkspace(workspaceId: string): Profile | undefined {
-    return read().profiles.find((p) => p.workspaceId === workspaceId);
+  async findByWorkspace(workspaceId: string) {
+    return (await read()).profiles.find((p) => p.workspaceId === workspaceId);
   },
-  upsert(workspaceId: string, input: ProfileInput): Profile {
-    const db = read();
+  async upsert(workspaceId: string, input: ProfileInput) {
+    const db = (await read());
     const existing = db.profiles.find((p) => p.workspaceId === workspaceId);
     if (existing) {
       const updated: Profile = { ...existing, ...input, updatedAt: now() };
       db.profiles = db.profiles.map((p) =>
         p.workspaceId === workspaceId ? updated : p,
       );
-      write(db);
+      await write(db);
       return updated;
     }
     const created: Profile = {
@@ -375,13 +389,13 @@ export const profiles = {
       updatedAt: now(),
     };
     db.profiles.push(created);
-    write(db);
+    await write(db);
     return created;
   },
   // ----- Onboarding checklist ----------------------------------------------
   // Idempotent: records a completed step in profile.checklistSteps.
-  completeChecklistStep(workspaceId: string, step: string): void {
-    const db = read();
+  async completeChecklistStep(workspaceId: string, step: string) {
+    const db = (await read());
     const p = db.profiles.find((x) => x.workspaceId === workspaceId);
     if (!p) return;
     const steps = p.checklistSteps ?? [];
@@ -391,32 +405,32 @@ export const profiles = {
         ? { ...x, checklistSteps: [...steps, step], updatedAt: now() }
         : x,
     );
-    write(db);
+    await write(db);
   },
-  setChecklistDismissed(workspaceId: string, dismissed: boolean): void {
-    const db = read();
+  async setChecklistDismissed(workspaceId: string, dismissed: boolean) {
+    const db = (await read());
     if (!db.profiles.some((x) => x.workspaceId === workspaceId)) return;
     db.profiles = db.profiles.map((x) =>
       x.workspaceId === workspaceId
         ? { ...x, checklistDismissed: dismissed, updatedAt: now() }
         : x,
     );
-    write(db);
+    await write(db);
   },
 };
 
 // ----- Onboarding progress (workspace-scoped, per-step autosave) -----------
 
 export const onboardingProgress = {
-  get(workspaceId: string): OnboardingProgress | undefined {
-    return read().onboardingProgress.find((o) => o.workspaceId === workspaceId);
+  async get(workspaceId: string) {
+    return (await read()).onboardingProgress.find((o) => o.workspaceId === workspaceId);
   },
-  upsert(
+  async upsert(
     workspaceId: string,
     step: number,
     data: Record<string, unknown>,
-  ): OnboardingProgress {
-    const db = read();
+  ) {
+    const db = (await read());
     const existing = db.onboardingProgress.find(
       (o) => o.workspaceId === workspaceId,
     );
@@ -430,7 +444,7 @@ export const onboardingProgress = {
       db.onboardingProgress = db.onboardingProgress.map((o) =>
         o.workspaceId === workspaceId ? updated : o,
       );
-      write(db);
+      await write(db);
       return updated;
     }
     const created: OnboardingProgress = {
@@ -442,17 +456,17 @@ export const onboardingProgress = {
       updatedAt: now(),
     };
     db.onboardingProgress.push(created);
-    write(db);
+    await write(db);
     return created;
   },
-  complete(workspaceId: string): void {
-    const db = read();
+  async complete(workspaceId: string) {
+    const db = (await read());
     db.onboardingProgress = db.onboardingProgress.map((o) =>
       o.workspaceId === workspaceId
         ? { ...o, completedAt: now(), updatedAt: now() }
         : o,
     );
-    write(db);
+    await write(db);
   },
 };
 
@@ -465,18 +479,18 @@ export type ContentInput = Pick<
   Partial<Pick<ContentItem, "status" | "scheduledDate" | "scheduledTime">>;
 
 export const contentItems = {
-  listByWorkspace(workspaceId: string): ContentItem[] {
-    return read()
+  async listByWorkspace(workspaceId: string) {
+    return (await read())
       .contentItems.filter((c) => c.workspaceId === workspaceId)
       .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
   },
-  findById(id: string, workspaceId: string): ContentItem | undefined {
-    return read().contentItems.find(
+  async findById(id: string, workspaceId: string) {
+    return (await read()).contentItems.find(
       (c) => c.id === id && c.workspaceId === workspaceId,
     );
   },
-  create(workspaceId: string, input: ContentInput): ContentItem {
-    const db = read();
+  async create(workspaceId: string, input: ContentInput) {
+    const db = (await read());
     const item: ContentItem = {
       id: randomUUID(),
       workspaceId,
@@ -491,17 +505,17 @@ export const contentItems = {
       createdAt: now(),
     };
     db.contentItems.push(item);
-    write(db);
+    await write(db);
     return item;
   },
-  update(
+  async update(
     id: string,
     workspaceId: string,
     patch: Partial<
       Pick<ContentItem, "title" | "body" | "status" | "scheduledDate" | "scheduledTime">
     >,
-  ): ContentItem | undefined {
-    const db = read();
+  ) {
+    const db = (await read());
     const existing = db.contentItems.find(
       (c) => c.id === id && c.workspaceId === workspaceId,
     );
@@ -515,17 +529,17 @@ export const contentItems = {
       }
     }
     db.contentItems = db.contentItems.map((c) => (c.id === id ? updated : c));
-    write(db);
+    await write(db);
     return updated;
   },
-  remove(id: string, workspaceId: string): boolean {
-    const db = read();
+  async remove(id: string, workspaceId: string) {
+    const db = (await read());
     const before = db.contentItems.length;
     db.contentItems = db.contentItems.filter(
       (c) => !(c.id === id && c.workspaceId === workspaceId),
     );
     if (db.contentItems.length === before) return false;
-    write(db);
+    await write(db);
     return true;
   },
 };
@@ -545,42 +559,42 @@ const DEFAULT_CMO_CONFIG = (workspaceId: string): CmoConfig => ({
 });
 
 export const cmoConfig = {
-  get(workspaceId: string): CmoConfig {
+  async get(workspaceId: string) {
     return (
-      read().cmoConfig.find((c) => c.workspaceId === workspaceId) ??
+      (await read()).cmoConfig.find((c) => c.workspaceId === workspaceId) ??
       DEFAULT_CMO_CONFIG(workspaceId)
     );
   },
-  upsert(workspaceId: string, patch: Partial<CmoConfig>): CmoConfig {
-    const db = read();
+  async upsert(workspaceId: string, patch: Partial<CmoConfig>) {
+    const db = (await read());
     const existing = db.cmoConfig.find((c) => c.workspaceId === workspaceId);
     const base = existing ?? DEFAULT_CMO_CONFIG(workspaceId);
     const updated: CmoConfig = { ...base, ...patch, workspaceId, updatedAt: now() };
     db.cmoConfig = existing
       ? db.cmoConfig.map((c) => (c.workspaceId === workspaceId ? updated : c))
       : [...db.cmoConfig, updated];
-    write(db);
+    await write(db);
     return updated;
   },
 };
 
 export const cmoActions = {
-  listByWorkspace(workspaceId: string): CmoAction[] {
-    return read()
+  async listByWorkspace(workspaceId: string) {
+    return (await read())
       .cmoActions.filter((a) => a.workspaceId === workspaceId)
       .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
   },
-  findById(id: string, workspaceId: string): CmoAction | undefined {
-    return read().cmoActions.find(
+  async findById(id: string, workspaceId: string) {
+    return (await read()).cmoActions.find(
       (a) => a.id === id && a.workspaceId === workspaceId,
     );
   },
-  create(
+  async create(
     workspaceId: string,
     input: Omit<CmoAction, "id" | "workspaceId" | "createdAt" | "status"> &
       Partial<Pick<CmoAction, "status">>,
-  ): CmoAction {
-    const db = read();
+  ) {
+    const db = (await read());
     const action: CmoAction = {
       id: randomUUID(),
       workspaceId,
@@ -589,22 +603,22 @@ export const cmoActions = {
       ...input,
     };
     db.cmoActions.push(action);
-    write(db);
+    await write(db);
     return action;
   },
-  update(
+  async update(
     id: string,
     workspaceId: string,
     patch: Partial<CmoAction>,
-  ): CmoAction | undefined {
-    const db = read();
+  ) {
+    const db = (await read());
     const existing = db.cmoActions.find(
       (a) => a.id === id && a.workspaceId === workspaceId,
     );
     if (!existing) return undefined;
     const updated: CmoAction = { ...existing, ...patch };
     db.cmoActions = db.cmoActions.map((a) => (a.id === id ? updated : a));
-    write(db);
+    await write(db);
     return updated;
   },
 };
@@ -617,25 +631,25 @@ export type LeadInput = Omit<
 >;
 
 // Email/phone are decrypted only on the way out of the repo.
-function decryptLead(l: Lead): Lead {
+function decryptLead(l: Lead) {
   return { ...l, email: decryptField(l.email), phone: decryptField(l.phone) };
 }
 
 export const leads = {
-  listByWorkspace(workspaceId: string): Lead[] {
-    return read()
+  async listByWorkspace(workspaceId: string) {
+    return (await read())
       .leads.filter((l) => l.workspaceId === workspaceId)
       .map(decryptLead)
       .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
   },
-  findById(id: string, workspaceId: string): Lead | undefined {
-    const l = read().leads.find(
+  async findById(id: string, workspaceId: string) {
+    const l = (await read()).leads.find(
       (x) => x.id === id && x.workspaceId === workspaceId,
     );
     return l ? decryptLead(l) : undefined;
   },
-  create(workspaceId: string, input: LeadInput): Lead {
-    const db = read();
+  async create(workspaceId: string, input: LeadInput) {
+    const db = (await read());
     const lead: Lead = {
       id: randomUUID(),
       workspaceId,
@@ -646,15 +660,15 @@ export const leads = {
       updatedAt: now(),
     };
     db.leads.push(lead);
-    write(db);
+    await write(db);
     return decryptLead(lead);
   },
-  update(
+  async update(
     id: string,
     workspaceId: string,
     patch: Partial<LeadInput>,
-  ): Lead | undefined {
-    const db = read();
+  ) {
+    const db = (await read());
     const existing = db.leads.find(
       (l) => l.id === id && l.workspaceId === workspaceId,
     );
@@ -663,18 +677,18 @@ export const leads = {
     if ("email" in patch) next.email = encryptField(patch.email);
     if ("phone" in patch) next.phone = encryptField(patch.phone);
     db.leads = db.leads.map((l) => (l.id === id ? next : l));
-    write(db);
+    await write(db);
     return decryptLead(next);
   },
-  remove(id: string, workspaceId: string): boolean {
-    const db = read();
+  async remove(id: string, workspaceId: string) {
+    const db = (await read());
     const before = db.leads.length;
     db.leads = db.leads.filter(
       (l) => !(l.id === id && l.workspaceId === workspaceId),
     );
     if (db.leads.length === before) return false;
     db.leadEvents = db.leadEvents.filter((e) => e.leadId !== id);
-    write(db);
+    await write(db);
     return true;
   },
 };
@@ -682,17 +696,17 @@ export const leads = {
 // ----- Algo Insider (one cached guide per workspace) -----------------------
 
 export const algoInsights = {
-  get(workspaceId: string): AlgoInsights | undefined {
-    return read().algoInsights.find((a) => a.workspaceId === workspaceId);
+  async get(workspaceId: string) {
+    return (await read()).algoInsights.find((a) => a.workspaceId === workspaceId);
   },
-  upsert(workspaceId: string, data: Omit<AlgoInsights, "workspaceId">): AlgoInsights {
-    const db = read();
+  async upsert(workspaceId: string, data: Omit<AlgoInsights, "workspaceId">) {
+    const db = (await read());
     const record: AlgoInsights = { workspaceId, ...data };
     const exists = db.algoInsights.some((a) => a.workspaceId === workspaceId);
     db.algoInsights = exists
       ? db.algoInsights.map((a) => (a.workspaceId === workspaceId ? record : a))
       : [...db.algoInsights, record];
-    write(db);
+    await write(db);
     return record;
   },
 };
@@ -700,16 +714,16 @@ export const algoInsights = {
 // ----- Content analyses (history per workspace) ----------------------------
 
 export const contentAnalyses = {
-  listByWorkspace(workspaceId: string): ContentAnalysis[] {
-    return read()
+  async listByWorkspace(workspaceId: string) {
+    return (await read())
       .contentAnalyses.filter((a) => a.workspaceId === workspaceId)
       .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
   },
-  create(
+  async create(
     workspaceId: string,
     input: Omit<ContentAnalysis, "id" | "workspaceId" | "createdAt">,
-  ): ContentAnalysis {
-    const db = read();
+  ) {
+    const db = (await read());
     const record: ContentAnalysis = {
       id: randomUUID(),
       workspaceId,
@@ -717,7 +731,7 @@ export const contentAnalyses = {
       createdAt: now(),
     };
     db.contentAnalyses.push(record);
-    write(db);
+    await write(db);
     return record;
   },
 };
@@ -726,22 +740,22 @@ export const contentAnalyses = {
 
 export const visibilityScans = {
   // Newest first.
-  listByWorkspace(workspaceId: string): VisibilityScan[] {
-    return read()
+  async listByWorkspace(workspaceId: string) {
+    return (await read())
       .visibilityScans.filter((s) => s.workspaceId === workspaceId)
       .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
   },
-  countThisMonth(workspaceId: string): number {
+  async countThisMonth(workspaceId: string) {
     const prefix = new Date().toISOString().slice(0, 7);
-    return read().visibilityScans.filter(
+    return (await read()).visibilityScans.filter(
       (s) => s.workspaceId === workspaceId && s.createdAt.startsWith(prefix),
     ).length;
   },
-  create(
+  async create(
     workspaceId: string,
     input: Omit<VisibilityScan, "id" | "workspaceId" | "createdAt">,
-  ): VisibilityScan {
-    const db = read();
+  ) {
+    const db = (await read());
     const scan: VisibilityScan = {
       id: randomUUID(),
       workspaceId,
@@ -749,23 +763,23 @@ export const visibilityScans = {
       createdAt: now(),
     };
     db.visibilityScans.push(scan);
-    write(db);
+    await write(db);
     return scan;
   },
 };
 
 export const leadEvents = {
-  listByLead(leadId: string): LeadEvent[] {
-    return read()
+  async listByLead(leadId: string) {
+    return (await read())
       .leadEvents.filter((e) => e.leadId === leadId)
       .sort((a, b) => (a.createdAt < b.createdAt ? -1 : 1));
   },
-  create(
+  async create(
     leadId: string,
     type: LeadEventType,
     data: Record<string, unknown> = {},
-  ): LeadEvent {
-    const db = read();
+  ) {
+    const db = (await read());
     const event: LeadEvent = {
       id: randomUUID(),
       leadId,
@@ -774,7 +788,7 @@ export const leadEvents = {
       createdAt: now(),
     };
     db.leadEvents.push(event);
-    write(db);
+    await write(db);
     return event;
   },
 };
@@ -782,17 +796,17 @@ export const leadEvents = {
 // ----- Lead score config (one weight set per workspace) --------------------
 
 export const leadScoreConfig = {
-  get(workspaceId: string): LeadScoreConfig | undefined {
-    return read().leadScoreConfig.find((c) => c.workspaceId === workspaceId);
+  async get(workspaceId: string) {
+    return (await read()).leadScoreConfig.find((c) => c.workspaceId === workspaceId);
   },
-  upsert(workspaceId: string, weights: LeadScoreWeights): LeadScoreConfig {
-    const db = read();
+  async upsert(workspaceId: string, weights: LeadScoreWeights) {
+    const db = (await read());
     const record: LeadScoreConfig = { workspaceId, weights, updatedAt: now() };
     const exists = db.leadScoreConfig.some((c) => c.workspaceId === workspaceId);
     db.leadScoreConfig = exists
       ? db.leadScoreConfig.map((c) => (c.workspaceId === workspaceId ? record : c))
       : [...db.leadScoreConfig, record];
-    write(db);
+    await write(db);
     return record;
   },
 };
@@ -800,16 +814,16 @@ export const leadScoreConfig = {
 // ----- Campaigns (multichannel distribution) -------------------------------
 
 export const campaigns = {
-  listByWorkspace(workspaceId: string): Campaign[] {
-    return read()
+  async listByWorkspace(workspaceId: string) {
+    return (await read())
       .campaigns.filter((c) => c.workspaceId === workspaceId)
       .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
   },
-  findById(id: string, workspaceId: string): Campaign | undefined {
-    return read().campaigns.find((c) => c.id === id && c.workspaceId === workspaceId);
+  async findById(id: string, workspaceId: string) {
+    return (await read()).campaigns.find((c) => c.id === id && c.workspaceId === workspaceId);
   },
-  create(workspaceId: string, input: Omit<Campaign, "id" | "workspaceId" | "createdAt">): Campaign {
-    const db = read();
+  async create(workspaceId: string, input: Omit<Campaign, "id" | "workspaceId" | "createdAt">) {
+    const db = (await read());
     const campaign: Campaign = {
       id: randomUUID(),
       workspaceId,
@@ -817,24 +831,24 @@ export const campaigns = {
       createdAt: now(),
     };
     db.campaigns.push(campaign);
-    write(db);
+    await write(db);
     return campaign;
   },
-  update(id: string, workspaceId: string, patch: Partial<Campaign>): Campaign | undefined {
-    const db = read();
+  async update(id: string, workspaceId: string, patch: Partial<Campaign>) {
+    const db = (await read());
     const existing = db.campaigns.find((c) => c.id === id && c.workspaceId === workspaceId);
     if (!existing) return undefined;
     const next = { ...existing, ...patch };
     db.campaigns = db.campaigns.map((c) => (c.id === id ? next : c));
-    write(db);
+    await write(db);
     return next;
   },
-  remove(id: string, workspaceId: string): boolean {
-    const db = read();
+  async remove(id: string, workspaceId: string) {
+    const db = (await read());
     const before = db.campaigns.length;
     db.campaigns = db.campaigns.filter((c) => !(c.id === id && c.workspaceId === workspaceId));
     if (db.campaigns.length === before) return false;
-    write(db);
+    await write(db);
     return true;
   },
 };
@@ -842,25 +856,25 @@ export const campaigns = {
 // ----- LogReach — conversations & messages -----------------------------------
 
 export const conversations = {
-  listByWorkspace(workspaceId: string): Conversation[] {
-    return read()
+  async listByWorkspace(workspaceId: string) {
+    return (await read())
       .conversations.filter((c) => c.workspaceId === workspaceId)
       .sort((a, b) =>
         (b.lastMessageAt ?? b.createdAt) < (a.lastMessageAt ?? a.createdAt) ? -1 : 1,
       );
   },
-  findById(id: string, workspaceId: string): Conversation | undefined {
-    return read().conversations.find(
+  async findById(id: string, workspaceId: string) {
+    return (await read()).conversations.find(
       (c) => c.id === id && c.workspaceId === workspaceId,
     );
   },
-  findByLead(leadId: string, workspaceId: string): Conversation | undefined {
-    return read().conversations.find(
+  async findByLead(leadId: string, workspaceId: string) {
+    return (await read()).conversations.find(
       (c) => c.leadId === leadId && c.workspaceId === workspaceId,
     );
   },
-  create(workspaceId: string, leadId: string): Conversation {
-    const db = read();
+  async create(workspaceId: string, leadId: string) {
+    const db = (await read());
     const conv: Conversation = {
       id: randomUUID(),
       workspaceId,
@@ -871,43 +885,43 @@ export const conversations = {
       createdAt: now(),
     };
     db.conversations.push(conv);
-    write(db);
+    await write(db);
     return conv;
   },
-  setStatus(id: string, status: ConversationStatus): void {
-    const db = read();
+  async setStatus(id: string, status: ConversationStatus) {
+    const db = (await read());
     db.conversations = db.conversations.map((c) =>
       c.id === id ? { ...c, status } : c,
     );
-    write(db);
+    await write(db);
   },
-  touch(id: string): void {
-    const db = read();
+  async touch(id: string) {
+    const db = (await read());
     db.conversations = db.conversations.map((c) =>
       c.id === id ? { ...c, lastMessageAt: now() } : c,
     );
-    write(db);
+    await write(db);
   },
 };
 
 export const inboxMessages = {
-  listByConversation(conversationId: string): InboxMessage[] {
-    return read()
+  async listByConversation(conversationId: string) {
+    return (await read())
       .inboxMessages.filter((m) => m.conversationId === conversationId)
       .sort((a, b) => (a.sentAt < b.sentAt ? -1 : 1));
   },
   // All messages of a workspace (for the monthly quota + metrics).
-  listByWorkspace(workspaceId: string): InboxMessage[] {
+  async listByWorkspace(workspaceId: string) {
     const convIds = new Set(
-      read().conversations.filter((c) => c.workspaceId === workspaceId).map((c) => c.id),
+      (await read()).conversations.filter((c) => c.workspaceId === workspaceId).map((c) => c.id),
     );
-    return read().inboxMessages.filter((m) => convIds.has(m.conversationId));
+    return (await read()).inboxMessages.filter((m) => convIds.has(m.conversationId));
   },
-  create(
+  async create(
     conversationId: string,
     input: Pick<InboxMessage, "direction" | "content" | "isAiGenerated">,
-  ): InboxMessage {
-    const db = read();
+  ) {
+    const db = (await read());
     const msg: InboxMessage = {
       id: randomUUID(),
       conversationId,
@@ -916,7 +930,7 @@ export const inboxMessages = {
       readAt: input.direction === "outbound" ? now() : null,
     };
     db.inboxMessages.push(msg);
-    write(db);
+    await write(db);
     return msg;
   },
 };
@@ -924,15 +938,15 @@ export const inboxMessages = {
 // ----- Segments (criteria-derived membership) --------------------------------
 
 export const segments = {
-  listByWorkspace(workspaceId: string): Segment[] {
-    return read()
+  async listByWorkspace(workspaceId: string) {
+    return (await read())
       .segments.filter((sg) => sg.workspaceId === workspaceId)
       .sort((a, b) => (a.createdAt < b.createdAt ? -1 : 1));
   },
-  findById(id: string, workspaceId: string): Segment | undefined {
-    return read().segments.find((sg) => sg.id === id && sg.workspaceId === workspaceId);
+  async findById(id: string, workspaceId: string) {
+    return (await read()).segments.find((sg) => sg.id === id && sg.workspaceId === workspaceId);
   },
-  create(
+  async create(
     workspaceId: string,
     input: {
       name: string;
@@ -941,8 +955,8 @@ export const segments = {
       criteria: SegmentCriteria;
       logreachLinked?: boolean;
     },
-  ): Segment {
-    const db = read();
+  ) {
+    const db = (await read());
     const seg: Segment = {
       id: randomUUID(),
       workspaceId,
@@ -955,28 +969,28 @@ export const segments = {
       createdAt: now(),
     };
     db.segments.push(seg);
-    write(db);
+    await write(db);
     return seg;
   },
-  update(
+  async update(
     id: string,
     workspaceId: string,
     patch: Partial<Pick<Segment, "name" | "description" | "criteria" | "isArchived" | "logreachLinked">>,
-  ): Segment | undefined {
-    const db = read();
+  ) {
+    const db = (await read());
     const existing = db.segments.find((sg) => sg.id === id && sg.workspaceId === workspaceId);
     if (!existing) return undefined;
     const updated: Segment = { ...existing, ...patch };
     db.segments = db.segments.map((sg) => (sg.id === id ? updated : sg));
-    write(db);
+    await write(db);
     return updated;
   },
-  remove(id: string, workspaceId: string): boolean {
-    const db = read();
+  async remove(id: string, workspaceId: string) {
+    const db = (await read());
     const before = db.segments.length;
     db.segments = db.segments.filter((sg) => !(sg.id === id && sg.workspaceId === workspaceId));
     if (db.segments.length === before) return false;
-    write(db);
+    await write(db);
     return true;
   },
 };
@@ -984,16 +998,16 @@ export const segments = {
 // ----- LogAgent (conversations + messages + credit ledger) -------------------
 
 export const agentConversations = {
-  listByWorkspace(workspaceId: string): AgentConversation[] {
-    return read()
+  async listByWorkspace(workspaceId: string) {
+    return (await read())
       .agentConversations.filter((c) => c.workspaceId === workspaceId)
       .sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1)); // newest first
   },
-  findById(id: string, workspaceId: string): AgentConversation | undefined {
-    return read().agentConversations.find((c) => c.id === id && c.workspaceId === workspaceId);
+  async findById(id: string, workspaceId: string) {
+    return (await read()).agentConversations.find((c) => c.id === id && c.workspaceId === workspaceId);
   },
-  create(workspaceId: string, title: string): AgentConversation {
-    const db = read();
+  async create(workspaceId: string, title: string) {
+    const db = (await read());
     const conv: AgentConversation = {
       id: randomUUID(),
       workspaceId,
@@ -1002,25 +1016,25 @@ export const agentConversations = {
       updatedAt: now(),
     };
     db.agentConversations.push(conv);
-    write(db);
+    await write(db);
     return conv;
   },
-  touch(id: string): void {
-    const db = read();
+  async touch(id: string) {
+    const db = (await read());
     db.agentConversations = db.agentConversations.map((c) =>
       c.id === id ? { ...c, updatedAt: now() } : c,
     );
-    write(db);
+    await write(db);
   },
 };
 
 export const agentMessages = {
-  listByConversation(conversationId: string): AgentMessage[] {
-    return read()
+  async listByConversation(conversationId: string) {
+    return (await read())
       .agentMessages.filter((m) => m.conversationId === conversationId)
       .sort((a, b) => (a.createdAt < b.createdAt ? -1 : 1));
   },
-  create(
+  async create(
     conversationId: string,
     input: {
       role: AgentMessage["role"];
@@ -1029,8 +1043,8 @@ export const agentMessages = {
       reasoning?: string;
       credits?: number;
     },
-  ): AgentMessage {
-    const db = read();
+  ) {
+    const db = (await read());
     const msg: AgentMessage = {
       id: randomUUID(),
       conversationId,
@@ -1042,12 +1056,12 @@ export const agentMessages = {
       createdAt: now(),
     };
     db.agentMessages.push(msg);
-    write(db);
+    await write(db);
     return msg;
   },
   // Credits consumed this month across the workspace's agent conversations.
-  creditsUsedThisMonth(workspaceId: string): number {
-    const db = read();
+  async creditsUsedThisMonth(workspaceId: string) {
+    const db = (await read());
     const convIds = new Set(
       db.agentConversations.filter((c) => c.workspaceId === workspaceId).map((c) => c.id),
     );
