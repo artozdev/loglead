@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Bot, Mail, Plus, TrendingUp } from "lucide-react";
+import { ArrowRight, Bot, Mail, Plus, TrendingDown, TrendingUp, Users } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
@@ -9,7 +9,6 @@ import type {
   B2bCard,
   GrowthPartner,
   HomeData,
-  InboxPreviewItem,
   LinkedInGrowth,
   PipelineContent,
   QualifiedLead,
@@ -53,10 +52,33 @@ export default function DashboardHome({
   const { t } = useLocale();
   const [, startTransition] = useTransition();
 
+  // Time-aware greeting (computed client-side to avoid a server/client TZ mismatch).
+  const [greeting, setGreeting] = useState<string | null>(null);
+  useEffect(() => {
+    const h = new Date().getHours();
+    setGreeting(
+      t(h < 12 ? "dash.greeting.morning" : h < 18 ? "dash.greeting.afternoon" : "dash.greeting.evening"),
+    );
+  }, [t]);
+
   useEffect(() => {
     const id = setInterval(() => startTransition(() => router.refresh()), 30 * 60 * 1000);
     return () => clearInterval(id);
   }, [router]);
+
+  // Post-checkout / trial-start banners, read from the URL then cleaned up.
+  const [banner, setBanner] = useState<{ kind: "trial" | "purchased"; credits?: number } | null>(null);
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search);
+    if (p.get("trial_started")) setBanner({ kind: "trial" });
+    else if (p.get("credits_purchased")) {
+      setBanner({ kind: "purchased", credits: Number(p.get("credits_purchased")) });
+      window.dispatchEvent(new CustomEvent("loglead:credits-changed"));
+    }
+    if (p.get("trial_started") || p.get("credits_purchased") || p.get("credits_cancelled")) {
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -64,7 +86,7 @@ export default function DashboardHome({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="font-display text-2xl font-semibold tracking-tight">
-            {t("dash.welcome")}, {data.firstName}.
+            {greeting ?? t("dash.welcome")}, {data.firstName}.
           </h1>
           <span className="lead-rule" />
           <p className="mt-2 text-muted">
@@ -77,6 +99,30 @@ export default function DashboardHome({
           {t("dash.createContent")} <Plus size={15} strokeWidth={2} />
         </Link>
       </div>
+
+      {banner && (
+        <div className="dash-rise flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/20 border-l-[3px] border-l-primary bg-primary/5 px-5 py-3.5">
+          <div>
+            {banner.kind === "trial" ? (
+              <>
+                <p className="text-sm font-semibold text-ink">🎉 Welcome to LogLead! Your 7-day free trial has started.</p>
+                <p className="mt-0.5 text-[13px] text-muted">You have 200 trial credits. Use them wisely.</p>
+              </>
+            ) : (
+              <>
+                <p className="text-sm font-semibold text-ink">✅ {banner.credits?.toLocaleString("fr-FR")} credits added to your balance.</p>
+                <p className="mt-0.5 text-[13px] text-muted">Thanks for your purchase — they never expire.</p>
+              </>
+            )}
+          </div>
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent("loglead:open-credits"))}
+            className="btn-secondary shrink-0 !px-3 !py-2 text-[13px]"
+          >
+            View credit details
+          </button>
+        </div>
+      )}
 
       {checklist?.visible && (
         <div className="dash-rise" style={{ animationDelay: "40ms" }}>
@@ -95,56 +141,76 @@ export default function DashboardHome({
         </div>
       )}
 
-      {/* 5 business metric cards */}
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
-        {data.b2b.cards.map((c) => (
-          <MetricCard key={c.key} card={c} />
-        ))}
+      {/* Business metrics band + sparklines (Content Score & AI Visibility hidden) */}
+      <div className="grid grid-cols-1 divide-y-[0.5px] divide-x-0 divide-line overflow-hidden rounded-[12px] border-[0.5px] border-line bg-surface sm:grid-cols-3 sm:divide-x-[0.5px] sm:divide-y-0">
+        {data.b2b.cards
+          .filter((c) => c.key !== "score" && c.key !== "visibility")
+          .map((c) => (
+            <MetricCard key={c.key} card={c} />
+          ))}
       </div>
 
-      <GrowthPartnerBlock partner={data.b2b.growthPartner} />
+      {/* AI Growth Partner block hidden on request (menu also hidden) —
+          restore <GrowthPartnerBlock partner={data.b2b.growthPartner} /> to bring it back. */}
 
       <div className="grid gap-4 lg:grid-cols-[1.75fr_1fr]">
         <LinkedInGrowthBlock growth={data.b2b.growth} />
         <ContentPipelineBlock items={data.b2b.pipeline} />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[1.5fr_1fr]">
-        {data.leadsEnabled ? (
-          <PipelineIntelligenceBlock leads={data.b2b.qualifiedLeads} />
-        ) : (
-          <UpsellBlock />
-        )}
-        {data.inboxEnabled && <OutreachEngineBlock items={data.inboxPreview} />}
-      </div>
+      {data.leadsEnabled ? (
+        <PipelineIntelligenceBlock leads={data.b2b.qualifiedLeads} />
+      ) : (
+        <UpsellBlock />
+      )}
     </div>
   );
 }
 
-// ----- Metric card -----------------------------------------------------------
+// ----- Metric card (band cell + sparkline) -----------------------------------
+
+// Minimal SVG sparkline, blue theme — same language as the Leads page.
+function Sparkline({ data }: { data: number[] }) {
+  const W = 62;
+  const H = 30;
+  if (!data?.length) return <div style={{ width: W, height: H }} />;
+  const max = Math.max(...data);
+  const min = Math.min(...data);
+  const range = max - min || 1;
+  const x = (i: number) => (data.length <= 1 ? 0 : (i / (data.length - 1)) * (W - 2) + 1);
+  const y = (v: number) => H - 4 - ((v - min) / range) * (H - 8);
+  const line = data.map((v, i) => `${i === 0 ? "M" : "L"} ${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join(" ");
+  return (
+    <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} className="shrink-0" aria-hidden>
+      <path d={line} fill="none" stroke="rgb(var(--c-primary))" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 function MetricCard({ card }: { card: B2bCard }) {
   const { t } = useLocale();
   const inner = (
-    <>
-      <p className="text-[13px] font-medium text-muted">{t(`card.${card.key}.label`)}</p>
-      <div className="mt-2 flex items-baseline gap-1.5">
-        <span className="num text-[26px] font-bold leading-none tracking-tight text-ink">{card.display}</span>
-        <span className="text-[12px] text-muted">{t(`card.${card.key}.unit`)}</span>
+    <div className="flex items-center justify-between gap-3 px-4 py-4">
+      <div className="min-w-0">
+        <p className="truncate text-[12px] text-muted">{t(`card.${card.key}.label`)}</p>
+        <div className="mt-1 flex items-baseline gap-1.5">
+          <span className="num text-[24px] font-semibold leading-none tracking-tight text-ink">{card.display}</span>
+          {card.hasDelta && (
+            <span className={`inline-flex items-center gap-0.5 text-[12px] font-medium ${card.good ? "text-success" : "text-danger"}`}>
+              {card.good ? <TrendingUp size={12} strokeWidth={2} /> : <TrendingDown size={12} strokeWidth={2} />}
+              {t(`card.${card.key}.delta`, card.deltaVars)}
+            </span>
+          )}
+        </div>
+        <p className="mt-1 truncate text-[11px] text-faint">{t(`card.${card.key}.sub`, card.subVars)}</p>
       </div>
-      <p className="mt-1.5 truncate text-[12px] text-muted">{t(`card.${card.key}.sub`, card.subVars)}</p>
-      {card.hasDelta && (
-        <p className={`num mt-2 text-[12px] font-semibold ${card.good ? "text-success" : "text-danger"}`}>
-          {t(`card.${card.key}.delta`, card.deltaVars)}
-        </p>
-      )}
-    </>
+      <Sparkline data={card.spark} />
+    </div>
   );
-  const cls = "rounded-[12px] border-[0.5px] border-line bg-surface p-4";
   return card.href ? (
-    <Link href={card.href} className={`${cls} block transition hover:bg-surface-hover`}>{inner}</Link>
+    <Link href={card.href} className="block transition hover:bg-surface-hover">{inner}</Link>
   ) : (
-    <div className={cls}>{inner}</div>
+    <div>{inner}</div>
   );
 }
 
@@ -321,46 +387,101 @@ function ContentPipelineBlock({ items }: { items: PipelineContent[] }) {
 
 function PipelineIntelligenceBlock({ leads }: { leads: QualifiedLead[] }) {
   const { t } = useLocale();
+  const hot = leads.filter((l) => l.score >= 85).length;
+
+  const signalStyle = (key: string) =>
+    key.includes("hot")
+      ? "border-danger/25 bg-danger/10 text-danger"
+      : key.includes("warm")
+        ? "border-warning/25 bg-warning/10 text-warning"
+        : "border-primary/20 bg-primary/10 text-primary";
+
   return (
-    <section className="rounded-[12px] border-[0.5px] border-line bg-surface">
-      <div className="flex items-start justify-between gap-2 border-b-[0.5px] border-line px-5 py-3">
-        <div>
-          <h2 className="font-display text-base font-semibold text-ink">{t("dash.pipelineIntel")}</h2>
-          <p className="text-[12px] text-muted">{t("dash.pipelineIntel.sub")}</p>
+    <section className="overflow-hidden rounded-[16px] border-[0.5px] border-line bg-surface">
+      {/* Header */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b-[0.5px] border-line px-5 py-4 sm:px-6">
+        <div className="flex items-center gap-3">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <Users size={18} strokeWidth={1.8} />
+          </span>
+          <div>
+            <h2 className="font-display text-lg font-semibold text-ink">{t("dash.pipelineIntel")}</h2>
+            <p className="text-[12px] text-muted">{t("dash.pipelineIntel.sub")}</p>
+          </div>
         </div>
-        <Link href="/leads" className="text-[12px] text-primary hover:underline">{t("dash.viewAllLeads")}</Link>
+        <div className="flex items-center gap-4">
+          {leads.length > 0 && (
+            <div className="hidden items-center gap-4 sm:flex">
+              <Stat n={leads.length} label={t("dash.pi.qualified")} />
+              <span className="h-8 w-px bg-line" />
+              <Stat n={hot} label={t("dash.pi.hot")} accent />
+            </div>
+          )}
+          <Link href="/leads" className="btn-secondary !px-3 !py-1.5 text-[12px]">
+            {t("dash.viewAllLeads")} <ArrowRight size={13} />
+          </Link>
+        </div>
       </div>
 
+      {/* Body */}
       {leads.length === 0 ? (
-        <p className="px-5 py-10 text-center text-[13px] text-faint">{t("dash.noLeads")}</p>
+        <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-surface-hover text-2xl">🎯</span>
+          <p className="mt-3 text-sm font-medium text-ink">{t("dash.noLeads")}</p>
+        </div>
       ) : (
-        <div className="divide-y-[0.5px] divide-line">
+        <div className="grid gap-3 p-4 sm:grid-cols-2 xl:grid-cols-3">
           {leads.map((l) => (
-            <div key={l.id} className="flex items-center gap-3 px-5 py-3">
-              <span
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white"
-                style={{ backgroundColor: scoreColor(l.score) }}
-              >
-                {l.name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase()}
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-x-2">
-                  <span className="text-[13px] font-medium text-ink">{l.name}</span>
-                  <span className="text-[12px] text-muted">{l.role}</span>
+            <div
+              key={l.id}
+              className="group flex flex-col gap-3 rounded-[14px] border-[0.5px] border-line bg-canvas p-4 transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-card"
+            >
+              <div className="flex items-center gap-3">
+                <span
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[13px] font-bold text-white shadow-sm"
+                  style={{ backgroundColor: scoreColor(l.score) }}
+                >
+                  {l.name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase()}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[14px] font-semibold text-ink">{l.name}</p>
+                  <p className="truncate text-[12px] text-muted">{l.role}</p>
                 </div>
-                <p className="truncate text-[12px] text-muted">{t(l.signalKey)}</p>
+                <span className={`shrink-0 rounded-full border-[0.5px] px-2 py-0.5 text-[10px] font-semibold ${signalStyle(l.signalKey)}`}>
+                  {t(l.signalKey)}
+                </span>
               </div>
-              <span className="num shrink-0 text-[13px] font-semibold" style={{ color: scoreColor(l.score) }}>
-                {l.score}/100{l.score >= 85 ? " 🔥" : ""}
-              </span>
-              <Link href={`/leads/${l.id}`} className="btn-secondary shrink-0 !px-2.5 !py-1.5 text-[12px]">
-                <Mail size={13} strokeWidth={1.5} /> {t("common.reachOut")}
+
+              {/* Fit score meter */}
+              <div>
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-faint">{t("dash.pi.fit")}</span>
+                  <span className="num font-semibold" style={{ color: scoreColor(l.score) }}>
+                    {l.score}/100{l.score >= 85 ? " 🔥" : ""}
+                  </span>
+                </div>
+                <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-surface-hover">
+                  <div className="h-full rounded-full" style={{ width: `${l.score}%`, backgroundColor: scoreColor(l.score) }} />
+                </div>
+              </div>
+
+              <Link href={`/leads/${l.id}`} className="btn-secondary w-full !py-2 text-[12px] transition group-hover:border-primary/40">
+                <Mail size={13} strokeWidth={1.7} /> {t("common.reachOut")}
               </Link>
             </div>
           ))}
         </div>
       )}
     </section>
+  );
+}
+
+function Stat({ n, label, accent }: { n: number; label: string; accent?: boolean }) {
+  return (
+    <div className="text-right">
+      <p className={`num text-lg font-semibold leading-none ${accent ? "text-danger" : "text-ink"}`}>{n}</p>
+      <p className="text-[11px] text-muted">{label}</p>
+    </div>
   );
 }
 
@@ -375,40 +496,3 @@ function UpsellBlock() {
   );
 }
 
-// ----- Outreach Engine -------------------------------------------------------
-
-function OutreachEngineBlock({ items }: { items: InboxPreviewItem[] }) {
-  const { t } = useLocale();
-  return (
-    <section className="rounded-[12px] border-[0.5px] border-line bg-surface">
-      <div className="flex items-start justify-between gap-2 border-b-[0.5px] border-line px-5 py-3">
-        <div>
-          <h2 className="font-display text-base font-semibold text-ink">{t("dash.outreach")}</h2>
-          <p className="text-[12px] text-muted">{t("dash.outreach.sub")}</p>
-        </div>
-        <Link href="/inbox" className="text-[12px] text-primary hover:underline">{t("dash.viewAll")}</Link>
-      </div>
-      {items.length === 0 ? (
-        <p className="px-5 py-10 text-center text-[13px] text-faint">{t("dash.noConversations")}</p>
-      ) : (
-        <div className="divide-y-[0.5px] divide-line">
-          {items.map((c) => (
-            <Link key={c.id} href="/inbox" className="flex items-center gap-3 px-5 py-3 transition hover:bg-surface-hover">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[11px] font-bold text-primary">
-                {c.leadName.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase()}
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="truncate text-[13px] font-medium text-ink">{c.leadName}</span>
-                  {c.unread && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />}
-                </div>
-                <p className="truncate text-[12px] text-muted">{c.preview}</p>
-              </div>
-              <span className="num shrink-0 text-[11px] text-faint">{c.time}</span>
-            </Link>
-          ))}
-        </div>
-      )}
-    </section>
-  );
-}

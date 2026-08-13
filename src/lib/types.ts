@@ -139,13 +139,42 @@ export const PLANS: { value: Plan; label: string }[] = [
 ];
 
 // A "startup" — the tenant. A user can own/belong to several.
+export type LinkedInConnection = {
+  accessToken: string; // encrypted at rest
+  memberSub: string; // LinkedIn member id (OpenID `sub`) — used as author URN
+  name?: string;
+  expiresAt: string; // ISO
+  connectedAt: string; // ISO
+};
+
 export type Workspace = {
   id: string;
   name: string;
   ownerId: string;
   plan: Plan;
   createdAt: string;
-  trialEndsAt?: string; // set when the workspace is on a 14-day trial
+  trialEndsAt?: string; // set when the workspace is on a 7-day trial
+  linkedin?: LinkedInConnection; // official LinkedIn OAuth connection (V1)
+  // ----- Credits & billing -----
+  planChosen?: boolean; // false → force the mandatory /onboarding/plan screen
+  credits?: number; // current spendable balance (trial + monthly + purchased)
+  monthlyCreditsLimit?: number; // plan quota used for the header gauge ratio
+  trialStartsAt?: string; // ISO — set when a plan is picked
+  creditsRenewAt?: string; // ISO — next monthly renewal (trial end, then +1 month)
+};
+
+// One line in the credit ledger (add or consume). Positive = added.
+export type CreditTransactionType = "trial" | "monthly_renewal" | "purchase" | "consumption";
+export type CreditTransaction = {
+  id: string;
+  workspaceId: string;
+  type: CreditTransactionType;
+  action?: string; // e.g. "generate_post", "enrich_lead_full" (consumption)
+  credits: number; // signed: + added, − consumed
+  amountEur?: number | null; // set for purchases
+  stripePaymentIntent?: string | null;
+  balanceAfter: number;
+  createdAt: string;
 };
 
 // ----- CMO IA ("Loger") ----------------------------------------------------
@@ -247,11 +276,11 @@ export const LEAD_STATUSES: {
   label: string;
   cls: string;
 }[] = [
-  { value: "new", label: "Nouveau", cls: "border-line bg-surface-hover text-muted" },
-  { value: "contacted", label: "Contacté", cls: "border-primary/15 bg-primary/[0.06] text-primary" },
-  { value: "converted", label: "Qualifié", cls: "border-success/20 bg-success/10 text-success" },
-  { value: "in_discussion", label: "En discussion", cls: "border-warning/25 bg-warning/10 text-warning" },
-  { value: "lost", label: "Perdu", cls: "border-danger/15 bg-danger/[0.06] text-danger" },
+  { value: "new", label: "New", cls: "border-line bg-surface-hover text-muted" },
+  { value: "contacted", label: "Contacted", cls: "border-primary/15 bg-primary/[0.06] text-primary" },
+  { value: "converted", label: "Qualified", cls: "border-success/20 bg-success/10 text-success" },
+  { value: "in_discussion", label: "In discussion", cls: "border-warning/25 bg-warning/10 text-warning" },
+  { value: "lost", label: "Lost", cls: "border-danger/15 bg-danger/[0.06] text-danger" },
 ];
 
 export function leadChannelLabel(c: LeadChannel): string {

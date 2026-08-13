@@ -9,11 +9,18 @@ import {
   ChevronRight,
   Copy,
   Download,
+  LayoutGrid,
+  List,
+  Loader2,
+  Mail,
+  Phone,
   Plus,
   Search,
   Share2,
   SlidersHorizontal,
   Sparkles,
+  TrendingDown,
+  TrendingUp,
   Upload,
   UserRound,
   Users,
@@ -25,13 +32,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   LEAD_CHANNELS,
   LEAD_STATUSES,
-  scoreColorVar,
   scoreLabel,
   type Lead,
   type LeadChannel,
   type LeadStatus,
 } from "@/lib/types";
 import LeadAddModal from "./LeadAddModal";
+import LeadDrawer from "./LeadDrawer";
 import LeadImportModal from "./LeadImportModal";
 
 type ContentRef = { id: string; title: string };
@@ -46,25 +53,46 @@ type Stats = {
   qualifiedWeek: WeekSplit;
   lost: number;
   lostWeek: WeekSplit;
+  hot: number;
+  hotWeek: WeekSplit;
+  series: { total: number[]; qualified: number[]; lost: number[]; hot: number[] };
 };
 
+const STATUS_TABS = [
+  { value: "all", label: "All" },
+  { value: "new", label: "New" },
+  { value: "contacted", label: "Contacted" },
+  { value: "in_discussion", label: "In discussion" },
+  { value: "converted", label: "Qualified" },
+  { value: "lost", label: "Lost" },
+];
+
 const PERIODS = [
-  { value: "all", label: "Toute période" },
-  { value: "7d", label: "7 derniers jours" },
-  { value: "30d", label: "30 derniers jours" },
-  { value: "3m", label: "3 derniers mois" },
+  { value: "all", label: "All time" },
+  { value: "7d", label: "Last 7 days" },
+  { value: "30d", label: "Last 30 days" },
+  { value: "3m", label: "Last 3 months" },
 ];
 const SORTS = [
-  { value: "recent", label: "Plus récent" },
-  { value: "name", label: "Nom" },
-  { value: "status", label: "Statut" },
-  { value: "channel", label: "Canal" },
+  { value: "recent", label: "Most recent" },
+  { value: "name", label: "Name" },
+  { value: "status", label: "Status" },
+  { value: "channel", label: "Channel" },
 ];
 const PAGE_SIZES = [10, 25, 50, 100];
 
 function pctChange(cur: number, prev: number): number {
   if (prev === 0) return cur > 0 ? 100 : 0;
   return ((cur - prev) / prev) * 100;
+}
+
+// LinkedIn "in" logo (lucide dropped brand icons; inline SVG matches the design).
+function LinkedInIcon({ size = 15 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden focusable="false">
+      <path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.8 0 0 .78 0 1.73v20.54C0 23.22.8 24 1.77 24h20.45c.98 0 1.78-.78 1.78-1.73V1.73C24 .78 23.2 0 22.22 0z" />
+    </svg>
+  );
 }
 
 function fmtDate(iso: string): string {
@@ -110,6 +138,11 @@ export default function LeadsModule({
   const [sort, setSort] = useState("recent");
   const [addOpen, setAddOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [selected, setSelected] = useState<LeadRow | null>(null);
+  const [enriching, setEnriching] = useState<Set<string>>(new Set());
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [view, setView] = useState<"list" | "grid">("list");
   const [seeding, setSeeding] = useState(false);
   const [shared, setShared] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -188,6 +221,70 @@ export default function LeadsModule({
     refresh();
   }
 
+  function toggleSelect(id: string) {
+    setSelectedIds((s) => {
+      const n = new Set(s);
+      if (n.has(id)) n.delete(id);
+      else n.add(id);
+      return n;
+    });
+  }
+  function toggleSelectAll() {
+    setSelectedIds((s) =>
+      s.size === leadsList.length ? new Set() : new Set(leadsList.map((l) => l.id)),
+    );
+  }
+
+  // Bulk enrich the selected leads (sequential — avoids hammering FullEnrich).
+  async function bulkEnrich() {
+    setBulkBusy(true);
+    for (const id of selectedIds) await enrichLead(id);
+    setBulkBusy(false);
+  }
+
+  // Bulk delete the selected leads.
+  async function bulkDelete() {
+    if (!confirm(`Delete ${selectedIds.size} lead(s)? This action is permanent.`)) return;
+    setBulkBusy(true);
+    await Promise.all(
+      [...selectedIds].map((id) => fetch(`/api/leads/${id}`, { method: "DELETE" })),
+    );
+    setSelectedIds(new Set());
+    setBulkBusy(false);
+    refresh();
+  }
+
+  // FIND EMAIL / FIND PHONE — runs the real enrichment (FullEnrich waterfall)
+  // for one lead and patches the row in place so the found email/phone appear.
+  async function enrichLead(id: string) {
+    setEnriching((s) => new Set(s).add(id));
+    try {
+      const res = await fetch(`/api/leads/${id}/enrich`, { method: "POST" });
+      if (res.status === 402) {
+        const d = await res.json().catch(() => ({}));
+        window.dispatchEvent(
+          new CustomEvent("loglead:insufficient-credits", {
+            detail: { needed: d.needed, balance: d.balance, action: d.action },
+          }),
+        );
+      } else if (res.ok) {
+        const { lead } = await res.json();
+        if (lead) {
+          setLeadsList((list) =>
+            list.map((l) => (l.id === id ? { ...l, ...lead } : l)),
+          );
+          window.dispatchEvent(new CustomEvent("loglead:credits-changed"));
+        }
+      }
+    } finally {
+      setEnriching((s) => {
+        const n = new Set(s);
+        n.delete(id);
+        return n;
+      });
+    }
+  }
+
   function exportCsv() {
     alert(
       "Rappel RGPD : tu es responsable du traitement de ces données. Ne partage cet export qu'avec les personnes autorisées.",
@@ -235,7 +332,7 @@ export default function LeadsModule({
             className="hidden items-center gap-2 rounded-[10px] border border-line bg-surface px-3 py-2 text-[13px] text-muted hover:bg-surface-hover sm:flex"
           >
             <Search size={14} strokeWidth={1.5} />
-            Rechercher
+            Search
             <kbd className="rounded border border-line bg-canvas px-1.5 py-0.5 text-[10px] text-faint">
               ⌘F
             </kbd>
@@ -248,65 +345,60 @@ export default function LeadsModule({
       </div>
       )}
 
-      {/* Action bar */}
-      <div className="flex flex-wrap items-center gap-2 border-y-[0.5px] border-line py-3">
-        <button onClick={() => setAddOpen(true)} className="btn-secondary !py-2 text-[13px]">
-          <Plus size={14} strokeWidth={1.5} /> Ajouter un lead
-        </button>
-        <button onClick={() => setImportOpen(true)} className="btn-secondary !py-2 text-[13px]">
-          <Upload size={14} strokeWidth={1.5} /> Importer CSV
-        </button>
-        <div className="ml-auto flex flex-wrap items-center gap-2">
-          <Select
-            value={channel}
-            onChange={(v) => { setChannel(v); setPage(1); }}
-            options={[{ value: "all", label: "Tous les canaux" }, ...LEAD_CHANNELS.map((c) => ({ value: c.value, label: c.label }))]}
+      {/* Metric band + sparklines */}
+      {stats && (
+        <div className="grid grid-cols-2 divide-x-[0.5px] divide-line overflow-hidden rounded-[10px] border-[0.5px] border-line bg-canvas md:grid-cols-4">
+          <MetricCard
+            label="New Leads"
+            value={stats.newThisMonth}
+            curWeek={stats.addedThisWeek}
+            prevWeek={stats.addedPrevWeek}
+            series={stats.series.total}
           />
-          <Select
-            value={status}
-            onChange={(v) => { setStatus(v); setPage(1); }}
-            options={[{ value: "all", label: "Tous les statuts" }, ...LEAD_STATUSES.map((s) => ({ value: s.value, label: s.label }))]}
+          <MetricCard
+            label="Qualified Leads"
+            value={stats.qualified}
+            curWeek={stats.qualifiedWeek.thisWeek}
+            prevWeek={stats.qualifiedWeek.prevWeek}
+            series={stats.series.qualified}
           />
-          <Select
-            value={period}
-            onChange={(v) => { setPeriod(v); setPage(1); }}
-            options={PERIODS}
+          <MetricCard
+            label="Hot Leads"
+            value={stats.hot}
+            curWeek={stats.hotWeek.thisWeek}
+            prevWeek={stats.hotWeek.prevWeek}
+            series={stats.series.hot}
+          />
+          <MetricCard
+            label="Lost"
+            value={stats.lost}
+            curWeek={stats.lostWeek.thisWeek}
+            prevWeek={stats.lostWeek.prevWeek}
+            series={stats.series.lost}
+            invert
           />
         </div>
-      </div>
+      )}
 
-      {/* Metric cards */}
-      {stats && (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <MetricCard
-            icon={Users}
-            label="Total leads"
-            value={stats.total}
-            pct={pctChange(stats.addedThisWeek, stats.addedPrevWeek)}
-            sub={`${stats.addedThisWeek >= 0 ? "+" : ""}${stats.addedThisWeek} vs semaine dernière`}
-          />
-          <MetricCard
-            icon={Sparkles}
-            label="Nouveaux leads"
-            value={stats.newThisMonth}
-            pct={pctChange(stats.addedThisWeek, stats.addedPrevWeek)}
-            sub={`${stats.addedThisWeek - stats.addedPrevWeek >= 0 ? "+" : ""}${stats.addedThisWeek - stats.addedPrevWeek} vs semaine dernière`}
-          />
-          <MetricCard
-            icon={CheckCircle2}
-            label="Leads qualifiés"
-            value={stats.qualified}
-            pct={pctChange(stats.qualifiedWeek.thisWeek, stats.qualifiedWeek.prevWeek)}
-            sub={`${stats.qualifiedShare.toFixed(0)} % du total`}
-          />
-          <MetricCard
-            icon={XCircle}
-            label="Leads perdus"
-            value={stats.lost}
-            pct={pctChange(stats.lostWeek.thisWeek, stats.lostWeek.prevWeek)}
-            invert
-            sub={`${stats.lostWeek.thisWeek - stats.lostWeek.prevWeek >= 0 ? "+" : ""}${stats.lostWeek.thisWeek - stats.lostWeek.prevWeek} vs semaine dernière`}
-          />
+      {/* Quick filter tabs */}
+      {!isEmpty && (
+        <div className="flex gap-6 overflow-x-auto border-b border-line">
+          {STATUS_TABS.map((t) => (
+            <button
+              key={t.value}
+              onClick={() => {
+                setStatus(t.value);
+                setPage(1);
+              }}
+              className={`-mb-px shrink-0 border-b-2 px-1 py-2.5 text-[13px] transition ${
+                status === t.value
+                  ? "border-primary font-medium text-primary"
+                  : "border-transparent text-muted hover:text-ink"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
         </div>
       )}
 
@@ -318,7 +410,7 @@ export default function LeadsModule({
           seeding={seeding}
         />
       ) : (
-        <div className="rounded-[10px] border-[0.5px] border-line bg-surface">
+        <div className="rounded-[10px] border-[0.5px] border-line bg-canvas">
           {/* Toolbar */}
           <div className="flex flex-wrap items-center gap-2 p-3">
             <div className="flex min-w-[180px] items-center gap-2 rounded-lg border border-line bg-canvas px-3 py-2 focus-within:border-primary sm:w-64">
@@ -327,7 +419,7 @@ export default function LeadsModule({
                 ref={searchRef}
                 value={q}
                 onChange={(e) => { setQ(e.target.value); setPage(1); }}
-                placeholder="Rechercher un lead…"
+                placeholder="Search"
                 className="w-full bg-transparent text-[13px] outline-none placeholder:text-faint"
               />
             </div>
@@ -336,7 +428,7 @@ export default function LeadsModule({
               <select
                 value={sort}
                 onChange={(e) => setSort(e.target.value)}
-                aria-label="Trier"
+                aria-label="Sort"
                 className="bg-transparent text-ink outline-none"
               >
                 {SORTS.map((s) => (
@@ -358,54 +450,147 @@ export default function LeadsModule({
               }}
             />
             <div className="ml-auto flex items-center gap-2">
+              <div className="hidden items-center gap-0.5 rounded-lg border border-line p-0.5 md:flex">
+                <button
+                  onClick={() => setView("list")}
+                  aria-label="Vue liste"
+                  aria-pressed={view === "list"}
+                  className={`flex h-7 w-7 items-center justify-center rounded-md transition ${
+                    view === "list" ? "bg-primary/[0.08] text-primary" : "text-muted hover:text-ink"
+                  }`}
+                >
+                  <List size={15} strokeWidth={1.5} />
+                </button>
+                <button
+                  onClick={() => setView("grid")}
+                  aria-label="Vue grille"
+                  aria-pressed={view === "grid"}
+                  className={`flex h-7 w-7 items-center justify-center rounded-md transition ${
+                    view === "grid" ? "bg-primary/[0.08] text-primary" : "text-muted hover:text-ink"
+                  }`}
+                >
+                  <LayoutGrid size={15} strokeWidth={1.5} />
+                </button>
+              </div>
               <button onClick={() => setAddOpen(true)} className="btn-primary !py-2 text-[13px]">
-                <Plus size={14} strokeWidth={1.5} /> Ajouter un lead
+                <Plus size={14} strokeWidth={1.5} /> Add Lead
               </button>
               <button onClick={exportCsv} className="btn-secondary !py-2 text-[13px]">
-                Export CSV
+                Export
               </button>
             </div>
           </div>
 
-          {/* Desktop table */}
-          <table className="hidden w-full border-collapse text-[13px] md:table">
+          {/* Bulk actions bar — appears when leads are selected */}
+          {selectedIds.size > 0 && (
+            <div className="sticky top-2 z-30 mx-2 mb-2 flex flex-wrap items-center gap-2 rounded-[10px] border border-line bg-surface px-3 py-2 shadow-pop">
+              <span className="text-[13px] font-medium text-ink">
+                {selectedIds.size} selected
+              </span>
+              <span className="mx-1 h-4 w-px bg-line" />
+              <button
+                onClick={bulkEnrich}
+                disabled={bulkBusy}
+                className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-medium text-white transition hover:bg-primary-hover disabled:opacity-50"
+              >
+                {bulkBusy ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
+                Enrich
+              </button>
+              <button
+                onClick={exportCsv}
+                disabled={bulkBusy}
+                className="btn-secondary !py-1.5 !text-xs disabled:opacity-50"
+              >
+                Export
+              </button>
+              <button
+                onClick={bulkDelete}
+                disabled={bulkBusy}
+                className="inline-flex items-center gap-1.5 rounded-full border-[0.5px] border-danger/40 px-3 py-1.5 text-xs font-medium text-danger transition hover:bg-danger/5 disabled:opacity-50"
+              >
+                Delete
+              </button>
+              <button
+                onClick={() => setSelectedIds(new Set())}
+                className="ml-auto text-xs text-muted hover:text-ink"
+              >
+                Clear
+              </button>
+            </div>
+          )}
+
+          {/* Desktop table (list view) */}
+          <table className={`w-full border-collapse text-[13px] [&_td]:border-r-[0.5px] [&_td]:border-line [&_th]:border-r-[0.5px] [&_th]:border-line [&_tr>*:last-child]:border-r-0 ${view === "list" ? "hidden md:table" : "hidden"}`}>
             <thead>
               <tr>
-                <Th className="w-10">#</Th>
-                <Th>Lead</Th>
-                <Th>SaaS/Entreprise</Th>
+                <th className="w-10 px-4 py-2.5">
+                  <input
+                    type="checkbox"
+                    aria-label="Tout sélectionner"
+                    checked={leadsList.length > 0 && selectedIds.size === leadsList.length}
+                    ref={(el) => {
+                      if (el) el.indeterminate = selectedIds.size > 0 && selectedIds.size < leadsList.length;
+                    }}
+                    onChange={toggleSelectAll}
+                    className="h-3.5 w-3.5 cursor-pointer accent-primary"
+                  />
+                </th>
+                <Th>Full name</Th>
                 <Th>Email</Th>
-                <Th>Canal</Th>
-                {!segmentId && <Th>Segment</Th>}
+                <Th>Phone</Th>
+                <Th>Company</Th>
+                <Th>Job title</Th>
                 <Th>Score</Th>
-                <Th>Statut</Th>
-                <Th>Ajouté le</Th>
+                <Th>Status</Th>
               </tr>
             </thead>
             <tbody>
               {leadsList.map((l, i) => (
                 <tr
                   key={l.id}
-                  onClick={() => router.push(`/leads/${l.id}`)}
+                  onClick={() => setSelected(l)}
                   className="group cursor-pointer border-b-[0.5px] border-line last:border-b-0 hover:bg-surface-hover"
                 >
-                  <td className="px-4 py-3 text-xs text-faint">{rangeStart + i}</td>
+                  <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                    <input
+                      type="checkbox"
+                      aria-label={`Sélectionner ${l.firstName} ${l.lastName}`}
+                      checked={selectedIds.has(l.id)}
+                      onChange={() => toggleSelect(l.id)}
+                      className="h-3.5 w-3.5 cursor-pointer accent-primary"
+                    />
+                  </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2.5">
                       <Avatar lead={l} />
-                      <div className="min-w-0">
-                        <p className="truncate font-medium text-ink">
-                          {l.firstName} {l.lastName}
-                        </p>
-                        <p className="truncate text-xs text-muted">{l.email || "—"}</p>
-                      </div>
+                      <span className="truncate font-medium text-ink">
+                        {l.firstName} {l.lastName}
+                      </span>
+                      {l.linkedinUrl ? (
+                        <a
+                          href={l.linkedinUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          title="Voir le profil LinkedIn"
+                          aria-label="Voir le profil LinkedIn"
+                          className="shrink-0 transition hover:opacity-80"
+                          style={{ color: "var(--color-linkedin)" }}
+                        >
+                          <LinkedInIcon size={15} />
+                        </a>
+                      ) : (
+                        <span className="shrink-0 text-faint/40">
+                          <LinkedInIcon size={15} />
+                        </span>
+                      )}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-ink">{l.company || "—"}</td>
                   <td className="px-4 py-3">
                     {l.email ? (
-                      <span className="flex items-center gap-1.5 text-muted">
+                      <span className="flex min-w-0 max-w-[210px] items-center gap-1.5 text-primary">
                         <span className="truncate">{l.email}</span>
+                        <CheckCircle2 size={12} className="shrink-0 text-success" />
                         <button
                           title="Copier l'email"
                           aria-label="Copier l'email"
@@ -418,48 +603,187 @@ export default function LeadsModule({
                           <Copy size={12} strokeWidth={1.5} />
                         </button>
                       </span>
+                    ) : enriching.has(l.id) ? (
+                      <span className="flex items-center gap-1.5 text-[11px] text-faint">
+                        <Loader2 size={12} className="animate-spin" /> Scraping LinkedIn infos…
+                      </span>
                     ) : (
-                      <span className="text-faint">—</span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void enrichLead(l.id);
+                        }}
+                        className="inline-flex items-center gap-1 rounded-full border-[0.5px] border-line px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-muted transition hover:border-primary/40 hover:text-primary"
+                      >
+                        <Mail size={11} strokeWidth={1.5} /> Find email
+                      </button>
                     )}
                   </td>
                   <td className="px-4 py-3">
-                    <ChannelBadge channel={l.channel} />
-                  </td>
-                  {!segmentId && (
-                    <td className="px-4 py-3">
-                      {l.segment ? (
-                        <Link
-                          href={`/leads/segments/${l.segment.id}`}
-                          onClick={(e) => e.stopPropagation()}
-                          className="inline-flex items-center gap-1 rounded-full bg-primary/[0.06] px-2.5 py-1 text-xs font-medium text-primary hover:bg-primary/10"
+                    {l.phone ? (
+                      <span className="flex items-center gap-1.5 text-muted">
+                        <span className="truncate">{l.phone}</span>
+                        <CheckCircle2 size={12} className="shrink-0 text-success" />
+                        <button
+                          title="Copier le numéro"
+                          aria-label="Copier le numéro"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            void navigator.clipboard.writeText(l.phone!);
+                          }}
+                          className="rounded p-1 text-faint opacity-0 hover:bg-line hover:text-ink group-hover:opacity-100"
                         >
-                          {l.segment.name}
-                        </Link>
-                      ) : (
-                        <span className="text-faint">—</span>
-                      )}
-                    </td>
-                  )}
+                          <Copy size={12} strokeWidth={1.5} />
+                        </button>
+                      </span>
+                    ) : enriching.has(l.id) ? (
+                      <span className="flex items-center gap-1.5 text-[11px] text-faint">
+                        <Loader2 size={12} className="animate-spin" /> Scraping…
+                      </span>
+                    ) : (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void enrichLead(l.id);
+                        }}
+                        className="inline-flex items-center gap-1 rounded-full border-[0.5px] border-line px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-muted transition hover:border-primary/40 hover:text-primary"
+                      >
+                        <Phone size={11} strokeWidth={1.5} /> Find phone
+                      </button>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-ink">
+                    <div className="max-w-[150px] truncate">{l.company || <span className="text-faint">—</span>}</div>
+                  </td>
+                  <td className="px-4 py-3 text-ink">
+                    <div className="max-w-[150px] truncate">{l.jobTitle || <span className="text-faint">—</span>}</div>
+                  </td>
                   <td className="px-4 py-3">
                     <ScorePill score={l.score} />
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                     <StatusMenu lead={l} onChange={(s) => setLeadStatus(l.id, s)} />
-                  </td>
-                  <td className="num whitespace-nowrap px-4 py-3 text-muted">
-                    {fmtDate(l.createdAt)}
                   </td>
                 </tr>
               ))}
               {leadsList.length === 0 && (
                 <tr>
-                  <td colSpan={segmentId ? 8 : 9} className="px-4 py-10 text-center text-sm text-muted">
-                    Aucun lead ne correspond à ces filtres.
+                  <td colSpan={8} className="px-4 py-10 text-center text-sm text-muted">
+                    No leads match these filters.
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
+
+          {/* Desktop grid (grid view) */}
+          {view === "grid" && (
+            <div className="hidden gap-3 p-3 md:grid md:grid-cols-2 xl:grid-cols-3">
+              {leadsList.map((l) => (
+                <div
+                  key={l.id}
+                  onClick={() => setSelected(l)}
+                  className="group relative cursor-pointer rounded-xl border border-line bg-surface p-4 transition hover:border-primary/30 hover:shadow-card"
+                >
+                  <input
+                    type="checkbox"
+                    aria-label={`Sélectionner ${l.firstName} ${l.lastName}`}
+                    checked={selectedIds.has(l.id)}
+                    onClick={(e) => e.stopPropagation()}
+                    onChange={() => toggleSelect(l.id)}
+                    className="absolute right-3 top-3 h-3.5 w-3.5 cursor-pointer accent-primary"
+                  />
+                  <div className="flex items-center gap-3 pr-6">
+                    <Avatar lead={l} />
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="truncate font-medium text-ink">
+                          {l.firstName} {l.lastName}
+                        </span>
+                        {l.linkedinUrl ? (
+                          <a
+                            href={l.linkedinUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            aria-label="Voir le profil LinkedIn"
+                            className="shrink-0 transition hover:opacity-80"
+                            style={{ color: "var(--color-linkedin)" }}
+                          >
+                            <LinkedInIcon size={14} />
+                          </a>
+                        ) : (
+                          <span className="shrink-0 text-faint/40">
+                            <LinkedInIcon size={14} />
+                          </span>
+                        )}
+                      </div>
+                      <p className="truncate text-xs text-muted">
+                        {[l.jobTitle, l.company].filter(Boolean).join(" · ") || "—"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 space-y-1.5 text-[13px]">
+                    {/* Email */}
+                    {l.email ? (
+                      <div className="flex items-center gap-1.5 text-primary">
+                        <Mail size={12} className="shrink-0 text-faint" />
+                        <span className="truncate">{l.email}</span>
+                        <CheckCircle2 size={12} className="shrink-0 text-success" />
+                      </div>
+                    ) : enriching.has(l.id) ? (
+                      <div className="flex items-center gap-1.5 text-[11px] text-faint">
+                        <Loader2 size={12} className="animate-spin" /> Scraping LinkedIn infos…
+                      </div>
+                    ) : (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void enrichLead(l.id);
+                        }}
+                        className="inline-flex items-center gap-1 rounded-full border-[0.5px] border-line px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-muted transition hover:border-primary/40 hover:text-primary"
+                      >
+                        <Mail size={11} strokeWidth={1.5} /> Find email
+                      </button>
+                    )}
+                    {/* Phone */}
+                    {l.phone ? (
+                      <div className="flex items-center gap-1.5 text-muted">
+                        <Phone size={12} className="shrink-0 text-faint" />
+                        <span className="truncate">{l.phone}</span>
+                        <CheckCircle2 size={12} className="shrink-0 text-success" />
+                      </div>
+                    ) : enriching.has(l.id) ? (
+                      <div className="flex items-center gap-1.5 text-[11px] text-faint">
+                        <Loader2 size={12} className="animate-spin" /> Scraping…
+                      </div>
+                    ) : (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void enrichLead(l.id);
+                        }}
+                        className="inline-flex items-center gap-1 rounded-full border-[0.5px] border-line px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-muted transition hover:border-primary/40 hover:text-primary"
+                      >
+                        <Phone size={11} strokeWidth={1.5} /> Find phone
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="mt-3 flex items-center justify-between border-t-[0.5px] border-line pt-3" onClick={(e) => e.stopPropagation()}>
+                    <StatusMenu lead={l} onChange={(s) => setLeadStatus(l.id, s)} />
+                    <ScorePill score={l.score} />
+                  </div>
+                </div>
+              ))}
+              {leadsList.length === 0 && (
+                <p className="col-span-full py-10 text-center text-sm text-muted">
+                  No leads match these filters.
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Mobile cards */}
           <div className="border-t-[0.5px] border-line md:hidden">
@@ -488,7 +812,7 @@ export default function LeadsModule({
             ))}
             {leadsList.length === 0 && (
               <p className="p-6 text-center text-sm text-muted">
-                Aucun lead ne correspond à ces filtres.
+                No leads match these filters.
               </p>
             )}
           </div>
@@ -503,13 +827,13 @@ export default function LeadsModule({
                 className="bg-transparent text-ink outline-none"
               >
                 {PAGE_SIZES.map((n) => (
-                  <option key={n} value={n}>{n} par page</option>
+                  <option key={n} value={n}>{n} per page</option>
                 ))}
               </select>
             </div>
             <div className="ml-auto flex items-center gap-2">
               <span className="num text-xs text-muted">
-                {rangeStart}–{rangeEnd} sur {total}
+                {rangeStart}–{rangeEnd} of {total}
               </span>
               <button
                 disabled={page <= 1}
@@ -534,53 +858,93 @@ export default function LeadsModule({
 
       {addOpen && <LeadAddModal contents={contents} onClose={() => setAddOpen(false)} onAdded={refresh} />}
       {importOpen && <LeadImportModal onClose={() => setImportOpen(false)} onImported={refresh} />}
+      {selected && (
+        <LeadDrawer lead={selected} onClose={() => setSelected(null)} onUpdated={refresh} />
+      )}
     </div>
   );
 }
 
 // ----- Metric card -----------------------------------------------------------
 
+// Minimal SVG sparkline (real 7-day series). Orange like the reference.
+function Sparkline({ data }: { data: number[] }) {
+  const W = 60;
+  const H = 30;
+  if (!data || data.length === 0) return <div style={{ width: W, height: H }} />;
+  const max = Math.max(...data);
+  const min = Math.min(...data);
+  const range = max - min || 1;
+  const x = (i: number) => (data.length <= 1 ? 0 : (i / (data.length - 1)) * (W - 2) + 1);
+  const y = (v: number) => H - 4 - ((v - min) / range) * (H - 8);
+  const line = data.map((v, i) => `${i === 0 ? "M" : "L"} ${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join(" ");
+  return (
+    <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} className="shrink-0" aria-hidden>
+      <path
+        d={line}
+        fill="none"
+        stroke="rgb(var(--c-primary))"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function MetricCard({
-  icon: Icon,
   label,
   value,
-  pct,
-  sub,
+  curWeek,
+  prevWeek,
+  series,
   invert,
+  suffix,
 }: {
-  icon: React.ComponentType<{ size?: number; strokeWidth?: number; className?: string }>;
   label: string;
   value: number;
-  pct: number;
-  sub: string;
+  curWeek: number; // count added this week (real)
+  prevWeek: number; // count added the previous week (real)
+  series: number[];
   invert?: boolean; // for "lost": a decrease is good news
+  suffix?: string;
 }) {
-  const up = pct >= 0;
+  // Honest variation: a real % only when there's a prior-week baseline; when
+  // there isn't (new pipeline), show the real absolute delta instead of a
+  // misleading "100%". Flat when nothing changed.
+  const delta = curWeek - prevWeek;
+  const hasBaseline = prevWeek > 0;
+  const flat = delta === 0;
+  const up = delta > 0;
   const good = invert ? !up : up;
+  const variationText = hasBaseline
+    ? `${Math.abs((delta / prevWeek) * 100).toFixed(0)}%`
+    : `${up ? "+" : ""}${delta}`;
   return (
-    <div className="rounded-[10px] border-[0.5px] border-line bg-surface">
-      <div className="flex items-center gap-2 border-b-[0.5px] border-line px-4 py-3">
-        <Icon size={15} strokeWidth={1.5} className="text-muted" />
-        <span className="text-[13px] font-medium text-ink">{label}</span>
-      </div>
-      <div className="px-4 py-3">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex items-baseline gap-1.5">
-            <span className="num text-[32px] font-bold leading-none tracking-tight text-ink">
-              {value}
-            </span>
-            <span className="text-[13px] text-muted">leads</span>
-          </div>
-          <span
-            className={`num inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-              good ? "bg-success/10 text-success" : "bg-danger/10 text-danger"
-            }`}
-          >
-            {up ? "↑" : "↓"} {Math.abs(pct).toFixed(1).replace(/\.0$/, "")} %
+    <div className="flex items-center justify-between gap-3 px-5 py-4">
+      <div className="min-w-0">
+        <p className="text-[13px] text-muted">{label}</p>
+        <div className="mt-1 flex items-baseline gap-2">
+          <span className="num text-[28px] font-semibold leading-none tracking-tight text-ink">
+            {value}
+            {suffix}
           </span>
+          {flat ? (
+            <span className="text-[13px] font-medium text-muted">→ 0</span>
+          ) : (
+            <span
+              className={`inline-flex items-center gap-0.5 text-[13px] font-medium ${
+                good ? "text-success" : "text-danger"
+              }`}
+            >
+              {up ? <TrendingUp size={13} strokeWidth={2} /> : <TrendingDown size={13} strokeWidth={2} />}
+              {variationText}
+            </span>
+          )}
         </div>
-        <p className="num mt-2 text-xs text-muted">{sub}</p>
+        <p className="num mt-1 text-[11px] text-faint">{curWeek} this week</p>
       </div>
+      <Sparkline data={series} />
     </div>
   );
 }
@@ -630,15 +994,26 @@ function ChannelBadge({ channel }: { channel: LeadChannel }) {
 }
 
 // Compact score chip: colored dot (tier) + number, or a dash when unscored.
+// Vertical-bar score (0–10) — 10 bars filled to the score, colored by tier.
 function ScorePill({ score }: { score?: number }) {
   if (score === undefined) return <span className="text-faint">—</span>;
+  const filled = Math.max(0, Math.min(10, Math.round(score / 10)));
   return (
-    <span
-      className="num inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border-[0.5px] border-line px-2 py-1 text-xs font-semibold"
-      title={scoreLabel(score)}
-    >
-      <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: scoreColorVar(score) }} />
-      <span style={{ color: scoreColorVar(score) }}>{score}</span>
+    <span className="inline-flex items-center gap-2 whitespace-nowrap" title={scoreLabel(score)}>
+      <span className="flex items-end gap-[2px]" aria-hidden>
+        {Array.from({ length: 10 }).map((_, i) => (
+          <span
+            key={i}
+            className="h-4 w-1 rounded-[1px]"
+            style={{
+              // Amber → green equalizer gradient; unfilled bars stay neutral.
+              backgroundColor:
+                i < filled ? `hsl(${42 + (i / 9) * 98} 80% 48%)` : "var(--border)",
+            }}
+          />
+        ))}
+      </span>
+      <span className="num text-xs font-medium text-muted">{filled}/10</span>
     </span>
   );
 }
@@ -712,7 +1087,7 @@ function FilterMenu({
         className="flex items-center gap-1.5 rounded-lg border border-line px-2.5 py-2 text-[13px] text-muted hover:bg-surface-hover hover:text-ink"
       >
         <SlidersHorizontal size={13} strokeWidth={1.5} />
-        Filtrer
+        Filter
         {active && <span className="h-1.5 w-1.5 rounded-full bg-primary" />}
       </button>
       {open && (
@@ -720,13 +1095,13 @@ function FilterMenu({
           <button aria-hidden className="fixed inset-0 z-10 cursor-default" onClick={() => setOpen(false)} />
           <div className="absolute left-0 top-full z-20 mt-1 w-64 space-y-3 rounded-[10px] border border-line bg-surface p-3 shadow-pop">
             <div>
-              <label className="mb-1 block text-xs font-medium text-muted">Contenu source</label>
+              <label className="mb-1 block text-xs font-medium text-muted">Source content</label>
               <select
                 value={source}
                 onChange={(e) => onSource(e.target.value)}
                 className="w-full rounded-lg border border-line bg-canvas px-2 py-1.5 text-[13px] text-ink outline-none focus:border-primary"
               >
-                <option value="all">Tout contenu</option>
+                <option value="all">All content</option>
                 {contents.map((c) => (
                   <option key={c.id} value={c.id}>{c.title}</option>
                 ))}
@@ -737,7 +1112,7 @@ function FilterMenu({
               disabled={!active}
               className="w-full rounded-lg border border-line py-1.5 text-[13px] text-muted hover:bg-surface-hover hover:text-ink disabled:opacity-40"
             >
-              Réinitialiser les filtres
+              Reset filters
             </button>
           </div>
         </>
@@ -790,7 +1165,7 @@ function EmptyState({
   seeding: boolean;
 }) {
   return (
-    <div className="flex flex-col items-center rounded-[10px] border-[0.5px] border-line bg-surface px-6 py-16 text-center">
+    <div className="flex flex-col items-center rounded-[10px] border-[0.5px] border-line bg-canvas px-6 py-16 text-center">
       <div className="relative mb-5 flex items-center justify-center">
         <span className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/[0.07] text-primary">
           <UserRound size={28} strokeWidth={1.5} />
@@ -810,17 +1185,17 @@ function EmptyState({
           ),
         )}
       </div>
-      <p className="font-display text-base font-semibold text-ink">Aucun lead pour l&apos;instant</p>
+      <p className="font-display text-base font-semibold text-ink">No leads yet</p>
       <p className="mt-1 max-w-md text-sm text-muted">
-        Publie du contenu sur tes réseaux — tes premiers prospects apparaîtront ici
-        automatiquement.
+        Publish content on your networks — your first prospects will appear here
+        automatically.
       </p>
       <div className="mt-5 flex items-center gap-2">
         <button onClick={onAdd} className="btn-secondary text-[13px]">
-          <Plus size={14} strokeWidth={1.5} /> Ajouter manuellement
+          <Plus size={14} strokeWidth={1.5} /> Add manually
         </button>
         <button onClick={onSeed} disabled={seeding} className="btn-ghost text-[13px]">
-          {seeding ? "Chargement…" : "Charger des exemples"}
+          {seeding ? "Loading…" : "Load sample data"}
         </button>
       </div>
     </div>

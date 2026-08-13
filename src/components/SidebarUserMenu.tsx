@@ -71,10 +71,11 @@ export default function SidebarUserMenu({
     }
   }
 
-  async function logout() {
+  function logout() {
     if (!window.confirm("Se déconnecter de LogLead ?")) return;
-    await fetch("/api/auth/logout", { method: "POST" });
-    window.location.href = "/login";
+    // Hit the GET /logout route — it clears the session cookie on the redirect
+    // response itself, so logout always applies (even if a fetch wouldn't).
+    window.location.href = "/logout";
   }
 
   const memberLocked = plan === "starter";
@@ -138,40 +139,6 @@ export default function SidebarUserMenu({
               <LangOption flag="🇬🇧" label="English" active={lang === "en"} onClick={() => pickLang("en")} />
             </div>
           )}
-
-          <Divider />
-
-          {/* Workspaces */}
-          <div className="px-2.5 pb-1 pt-1.5 text-[11px] font-medium uppercase tracking-wide text-faint">
-            Changer de workspace
-          </div>
-          {workspaces.map((w, i) => {
-            const active = w.id === activeWorkspaceId;
-            return (
-              <button
-                key={w.id}
-                onClick={() => switchWorkspace(w.id)}
-                disabled={busy}
-                className={`flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-sm transition hover:bg-surface-hover ${active ? "text-ink" : "text-ink/80"}`}
-              >
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-brand-gradient text-[10px] font-bold text-white">
-                  {w.name.charAt(0).toUpperCase()}
-                </span>
-                <span className="flex-1 truncate text-left">{w.name}</span>
-                {active ? (
-                  <span className="text-primary"><Icon name="check" size={15} /></span>
-                ) : i < 9 ? (
-                  <kbd className="text-[10px] text-faint">⌘{i + 1}</kbd>
-                ) : null}
-              </button>
-            );
-          })}
-          <button
-            onClick={() => { setCreateOpen(true); setOpen(false); }}
-            className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-primary transition hover:bg-surface-hover"
-          >
-            <Icon name="plus" /> Créer un workspace
-          </button>
 
           <Divider />
 

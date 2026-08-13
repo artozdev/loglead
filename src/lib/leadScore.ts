@@ -42,6 +42,44 @@ function eventLine(e: LeadEvent): string {
 // The single re-score entry point. Best-effort: it never throws, so callers can
 // fire it after a write (status change, note, message, enrichment) without
 // risking the request. In demo mode it runs the deterministic mock (free).
+// Deterministic 0–100 score from real lead attributes. Used as a fallback when
+// the Claude qualification is unavailable (no key / no credits) so the score
+// column always works, and by the seeder for demo leads.
+export function heuristicScore(lead: {
+  firstName: string;
+  lastName?: string;
+  jobTitle?: string;
+  company?: string;
+  email?: string | null;
+  phone?: string | null;
+  channel: string;
+  status: string;
+}): number {
+  let s = 30;
+  const title = (lead.jobTitle ?? "").toLowerCase();
+  if (/founder|ceo|cxo|chief|owner|cofounder/.test(title)) s += 25;
+  else if (/head|vp|director|lead|principal/.test(title)) s += 18;
+  else if (title) s += 8;
+  if (lead.company) s += 8;
+  if (lead.email) s += 10;
+  if (lead.phone) s += 8;
+  if (lead.channel === "linkedin") s += 8;
+  const statusBoost: Record<string, number> = {
+    new: 0,
+    contacted: 6,
+    in_discussion: 12,
+    converted: 15,
+    lost: -25,
+  };
+  s += statusBoost[lead.status] ?? 0;
+  // Deterministic jitter from the name so scores vary lead-to-lead.
+  const seed = `${lead.firstName}${lead.lastName ?? ""}`
+    .split("")
+    .reduce((a, c) => a + c.charCodeAt(0), 0);
+  s += (seed % 9) - 4;
+  return Math.max(0, Math.min(100, Math.round(s)));
+}
+
 export async function scoreLead(
   leadId: string,
   workspaceId: string,
@@ -84,6 +122,17 @@ export async function scoreLead(
       lastScoreAt: new Date().toISOString(),
     });
   } catch {
-    return undefined;
+    // Claude unavailable (no key / no credits) → deterministic fallback so the
+    // score column is always functional.
+    try {
+      const lead = await leads.findById(leadId, workspaceId);
+      if (!lead) return undefined;
+      return await leads.update(leadId, workspaceId, {
+        score: heuristicScore(lead),
+        lastScoreAt: new Date().toISOString(),
+      });
+    } catch {
+      return undefined;
+    }
   }
 }

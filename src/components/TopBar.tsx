@@ -1,3 +1,4 @@
+import CreditsWidget from "./CreditsWidget";
 import GlobalSearch from "./GlobalSearch";
 
 export default function TopBar({ onHamburger }: { onHamburger: () => void }) {
@@ -16,6 +17,10 @@ export default function TopBar({ onHamburger }: { onHamburger: () => void }) {
 
         <div className="flex flex-1 justify-center">
           <GlobalSearch />
+        </div>
+
+        <div className="flex shrink-0 items-center">
+          <CreditsWidget />
         </div>
       </div>
     </header>

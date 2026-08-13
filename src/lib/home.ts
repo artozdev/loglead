@@ -211,7 +211,7 @@ export type PublishedCard = {
 // ----- Dashboard v4 : LinkedIn-first B2B repositioning ----------------------
 // Business-outcome cards + a LinkedIn growth chart + pipeline/outreach blocks.
 // Real where the data exists (leads & their scores, GEO, scheduled content,
-// content scores); LinkedIn impressions stay seeded (no Unipile yet).
+// content scores); LinkedIn impressions stay seeded (no LinkedIn API yet).
 
 // Locale-neutral: the UI resolves label/unit/sub/delta from `card.<key>.*` keys
 // with these vars, so the dashboard switches language instantly (no reload).
@@ -223,6 +223,7 @@ export type B2bCard = {
   subVars: Vars;
   deltaVars: Vars;
   hasDelta: boolean;
+  spark: number[]; // mini trend series for the card sparkline
 };
 
 export type LinkedInMetric = {
@@ -474,24 +475,40 @@ async function buildB2b(
     ? Math.round(scorePool.reduce((a, c) => a + contentScore(c.id), 0) / scorePool.length)
     : 0;
 
-  // Seeded LinkedIn reach (no live analytics source yet)
-  const r = rng(hashSeed(`${workspaceId}:li-reach`));
-  const reach = Math.round(9000 + r() * 8000);
-  const reachDelta = Math.round(10 + r() * 40);
-  const connections = Math.round(reach * (0.02 + r() * 0.03));
-
   const pipelineValue = qualified.length * DEAL_VALUE;
 
-  const arrowNum = (n: number) => (n > 0 ? `↑ +${n}` : n < 0 ? `↓ ${n}` : "→ 0");
+  // New leads this / previous month (real).
+  const newMonth = leadsList.filter((l) => l.createdAt.slice(0, 7) === thisMonth).length;
+  const newPrev = leadsList.filter((l) => l.createdAt.slice(0, 7) === prevMonth).length;
+
+  // Signed number without an arrow glyph — the UI shows a trend icon instead.
+  const arrowNum = (n: number) => (n > 0 ? `+${n}` : n < 0 ? `${n}` : "0");
+
+  // Real 7-day daily-count series for the card sparklines (no seeded values).
+  const dailyCounts = (isoDates: string[]): number[] => {
+    const buckets = new Array(7).fill(0) as number[];
+    for (const iso of isoDates) {
+      const idx = Math.floor((nowMs - new Date(iso).getTime()) / 86_400_000);
+      if (idx >= 0 && idx < 7) buckets[6 - idx]++;
+    }
+    return buckets;
+  };
+  const leadsSpark = dailyCounts(leadsList.map((l) => l.createdAt));
+  const qualifiedSpark = dailyCounts(qualified.map((l) => l.createdAt));
+  const contentSpark = dailyCounts(
+    content.filter((c) => c.status === "published").map((c) => c.createdAt),
+  );
+  const geoSpark = scans.length ? scans.slice(0, 7).reverse().map(geoOf) : [];
 
   const cards: B2bCard[] = [
     {
       key: "reach",
-      display: compactNum(reach),
-      good: true,
-      subVars: { views: compactNum(Math.round(reach * 1.4)), connections },
-      deltaVars: { delta: reachDelta },
-      hasDelta: true,
+      display: String(leadsList.length),
+      good: newMonth >= newPrev,
+      subVars: { hot: hot.length },
+      deltaVars: { d: arrowNum(newMonth - newPrev) },
+      hasDelta: leadsList.length > 0,
+      spark: leadsSpark,
     },
     {
       key: "leads",
@@ -500,6 +517,7 @@ async function buildB2b(
       subVars: { hot: hot.length },
       deltaVars: { d: arrowNum(qualifiedCur - qualifiedPrev) },
       hasDelta: true,
+      spark: qualifiedSpark,
     },
     {
       key: "pipeline",
@@ -508,6 +526,7 @@ async function buildB2b(
       subVars: { n: inDiscussion.length },
       deltaVars: { amount: compactNum(qualifiedCur * DEAL_VALUE) },
       hasDelta: qualifiedCur > 0,
+      spark: qualifiedSpark,
     },
     {
       key: "score",
@@ -516,6 +535,7 @@ async function buildB2b(
       subVars: { n: publishedMonth.length },
       deltaVars: {},
       hasDelta: false,
+      spark: contentSpark,
     },
     {
       key: "visibility",
@@ -525,6 +545,7 @@ async function buildB2b(
       subVars: {},
       deltaVars: { d: geoDelta !== null ? arrowNum(geoDelta) : "" },
       hasDelta: geoDelta !== null && geoDelta !== 0,
+      spark: geoSpark,
     },
   ];
 
@@ -537,16 +558,11 @@ async function buildB2b(
     const ymd = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
     leadsPerDay.push(leadsList.filter((l) => l.createdAt.slice(0, 10) === ymd).length);
   }
-  const seededSeries = (salt: string, base: number, span: number) => {
-    const g = rng(hashSeed(`${workspaceId}:li:${salt}`));
-    return days.map(() => Math.round(base + g() * span));
-  };
-  const impressions = seededSeries("impr", 800, 2400);
+  // Only real series: leads/day. Impressions/engagement need a LinkedIn source
+  // we don't have, so they're not shown (no seeded values).
   const growth: LinkedInGrowth = {
     days,
     metrics: [
-      { key: "impressions", labelKey: "chart.impressions", values: impressions, goal: Math.round(Math.max(...impressions) * 0.9), format: "int" },
-      { key: "engagement", labelKey: "chart.engagement", values: seededSeries("eng", 3, 5), goal: 6, format: "pct" },
       { key: "leads", labelKey: "chart.leads", values: leadsPerDay, goal: null, format: "int" },
     ],
   };

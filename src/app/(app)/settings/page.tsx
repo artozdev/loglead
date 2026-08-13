@@ -53,6 +53,7 @@ export default async function SettingsPage({
       renewalDate={renewalDate}
       initialTab={initialTab}
       emailPrefs={user.emailPrefs ?? {}}
+      linkedin={{ connected: Boolean(active?.linkedin), name: active?.linkedin?.name }}
     />
   );
 }

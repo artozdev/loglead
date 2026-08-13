@@ -44,6 +44,7 @@ export type SettingsHubProps = {
   renewalDate: string;
   initialTab?: string;
   emailPrefs: EmailPrefs;
+  linkedin: { connected: boolean; name?: string };
 };
 
 export default function SettingsHub(props: SettingsHubProps) {
@@ -149,7 +150,7 @@ export default function SettingsHub(props: SettingsHubProps) {
             <ProfileForm initial={props.profile} onDirtyChange={setDirty} />
           </div>
         )}
-        {tab === "connexions" && <ConnexionsTab />}
+        {tab === "connexions" && <ConnexionsTab linkedin={props.linkedin} />}
         {tab === "team" && <TeamTab plan={props.plan} email={props.email} firstName={props.firstName} />}
         {tab === "facturation" && <FacturationTab plan={props.plan} renewalDate={props.renewalDate} />}
       </div>
@@ -620,16 +621,16 @@ function NotificationsTab({ prefs }: { prefs: EmailPrefs }) {
 
 // ---------- Connexions ------------------------------------------------------------
 
-function ConnexionsTab() {
+function ConnexionsTab({ linkedin }: { linkedin: { connected: boolean; name?: string } }) {
   const [state, setState] = useState<Record<string, string | null>>({
-    LinkedIn: "Arthur Lorthois",
+    LinkedIn: linkedin.connected ? linkedin.name ?? "Compte LinkedIn" : null,
     Email: "loglead@gmail.com",
     X: null,
     Reddit: null,
     WhatsApp: null,
   });
-  // LogReach messaging channels — all connectable in V1 (LinkedIn/Email are
-  // connected; X, Reddit and WhatsApp connect via OAuth Unipile).
+  // LogReach messaging channels — LinkedIn/Email are the active V1 channels
+  // (LinkedIn connects via official OAuth).
   const rows: { name: string; dot: string; comingSoon?: boolean }[] = [
     { name: "LinkedIn", dot: "var(--color-linkedin)" },
     { name: "Email", dot: "var(--color-success)" },
@@ -661,10 +662,27 @@ function ConnexionsTab() {
                   Bientôt
                 </span>
               ) : handle ? (
-                <BtnGrey onClick={() => setState((s) => ({ ...s, [name]: null }))}>Déconnecter</BtnGrey>
+                <BtnGrey
+                  onClick={async () => {
+                    // LinkedIn: real disconnect (clears the stored OAuth token).
+                    if (name === "LinkedIn") {
+                      await fetch("/api/auth/linkedin/disconnect", { method: "POST" });
+                      window.location.reload();
+                      return;
+                    }
+                    setState((s) => ({ ...s, [name]: null }));
+                  }}
+                >
+                  Déconnecter
+                </BtnGrey>
               ) : (
                 <BtnGrey
                   onClick={() => {
+                    // LinkedIn: real OAuth flow (full-page redirect to consent).
+                    if (name === "LinkedIn") {
+                      window.location.href = "/api/auth/linkedin";
+                      return;
+                    }
                     setState((s) => ({ ...s, [name]: "Compte (démo)" }));
                     // Onboarding checklist trigger: first social network connected.
                     void fetch("/api/checklist", {
@@ -682,7 +700,7 @@ function ConnexionsTab() {
         })}
       </div>
       <p className="mt-3 text-[12px] text-muted">
-        X, Reddit et WhatsApp se connectent via OAuth Unipile. LogLead agit en votre nom —
+        LinkedIn se connecte via OAuth officiel. LogLead agit en votre nom —
         déconnectable à tout moment.
       </p>
     </div>

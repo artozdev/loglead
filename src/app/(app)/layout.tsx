@@ -20,6 +20,8 @@ export default async function AppLayout({
   const defaultCollapsed = store.get("loglead_sidebar")?.value === "collapsed";
 
   const plan = active?.plan ?? "starter";
+  const credits = active?.credits ?? 0;
+  const creditsQuota = active?.monthlyCreditsLimit ?? 0;
 
   // Demo notifications, scoped to the active workspace.
   const notifications: AppNotification[] = [];
@@ -63,6 +65,8 @@ export default async function AppLayout({
       onboarded={onboarded}
       defaultCollapsed={defaultCollapsed}
       plan={plan}
+      credits={credits}
+      creditsQuota={creditsQuota}
       user={{ name, email: user.email, initials }}
       workspaces={wsList}
       activeWorkspaceId={active?.id ?? ""}

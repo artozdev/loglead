@@ -72,21 +72,21 @@
 [data-theme="dark"] {
   color-scheme: dark;
 
-  --c-app: 12 14 20;
-  --c-surface: 20 22 32;
-  --c-surface-hover: 28 31 46;
-  --c-sidebar: 17 19 24;
-  --c-rail: 12 14 20;
-  --c-header: 15 17 26;
-  --c-input: 26 29 46;
+  --c-app: 18 18 18; /* #121212 — fond noir neutre */
+  --c-surface: 18 18 18; /* #121212 — cards + sidebar en noir (délimités par les bordures) */
+  --c-surface-hover: 32 32 32; /* #202020 — feedback de survol subtil */
+  --c-sidebar: 18 18 18;
+  --c-rail: 18 18 18;
+  --c-header: 18 18 18;
+  --c-input: 30 30 30; /* #1e1e1e — inputs un cran plus clairs pour rester lisibles */
 
   --c-text-primary: 241 245 249;
   --c-text-secondary: 148 163 184;
   --c-text-muted: 71 85 105;
   --c-text-inverse: 15 23 42;
 
-  --c-border: 30 34 53;
-  --c-border-strong: 42 47 69;
+  --c-border: 38 38 38; /* #262626 — bordures neutres */
+  --c-border-strong: 55 55 55; /* #373737 */
 
   --c-primary: 0 81 255;
   --c-primary-hover: 26 99 255;
@@ -237,7 +237,7 @@ body {
   }
 
   .card {
-    @apply rounded-2xl border border-line bg-surface p-6 shadow-card;
+    @apply rounded-xl border border-line bg-surface p-6 shadow-card;
   }
 
   .chip {
@@ -254,7 +254,7 @@ body {
     @apply absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-full bg-brand-gradient;
   }
   .kpi-accent {
-    @apply absolute inset-x-0 top-0 h-[3px] rounded-t-2xl bg-brand-gradient;
+    @apply absolute inset-x-0 top-0 h-[3px] rounded-t-xl bg-brand-gradient;
   }
   .lead-rule {
     @apply mt-2.5 block h-[3px] w-10 rounded-full bg-brand-gradient;
@@ -274,6 +274,166 @@ body {
 }
 .animate-menu-up {
   animation: menu-up 150ms ease-out both;
+}
+
+/* Lead detail drawer — slides in from the right */
+@keyframes lead-drawer-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+.animate-drawer-in {
+  animation: lead-drawer-in 250ms ease-out both;
+}
+
+/* Force the dark palette on a subtree regardless of the global theme.
+   Used for the app sidebar so it stays black in both light and dark themes. */
+.force-dark {
+  color-scheme: dark;
+  --c-app: 18 18 18;
+  --c-surface: 18 18 18;
+  --c-surface-hover: 32 32 32;
+  --c-sidebar: 18 18 18;
+  --c-rail: 18 18 18;
+  --c-header: 18 18 18;
+  --c-input: 30 30 30;
+  --c-text-primary: 241 245 249;
+  --c-text-secondary: 148 163 184;
+  --c-text-muted: 100 116 139;
+  --c-border: 38 38 38;
+  --c-border-strong: 55 55 55;
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.4), 0 0 0 0.5px var(--border);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --bg-overlay: rgba(0, 0, 0, 0.6);
+}
+
+/* ---- Landing page (marketing) animations ------------------------------- */
+/* Reveal-on-scroll: elements start hidden, .is-visible added via IO. */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+/* Gentle pulse on the ✦ hero badge sparkle */
+@keyframes sparkle-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.55;
+    transform: scale(1.18);
+  }
+}
+.sparkle-pulse {
+  animation: sparkle-pulse 2.6s ease-in-out infinite;
+}
+
+/* Credits badge — pulse when the balance is critically low */
+@keyframes credit-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.35); }
+  50% { box-shadow: 0 0 0 5px rgba(239, 68, 68, 0); }
+}
+.credit-pulse {
+  animation: credit-pulse 1.6s ease-in-out infinite;
+}
+
+/* Credits recharge slider */
+.credit-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 9999px;
+  background: rgb(var(--c-surface-hover, 236 240 247));
+  outline: none;
+}
+.credit-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: #0051ff;
+  border: 3px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 81, 255, 0.4);
+  cursor: pointer;
+}
+.credit-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: #0051ff;
+  border: 3px solid #fff;
+  cursor: pointer;
+}
+
+/* SignalNetwork brand element */
+.sn-root .sn-edge { opacity: 0; }
+.sn-root .sn-halo { opacity: 0; }
+.sn-on .sn-edge {
+  stroke-dasharray: 220;
+  stroke-dashoffset: 220;
+  animation: sn-draw 2.4s ease-in-out infinite;
+}
+.sn-on .sn-halo { animation: sn-breathe 3.2s ease-in-out infinite; }
+.sn-on .sn-pulse { animation: sn-ring 2.6s ease-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes sn-draw {
+  0% { stroke-dashoffset: 220; opacity: 0; }
+  25% { opacity: 1; }
+  60% { stroke-dashoffset: 0; opacity: 1; }
+  100% { stroke-dashoffset: -220; opacity: 0; }
+}
+@keyframes sn-breathe {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 0.7; }
+}
+@keyframes sn-ring {
+  0% { transform: scale(0.8); opacity: 0.6; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sn-on .sn-edge, .sn-on .sn-halo, .sn-on .sn-pulse { animation: none; }
+  .sn-root .sn-edge { opacity: 0.5; stroke-dashoffset: 0; }
+  .sn-root .sn-halo { opacity: 0.35; }
+}
+
+/* Landing — lead score bar fill */
+.signal-fill { width: 0; animation: signal-fill 1.8s ease-out forwards; }
+@keyframes signal-fill { to { width: 92%; } }
+@media (prefers-reduced-motion: reduce) {
+  .signal-fill { animation: none; width: 92%; }
+}
+
+/* Logo marquee */
+@keyframes lp-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.lp-marquee {
+  animation: lp-marquee 28s linear infinite;
 }
 
 /* Dashboard blocks rise in progressively on mount (staggered via inline delay) */

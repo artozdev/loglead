@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Space_Grotesk } from "next/font/google";
+import { Inter } from "next/font/google";
 import { cookies } from "next/headers";
 import { LocaleProvider } from "@/components/LocaleProvider";
 import { ThemeProvider } from "@/components/ThemeProvider";
@@ -20,7 +20,8 @@ const inter = Inter({
   weight: ["400", "500", "600", "700"],
 });
 
-const spaceGrotesk = Space_Grotesk({
+// Inter is used for both body and display (headings) — single typeface.
+const interDisplay = Inter({
   subsets: ["latin"],
   variable: "--font-display",
   display: "swap",
@@ -44,7 +45,7 @@ export default async function RootLayout({
       lang={locale}
       data-theme="light"
       suppressHydrationWarning
-      className={`${inter.variable} ${spaceGrotesk.variable}`}
+      className={`${inter.variable} ${interDisplay.variable}`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />

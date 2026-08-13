@@ -34,5 +34,9 @@ export async function requireProfile(): Promise<{
   const { user, workspace } = await requireWorkspace();
   const profile = await profiles.findByWorkspace(workspace.id);
   if (!profile) redirect("/onboarding");
+  // Mandatory plan selection: once onboarded, a plan must be picked before any
+  // app page is reachable. The /onboarding/plan page uses requireWorkspace (not
+  // this guard) so it stays accessible — no redirect loop.
+  if (!workspace.planChosen) redirect("/onboarding/plan");
   return { user, workspace, profile };
 }

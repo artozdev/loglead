@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { analyzeSite, isDemoMode } from "@/lib/ai";
+import { scrapePage } from "@/lib/firecrawl";
 import { currentWorkspace } from "@/lib/workspace";
 
 const schema = z.object({ url: z.string().min(1) });
@@ -74,7 +75,11 @@ export async function POST(req: Request) {
 
   let pageText = "";
   if (!isDemoMode()) {
-    const text = await fetchPageText(url);
+    // Firecrawl first (clean markdown, handles JS-rendered / anti-bot pages);
+    // fall back to the raw fetch when no key is set or Firecrawl comes back
+    // empty, so analysis still works without a Firecrawl key.
+    const scraped = await scrapePage(url.toString());
+    const text = scraped?.markdown ?? (await fetchPageText(url));
     if (!text) {
       return NextResponse.json({
         ok: false,

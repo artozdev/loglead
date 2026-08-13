@@ -15,6 +15,8 @@ export default function AppShell({
   onboarded,
   defaultCollapsed,
   plan,
+  credits = 0,
+  creditsQuota = 0,
   user,
   workspaces,
   activeWorkspaceId,
@@ -25,6 +27,8 @@ export default function AppShell({
   onboarded: boolean;
   defaultCollapsed: boolean;
   plan: Plan;
+  credits?: number;
+  creditsQuota?: number;
   user: { name: string; email: string; initials: string };
   workspaces: { id: string; name: string }[];
   activeWorkspaceId: string;
@@ -74,11 +78,13 @@ export default function AppShell({
         mobileOpen={mobileOpen}
         setMobileOpen={setMobileOpen}
         plan={plan}
+        credits={credits}
+        creditsQuota={creditsQuota}
         user={user}
         workspaces={workspaces}
         activeWorkspaceId={activeWorkspaceId}
       />
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="relative flex min-w-0 flex-1 flex-col bg-canvas">
         <TopBar onHamburger={() => setMobileOpen(true)} />
         <main className="mx-auto w-full max-w-[1200px] flex-1 px-4 py-8 sm:px-6 lg:px-8">
           {children}

@@ -76,8 +76,8 @@ type InboxData = {
 };
 
 // Messaging channels for the composer switch — all active in V1. Email delivers
-// via Resend; the others via Unipile. Each channel drives the composer
-// (placeholder, character limit, subject field, warning).
+// via Resend; the others are recorded pending real delivery. Each channel drives
+// the composer (placeholder, character limit, subject field, warning).
 // V1 outreach channels: LinkedIn DM + Email only (X / Reddit / WhatsApp removed).
 type MsgChannel = "linkedin" | "email";
 const MSG_CHANNELS: {

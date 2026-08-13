@@ -5,10 +5,9 @@ import { firstNameFromEmail, sendPlainEmail } from "@/lib/emails/send";
 import { inboxMonthlyQuota, planAllows } from "@/lib/plan";
 import { currentWorkspace } from "@/lib/workspace";
 
-// V1 messaging channels. Email delivers via Resend; LinkedIn / X / Reddit /
-// WhatsApp deliver via the Unipile aggregator (integration pending — messages
-// are recorded so the inbox flows, actual delivery is wired when Unipile keys
-// are present).
+// V1 messaging channels. Email delivers via Resend; other channels (LinkedIn,
+// etc.) are recorded so the inbox flows — real delivery is wired to the
+// LinkedIn API when available.
 const CHANNELS = ["email", "linkedin", "x", "reddit", "whatsapp"] as const;
 
 const schema = z.object({
@@ -59,7 +58,7 @@ export async function POST(req: Request) {
 
   const founderFirstName = firstNameFromEmail(ctx.user.email);
 
-  // Email → Resend (or dev outbox). Other channels → Unipile (pending); the
+  // Email → Resend (or dev outbox). Other channels are recorded (pending); the
   // message is recorded either way so the conversation stays consistent.
   if (channel === "email") {
     const ok = await sendPlainEmail({
@@ -75,10 +74,9 @@ export async function POST(req: Request) {
         { status: 502 },
       );
     }
-  } else if (process.env.UNIPILE_API_KEY) {
-    // Real Unipile delivery would go here (channel-specific recipient/subject).
-    // Left unwired until a key is configured; falls through to recording below.
   }
+  // Non-email channels (LinkedIn, etc.) are recorded so the conversation stays
+  // consistent; real delivery will be wired to the LinkedIn API when available.
 
   const message = await inboxMessages.create(conv.id, {
     direction: "outbound",

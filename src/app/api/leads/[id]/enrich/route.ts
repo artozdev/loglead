@@ -1,11 +1,16 @@
 import { NextResponse } from "next/server";
 import { draftLeadMessage } from "@/lib/ai";
+import { insufficientResponse, spend } from "@/lib/creditGuard";
 import { contentItems, leadEvents, leads, profiles, type LeadInput } from "@/lib/db";
+import { enrichLinkedInProfile, hasApify } from "@/lib/apify";
+import { domainFromUrl, enrichContact, hasFullEnrich } from "@/lib/fullenrich";
 import { scoreLead } from "@/lib/leadScore";
 import { planAllows } from "@/lib/plan";
 import { currentWorkspace } from "@/lib/workspace";
 
-// Enrichment — Pro. Hunter/Apollo are mocked; the message is real Claude.
+// Enrichment — Pro. Email/phone come from FullEnrich (waterfall) when a key is
+// set; without a key we fall back to a mock email so the dev flow still works.
+// Firmographics (sector/size/interests) stay heuristic until Apollo is wired.
 function mockEmail(first: string, last: string, company?: string): string {
   const dom = (company || "entreprise").toLowerCase().replace(/[^a-z0-9]/g, "") || "entreprise";
   return `${first.toLowerCase()}.${last.toLowerCase()}@${dom}.com`.replace(/\.@/, "@");
@@ -44,12 +49,47 @@ export async function POST(
   const lead = await leads.findById(id, ctx.workspace.id);
   if (!lead) return NextResponse.json({ error: "Introuvable" }, { status: 404 });
 
+  // Charge credits before enriching (Part 9, rule 1).
+  const charge = await spend(ctx.workspace.id, "enrich_lead_full");
+  if (!charge.ok) return insufficientResponse("enrich_lead_full", charge.balance);
+
   const profile = await profiles.findByWorkspace(ctx.workspace.id);
 
   const patch: Partial<LeadInput> = {};
-  if (!lead.email) patch.email = mockEmail(lead.firstName, lead.lastName, lead.company);
-  if (!lead.jobTitle) patch.jobTitle = "Founder";
-  if (!lead.sector) patch.sector = profile?.sector || "SaaS B2B";
+
+  // Email + phone via FullEnrich (waterfall). Falls back to a mock email only
+  // when no key is configured, so we never overwrite a real gap with fake data.
+  if (!lead.email || !lead.phone) {
+    if (hasFullEnrich()) {
+      const found = await enrichContact({
+        firstName: lead.firstName,
+        lastName: lead.lastName,
+        companyName: lead.company,
+        domain: domainFromUrl(lead.siteUrl) ?? domainFromUrl(lead.email),
+        linkedinUrl: lead.linkedinUrl,
+      });
+      if (!lead.email && (found?.workEmail || found?.personalEmail)) {
+        patch.email = found.workEmail ?? found.personalEmail;
+      }
+      if (!lead.phone && found?.phone) patch.phone = found.phone;
+    } else if (!lead.email) {
+      patch.email = mockEmail(lead.firstName, lead.lastName, lead.company);
+    }
+  }
+
+  // Firmographics from the public LinkedIn profile via Apify (best-effort).
+  if (hasApify() && lead.linkedinUrl && (!lead.jobTitle || !lead.company || !lead.sector)) {
+    const li = await enrichLinkedInProfile(lead.linkedinUrl);
+    if (li) {
+      if (!lead.jobTitle && li.jobTitle) patch.jobTitle = li.jobTitle;
+      if (!lead.company && li.company) patch.company = li.company;
+      if (!lead.sector && li.sector) patch.sector = li.sector;
+    }
+  }
+
+  // Heuristic fallbacks for anything still missing (Apify or a real value wins).
+  if (!lead.jobTitle && !patch.jobTitle) patch.jobTitle = "Founder";
+  if (!lead.sector && !patch.sector) patch.sector = profile?.sector || "SaaS B2B";
   if (!lead.companySize) patch.companySize = "1-10 employés";
   if (!lead.interests?.length) {
     patch.interests = mockInterests(`${lead.company ?? ""}${lead.firstName}`);

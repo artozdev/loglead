@@ -133,6 +133,34 @@ async function callJSON<T>(args: {
   return extractJSON<T>(text.text);
 }
 
+// Free-form market Q&A for the Market page ("Ask your market"). Analyst-brief
+// style; never invents precise numbers (funding amounts, impressions, %) since
+// those would require real LinkedIn/Apify data.
+export async function askMarket(
+  profile: Profile,
+  question: string,
+): Promise<string> {
+  if (isDemoMode()) {
+    return "Mode démo : ajoute une clé Claude (ANTHROPIC_API_KEY) avec des crédits pour obtenir une vraie analyse de ton marché.";
+  }
+  const system = `Tu es l'analyste de marché de LogLead. Réponds en français, façon brief d'analyste : concis, factuel, structuré en phrases fluides (pas de listes à puces inutiles). Appuie-toi sur le contexte du workspace ci-dessous. N'invente JAMAIS de chiffres précis (montants de levées, impressions, pourcentages, nombres de posts) : si la donnée n'est pas fournie, dis-le clairement et explique comment l'obtenir (ex. scraping LinkedIn). Reste utile et actionnable.`;
+  const user = `Contexte du workspace :\n${profileContext(profile)}\n\nQuestion : ${question}`;
+  const client = new Anthropic();
+  let message;
+  try {
+    message = await client.messages.create({
+      model: MODEL,
+      max_tokens: 1000,
+      system,
+      messages: [{ role: "user", content: user }],
+    });
+  } catch (err) {
+    throw toFriendlyError(err);
+  }
+  const text = message.content.find((b) => b.type === "text");
+  return text && text.type === "text" ? text.text.trim() : "Réponse vide du modèle.";
+}
+
 function toFriendlyError(err: unknown): Error {
   if (err instanceof Anthropic.AuthenticationError) {
     return new Error(

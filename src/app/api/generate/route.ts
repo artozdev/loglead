@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { generateFromBrief, isDemoMode } from "@/lib/ai";
+import { insufficientResponse, spend } from "@/lib/creditGuard";
 import { contentItems, profiles } from "@/lib/db";
 import { rateLimit } from "@/lib/ratelimit";
 import { currentWorkspace } from "@/lib/workspace";
@@ -51,13 +52,18 @@ export async function POST(req: Request) {
     );
   }
 
+  // Charge credits before doing the work (Part 9, rule 1). Nothing is debited
+  // when the balance is insufficient — the client shows the blocking modal.
+  const charge = await spend(ctx.workspace.id, "generate_post");
+  if (!charge.ok) return insufficientResponse("generate_post", charge.balance);
+
   try {
     const existingPosts = (await contentItems.listByWorkspace(ctx.workspace.id)).map((c) => c.body);
     const variants = await generateFromBrief(profile, parsed.data, {
       firstName: firstNameOf(ctx.user.email),
       existingPosts,
     });
-    return NextResponse.json({ variants, demo: isDemoMode() });
+    return NextResponse.json({ variants, demo: isDemoMode(), creditsLeft: charge.balance });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Erreur de génération.";
     return NextResponse.json({ error: message }, { status: 502 });

@@ -15,6 +15,21 @@ export default async function PostGeneratorPage({
 
   const item = sp.content ? await contentItems.findById(sp.content, workspace.id) : undefined;
 
+  // Recent LinkedIn posts, so the user never loses track of what they generated.
+  const all = await contentItems.listByWorkspace(workspace.id);
+  const history = all
+    .filter((c) => c.platform === "linkedin")
+    .slice(0, 40)
+    .map((c) => ({
+      id: c.id,
+      title: c.title,
+      body: c.body,
+      status: c.status,
+      scheduledDate: c.scheduledDate,
+      scheduledTime: c.scheduledTime ?? null,
+      createdAt: c.createdAt,
+    }));
+
   const local = (user.email.split("@")[0] || user.email).replace(/[._-]+/g, " ").trim();
   const firstName =
     (local.split(" ")[0] || "").charAt(0).toUpperCase() + (local.split(" ")[0] || "").slice(1) || "Toi";
@@ -30,6 +45,8 @@ export default async function PostGeneratorPage({
       }}
       initialAngle={item ? item.body : sp.brief ?? sp.topic ?? ""}
       initialGenerated={Boolean(item)}
+      editingId={item?.id ?? null}
+      history={history}
     />
   );
 }

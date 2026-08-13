@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { contentItems, leadEvents, leads, type LeadInput } from "@/lib/db";
+import { heuristicScore } from "@/lib/leadScore";
 import { planAllows } from "@/lib/plan";
 import type { LeadChannel, LeadStatus } from "@/lib/types";
 import { currentWorkspace } from "@/lib/workspace";
@@ -52,6 +53,8 @@ export async function POST() {
       channel: d.channel,
       sourceContentId: i % 3 === 0 ? srcId : null,
       status: d.status,
+      score: heuristicScore(d),
+      lastScoreAt: new Date().toISOString(),
     };
     const lead = await leads.create(ctx.workspace.id, input);
     await leadEvents.create(lead.id, "added", { channel: d.channel, demo: true });

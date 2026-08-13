@@ -101,12 +101,10 @@ export default function ProfileForm({ initial, onDirtyChange }: Props) {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!networks.length) {
-      setError("Choisis au moins un réseau.");
-      return;
-    }
     setSaving(true);
     try {
+      // Style & diffusion section removed — LinkedIn is the only channel in V1,
+      // so tone/goal/platforms/networks keep their existing (or default) values.
       const res = await fetch("/api/profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -119,8 +117,8 @@ export default function ProfileForm({ initial, onDirtyChange }: Props) {
           siteUrl,
           competitors,
           tone,
-          platforms: derivePlatforms(networks),
-          networks,
+          platforms: ["linkedin"],
+          networks: ["linkedin"],
           goal,
         }),
       });
@@ -201,62 +199,6 @@ export default function ProfileForm({ initial, onDirtyChange }: Props) {
                 onChange={(e) => { touch(); setCompetitors((prev) => prev.map((x, j) => (j === i ? e.target.value : x))); }}
                 placeholder={`Concurrent ${i + 1}`}
               />
-            ))}
-          </div>
-        </div>
-      </SettingsSection>
-
-      <SettingsSection title="Style & diffusion">
-        <div>
-          <span className="label">Ton de voix</span>
-          <div className="grid gap-2 sm:grid-cols-2">
-            {TONES.map((t) => (
-              <Card key={t.value} selected={tone === t.value} onClick={() => { touch(); setTone(t.value); }} title={t.label} hint={t.hint} />
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <span className="label">Plateformes prioritaires</span>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {ALGO_NETWORKS.map((n) => {
-              const on = networks.includes(n.value);
-              if (n.comingSoon) {
-                return (
-                  <div
-                    key={n.value}
-                    title={INSTAGRAM_SOON_TOOLTIP}
-                    aria-disabled="true"
-                    className="relative flex cursor-not-allowed items-center justify-center gap-2 rounded-xl border border-line px-3 py-2.5 text-sm font-medium text-ink/70 opacity-40"
-                  >
-                    <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: n.dot }} />
-                    {n.label}
-                    <span className="absolute -right-1.5 -top-2 rounded-full bg-primary/10 px-1.5 py-0.5 text-[9px] font-semibold text-primary">
-                      Bientôt
-                    </span>
-                  </div>
-                );
-              }
-              return (
-                <button
-                  key={n.value}
-                  type="button"
-                  onClick={() => toggleNetwork(n.value)}
-                  className={`flex items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-medium transition ${on ? "border-primary bg-primary/5 text-primary ring-1 ring-primary" : "border-line text-ink/70 hover:border-gray-300"}`}
-                >
-                  <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: n.dot }} />
-                  {n.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <div>
-          <span className="label">Objectif principal</span>
-          <div className="grid gap-2 sm:grid-cols-3">
-            {GOALS.filter((g) => OBJECTIVES.includes(g.value)).map((g) => (
-              <Card key={g.value} selected={goal === g.value} onClick={() => { touch(); setGoal(g.value); }} title={`${g.emoji} ${g.label}`} hint={g.hint} />
             ))}
           </div>
         </div>

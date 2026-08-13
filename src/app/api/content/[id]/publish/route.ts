@@ -3,8 +3,8 @@ import { contentItems } from "@/lib/db";
 import { platformLabel } from "@/lib/types";
 import { currentWorkspace } from "@/lib/workspace";
 
-// Auto-publish via a third-party aggregator (Ayrshare / Unipile) — Growth & Pro
-// only. MVP: the aggregator call is mocked; we just flip the status to published.
+// Auto-publish to LinkedIn via the official LinkedIn API — Growth & Pro only.
+// MVP: the publish call is mocked; we just flip the status to published.
 export async function POST(
   _req: Request,
   { params }: { params: Promise<{ id: string }> },

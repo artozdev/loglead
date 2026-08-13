@@ -12,6 +12,8 @@ import type {
   CmoAction,
   CmoConfig,
   ContentItem,
+  CreditTransaction,
+  CreditTransactionType,
   Campaign,
   Lead,
   LeadEvent,
@@ -71,6 +73,7 @@ type Schema = {
   segments: Segment[];
   agentConversations: AgentConversation[];
   agentMessages: AgentMessage[];
+  creditTransactions: CreditTransaction[];
 };
 
 const DATA_DIR = path.join(process.cwd(), "data");
@@ -99,6 +102,7 @@ const EMPTY: Schema = {
   segments: [],
   agentConversations: [],
   agentMessages: [],
+  creditTransactions: [],
 };
 
 // Fill in any missing top-level collections (schema evolution / partial state).
@@ -126,6 +130,7 @@ function hydrate(parsed: Partial<Schema>) {
     segments: parsed.segments ?? [],
     agentConversations: parsed.agentConversations ?? [],
     agentMessages: parsed.agentMessages ?? [],
+    creditTransactions: parsed.creditTransactions ?? [],
   };
 }
 
@@ -281,6 +286,9 @@ export const workspaces = {
       ownerId,
       plan: "pro", // demo default — the CMO IA is available out of the box
       createdAt: now(),
+      planChosen: false, // must pick a plan on the mandatory /onboarding/plan screen
+      credits: 0,
+      monthlyCreditsLimit: 0,
     };
     db.workspaces.push(ws);
     db.workspaceMembers.push({
@@ -312,6 +320,78 @@ export const workspaces = {
     db.workspaces = db.workspaces.map((w) => (w.id === id ? { ...w, plan } : w));
     await write(db);
   },
+  // Mandatory post-onboarding plan pick: records the plan, starts the 7-day
+  // trial, grants the trial credits and logs the grant to the ledger.
+  async selectPlan(
+    id: string,
+    plan: Plan,
+    opts: { trialCredits: number; trialDays: number; monthlyLimit: number },
+  ) {
+    const db = (await read());
+    const ws = db.workspaces.find((w) => w.id === id);
+    if (!ws) return undefined;
+    const start = new Date();
+    const end = new Date(start.getTime() + opts.trialDays * 24 * 60 * 60 * 1000);
+    const updated: Workspace = {
+      ...ws,
+      plan,
+      planChosen: true,
+      credits: opts.trialCredits,
+      monthlyCreditsLimit: opts.monthlyLimit,
+      trialStartsAt: start.toISOString(),
+      trialEndsAt: end.toISOString(),
+      creditsRenewAt: end.toISOString(),
+    };
+    db.workspaces = db.workspaces.map((w) => (w.id === id ? updated : w));
+    db.creditTransactions.push({
+      id: randomUUID(),
+      workspaceId: id,
+      type: "trial",
+      credits: opts.trialCredits,
+      amountEur: null,
+      balanceAfter: opts.trialCredits,
+      createdAt: now(),
+    });
+    await write(db);
+    return updated;
+  },
+  // LinkedIn OAuth connection — token encrypted at rest.
+  async setLinkedIn(
+    id: string,
+    conn: { accessToken: string; memberSub: string; name?: string; expiresAt: string },
+  ) {
+    const db = (await read());
+    db.workspaces = db.workspaces.map((w) =>
+      w.id === id
+        ? {
+            ...w,
+            linkedin: {
+              accessToken: encryptField(conn.accessToken)!,
+              memberSub: conn.memberSub,
+              name: conn.name,
+              expiresAt: conn.expiresAt,
+              connectedAt: now(),
+            },
+          }
+        : w,
+    );
+    await write(db);
+  },
+  async clearLinkedIn(id: string) {
+    const db = (await read());
+    db.workspaces = db.workspaces.map((w) => {
+      if (w.id !== id) return w;
+      const { linkedin: _drop, ...rest } = w;
+      return rest;
+    });
+    await write(db);
+  },
+  // Returns the connection with the access token decrypted (server-only use).
+  async getLinkedIn(id: string) {
+    const w = (await read()).workspaces.find((x) => x.id === id);
+    if (!w?.linkedin) return undefined;
+    return { ...w.linkedin, accessToken: decryptField(w.linkedin.accessToken)! };
+  },
   async listForUser(userId: string) {
     const db = (await read());
     const ids = new Set(
@@ -322,6 +402,84 @@ export const workspaces = {
     return db.workspaces
       .filter((w) => ids.has(w.id))
       .sort((a, b) => (a.createdAt < b.createdAt ? -1 : 1));
+  },
+};
+
+// ----- Credits ledger ------------------------------------------------------
+// All balance mutations go through here so every change is logged and the
+// balance is never negative. Consumption is atomic against a re-read state.
+export const credits = {
+  async balance(workspaceId: string): Promise<number> {
+    const ws = (await read()).workspaces.find((w) => w.id === workspaceId);
+    return ws?.credits ?? 0;
+  },
+
+  // Atomically spend `amount` for `action`. Returns the new balance, or null
+  // when the balance is insufficient (nothing is debited in that case).
+  async consume(
+    workspaceId: string,
+    action: string,
+    amount: number,
+  ): Promise<{ ok: true; balance: number } | { ok: false; balance: number }> {
+    const db = (await read());
+    const ws = db.workspaces.find((w) => w.id === workspaceId);
+    const current = ws?.credits ?? 0;
+    if (!ws || current < amount) return { ok: false, balance: current };
+    const next = current - amount;
+    ws.credits = next;
+    db.creditTransactions.push({
+      id: randomUUID(),
+      workspaceId,
+      type: "consumption",
+      action,
+      credits: -amount,
+      amountEur: null,
+      balanceAfter: next,
+      createdAt: now(),
+    });
+    await write(db);
+    return { ok: true, balance: next };
+  },
+
+  // Add credits (purchase or monthly renewal). Idempotent on stripePaymentIntent.
+  async add(
+    workspaceId: string,
+    amount: number,
+    opts: { type: CreditTransactionType; amountEur?: number | null; stripePaymentIntent?: string | null } = {
+      type: "purchase",
+    },
+  ): Promise<number> {
+    const db = (await read());
+    const ws = db.workspaces.find((w) => w.id === workspaceId);
+    if (!ws) return 0;
+    // Idempotency: skip if this payment intent was already credited.
+    if (
+      opts.stripePaymentIntent &&
+      db.creditTransactions.some((tx) => tx.stripePaymentIntent === opts.stripePaymentIntent)
+    ) {
+      return ws.credits ?? 0;
+    }
+    const next = (ws.credits ?? 0) + amount;
+    ws.credits = next;
+    db.creditTransactions.push({
+      id: randomUUID(),
+      workspaceId,
+      type: opts.type,
+      credits: amount,
+      amountEur: opts.amountEur ?? null,
+      stripePaymentIntent: opts.stripePaymentIntent ?? null,
+      balanceAfter: next,
+      createdAt: now(),
+    });
+    await write(db);
+    return next;
+  },
+
+  async transactions(workspaceId: string, limit = 200): Promise<CreditTransaction[]> {
+    return (await read()).creditTransactions
+      .filter((tx) => tx.workspaceId === workspaceId)
+      .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
+      .slice(0, limit);
   },
 };
 
