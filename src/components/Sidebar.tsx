@@ -331,7 +331,7 @@ export default function Sidebar({
                     {credits.toLocaleString("fr-FR")}
                   </span>
                 </div>
-                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
+                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-hover">
                   <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
                 </div>
                 <p className="mt-1.5 text-[11px] text-muted">
@@ -366,7 +366,7 @@ export default function Sidebar({
   return (
     <>
       <aside
-        className={`force-dark sticky top-0 hidden h-screen shrink-0 flex-col bg-surface transition-[width] duration-200 ease-smooth md:flex ${
+        className={`sticky top-0 hidden h-screen shrink-0 flex-col bg-transparent transition-[width] duration-200 ease-smooth md:flex ${
           collapsed ? "w-[68px]" : "w-64"
         }`}
       >
@@ -380,7 +380,7 @@ export default function Sidebar({
             onClick={() => setMobileOpen(false)}
             className="absolute inset-0 modal-overlay backdrop-blur-sm"
           />
-          <aside className="force-dark absolute left-0 top-0 h-full w-72 bg-surface shadow-pop">
+          <aside className="absolute left-0 top-0 h-full w-72 bg-canvas shadow-pop">
             {inner(true)}
           </aside>
         </div>
