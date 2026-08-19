@@ -133,7 +133,7 @@ export default function SettingsHub(props: SettingsHubProps) {
       </div>
 
       {/* Content */}
-      <div className="mr-auto mt-8 max-w-[640px] pb-16">
+      <div className="mr-auto mt-8 max-w-[900px] pb-16">
         {tab === "compte" && (
           <CompteTab
             email={props.email}
@@ -628,19 +628,14 @@ function NotificationsTab({ prefs }: { prefs: EmailPrefs }) {
 function ConnexionsTab({ linkedin, profileUrl, autoDetect }: { linkedin: { connected: boolean; name?: string }; profileUrl?: string; autoDetect?: boolean }) {
   const [state, setState] = useState<Record<string, string | null>>({
     LinkedIn: linkedin.connected ? linkedin.name ?? "Compte LinkedIn" : null,
-    Email: "loglead@gmail.com",
-    X: null,
-    Reddit: null,
+    Gmail: null,
     WhatsApp: null,
   });
-  // LogReach messaging channels — LinkedIn/Email are the active V1 channels
-  // (LinkedIn connects via official OAuth).
+  // V1 channels : LinkedIn (OAuth officiel) actif ; Gmail & WhatsApp à venir.
   const rows: { name: string; dot: string; comingSoon?: boolean }[] = [
     { name: "LinkedIn", dot: "var(--color-linkedin)" },
-    { name: "Email", dot: "var(--color-success)" },
-    { name: "X", dot: "var(--color-x)" },
-    { name: "Reddit", dot: "var(--color-reddit)" },
-    { name: "WhatsApp", dot: "#25D366" },
+    { name: "Gmail", dot: "#EA4335", comingSoon: true },
+    { name: "WhatsApp", dot: "#25D366", comingSoon: true },
   ];
 
   return (
