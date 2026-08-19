@@ -130,7 +130,7 @@ export type WaitlistEntry = {
   createdAt: string;
 };
 
-export type Plan = "starter" | "growth" | "pro";
+export type Plan = "free" | "starter" | "growth" | "pro";
 
 export const PLANS: { value: Plan; label: string }[] = [
   { value: "starter", label: "Starter" },
@@ -155,6 +155,9 @@ export type Workspace = {
   createdAt: string;
   trialEndsAt?: string; // set when the workspace is on a 7-day trial
   linkedin?: LinkedInConnection; // official LinkedIn OAuth connection (V1)
+  linkedinProfileUrl?: string; // public profile URL — used to auto-detect leads from post engagement
+  lastLeadDetectAt?: string; // ISO — last engagement-detection run (24h cooldown)
+  autoDetectLeads?: boolean; // opt-in: run engagement detection daily via cron
   // ----- Credits & billing -----
   planChosen?: boolean; // false → force the mandatory /onboarding/plan screen
   credits?: number; // current spendable balance (trial + monthly + purchased)
@@ -1126,3 +1129,34 @@ export function platformLabel(p: Platform): string {
 export function contentTypeLabel(t: ContentType): string {
   return CONTENT_TYPES.find((x) => x.value === t)?.label ?? t;
 }
+
+// ----- Market Intelligence (Apify posts → Claude analysis) -----------------
+
+export type MarketTrend = {
+  topic: string;
+  summary: string;
+  momentum: "hot" | "rising" | "steady";
+};
+
+export type MarketSignal = {
+  title: string;
+  who: string; // company/person the signal is about
+  why: string; // why it's an opportunity
+  kind: string; // e.g. "Hiring", "Funding", "New entrant", "Pain point"
+};
+
+// One stored market report per workspace (overwritten on each refresh).
+export type MarketReport = {
+  workspaceId: string;
+  marketScore: number; // 0-100
+  headline: string; // 2-3 sentence analyst brief
+  trends: MarketTrend[];
+  audienceTopics: string[];
+  audienceQuestions: string[];
+  audiencePainPoints: string[];
+  signals: MarketSignal[];
+  recommendations: string[];
+  postsAnalyzed: number;
+  queries: string[];
+  createdAt: string; // ISO
+};

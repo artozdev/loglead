@@ -41,15 +41,52 @@ export const CREDIT_COSTS = {
 
 export type CreditAction = keyof typeof CREDIT_COSTS;
 
-export const TRIAL_CREDITS = 200;
+// Post generation cost varies by format: heavier outputs (threads, carousels,
+// video scripts) cost more than a simple post; short formats (story) cost less.
+// `generate_post` (10) stays the baseline default.
+export function postGenerationCost(input: { network?: string; format?: string }): number {
+  const f = (input.format ?? "").toLowerCase();
+  // Long / structured formats → more work, more tokens.
+  if (/thread|carrou|carou|s[ée]quence|script|reel|vid[ée]o|long|newsletter|article/.test(f)) {
+    return 15;
+  }
+  // Short formats.
+  if (/story|stories|tweet court|punchline/.test(f)) return 5;
+  // Standard post (LinkedIn text, caption, X post…).
+  return CREDIT_COSTS.generate_post;
+}
+
+// One-time credits granted on the free offer (no renewal, expire once spent).
+export const FREE_CREDITS = 100;
+// Back-compat alias (older imports).
+export const TRIAL_CREDITS = FREE_CREDITS;
 export const TRIAL_DAYS = 7;
 
-// Monthly quota granted at each plan's renewal date.
+// Monthly quota granted at each plan's renewal date. Free gets none.
 export const PLAN_MONTHLY_CREDITS: Record<Plan, number> = {
+  free: 0,
   starter: 2000,
   growth: 5000,
   pro: 10000,
 };
+
+// Subscription price (€/month) per paid plan. Annual billing applies -20%.
+export const PLAN_PRICE_MONTHLY: Record<Exclude<Plan, "free">, number> = {
+  starter: 29,
+  growth: 59,
+  pro: 99,
+};
+
+// Amount charged in EUR cents for a Stripe subscription line item.
+export function subscriptionAmountCents(
+  plan: Exclude<Plan, "free">,
+  billing: "monthly" | "annual",
+): number {
+  const monthly = PLAN_PRICE_MONTHLY[plan];
+  return billing === "annual"
+    ? Math.round(monthly * 12 * 0.8 * 100) // yearly, 20% off
+    : Math.round(monthly * 100);
+}
 
 // Marketing card content for the mandatory plan screen.
 export type PlanCard = {

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { PLAN_CARDS, type PlanCard } from "@/lib/credits";
 import type { EmailPrefs, Plan, Profile } from "@/lib/types";
 import ProfileForm from "./ProfileForm";
 import { LOCALES } from "@/lib/i18n";
@@ -29,7 +30,8 @@ const TABS: { id: TabId; label: string }[] = [
 ];
 
 const PLAN_META: Record<Plan, { label: string; price: string }> = {
-  starter: { label: "Starter", price: "0 € / mois" },
+  free: { label: "Gratuit", price: "0 € / mois" },
+  starter: { label: "Starter", price: "29 € / mois" },
   growth: { label: "Growth", price: "59 € / mois" },
   pro: { label: "Pro", price: "99 € / mois" },
 };
@@ -45,6 +47,8 @@ export type SettingsHubProps = {
   initialTab?: string;
   emailPrefs: EmailPrefs;
   linkedin: { connected: boolean; name?: string };
+  linkedinProfileUrl?: string;
+  linkedinAutoDetect?: boolean;
 };
 
 export default function SettingsHub(props: SettingsHubProps) {
@@ -150,7 +154,7 @@ export default function SettingsHub(props: SettingsHubProps) {
             <ProfileForm initial={props.profile} onDirtyChange={setDirty} />
           </div>
         )}
-        {tab === "connexions" && <ConnexionsTab linkedin={props.linkedin} />}
+        {tab === "connexions" && <ConnexionsTab linkedin={props.linkedin} profileUrl={props.linkedinProfileUrl} autoDetect={props.linkedinAutoDetect} />}
         {tab === "team" && <TeamTab plan={props.plan} email={props.email} firstName={props.firstName} />}
         {tab === "facturation" && <FacturationTab plan={props.plan} renewalDate={props.renewalDate} />}
       </div>
@@ -621,7 +625,7 @@ function NotificationsTab({ prefs }: { prefs: EmailPrefs }) {
 
 // ---------- Connexions ------------------------------------------------------------
 
-function ConnexionsTab({ linkedin }: { linkedin: { connected: boolean; name?: string } }) {
+function ConnexionsTab({ linkedin, profileUrl, autoDetect }: { linkedin: { connected: boolean; name?: string }; profileUrl?: string; autoDetect?: boolean }) {
   const [state, setState] = useState<Record<string, string | null>>({
     LinkedIn: linkedin.connected ? linkedin.name ?? "Compte LinkedIn" : null,
     Email: "loglead@gmail.com",
@@ -703,6 +707,72 @@ function ConnexionsTab({ linkedin }: { linkedin: { connected: boolean; name?: st
         LinkedIn se connecte via OAuth officiel. LogLead agit en votre nom —
         déconnectable à tout moment.
       </p>
+
+      <LinkedInLeadSource initialUrl={profileUrl} initialAuto={autoDetect} />
+    </div>
+  );
+}
+
+// Public LinkedIn profile URL — powers "détecter mes leads depuis LinkedIn"
+// (scrapes who reacts/comments on your posts) + optional daily automation.
+function LinkedInLeadSource({ initialUrl, initialAuto }: { initialUrl?: string; initialAuto?: boolean }) {
+  const [url, setUrl] = useState(initialUrl ?? "");
+  const [auto, setAuto] = useState(Boolean(initialAuto));
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+  async function save() {
+    if (saving) return;
+    setSaving(true);
+    setMsg(null);
+    try {
+      const res = await fetch("/api/workspaces/linkedin-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: url.trim(), autoDetect: auto }),
+      });
+      const data = await res.json();
+      setMsg(res.ok ? { ok: true, text: "Enregistré ✓" } : { ok: false, text: data.error ?? "Erreur" });
+    } catch {
+      setMsg({ ok: false, text: "Connexion impossible." });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="mt-8 rounded-xl border border-line bg-surface p-4">
+      <div className="text-[14px] font-semibold text-ink">Détection automatique de leads</div>
+      <p className="mt-1 text-[13px] text-muted">
+        Renseigne l&apos;URL de ton profil LinkedIn : LogLead détecte les personnes qui
+        réagissent et commentent tes posts, et les importe comme leads.
+      </p>
+      <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+        <input
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          placeholder="https://www.linkedin.com/in/ton-profil"
+          className="input flex-1"
+        />
+        <button onClick={save} disabled={saving} className="btn-primary shrink-0 disabled:opacity-60">
+          {saving ? "…" : "Enregistrer"}
+        </button>
+      </div>
+      <label className="mt-3 flex items-start gap-2 text-[13px] text-muted">
+        <input
+          type="checkbox"
+          checked={auto}
+          onChange={(e) => setAuto(e.target.checked)}
+          className="mt-0.5 h-4 w-4 accent-[var(--color-primary,#0051FF)]"
+        />
+        <span>
+          Détecter automatiquement (tous les 3 jours).{" "}
+          <span className="text-faint">5 crédits par nouveau lead uniquement — 0 crédit s&apos;il n&apos;y a rien de neuf.</span>
+        </span>
+      </label>
+      {msg && (
+        <p className={`mt-2 text-[12px] ${msg.ok ? "text-success" : "text-danger"}`}>{msg.text}</p>
+      )}
     </div>
   );
 }
@@ -795,8 +865,112 @@ function InviteModal({ onClose }: { onClose: () => void }) {
 
 // ---------- Facturation ------------------------------------------------------------------
 
+// In-app plans grid — Monthly / Annual toggle, Stripe subscription on "Commencer".
+function BillingPlans({ currentPlan }: { currentPlan: Plan }) {
+  const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
+  const [busy, setBusy] = useState<Plan | null>(null);
+  const price = (p: PlanCard) => (billing === "annual" ? Math.round(p.priceMonthly * 0.8) : p.priceMonthly);
+
+  async function commencer(plan: Plan) {
+    if (busy) return;
+    setBusy(plan);
+    try {
+      const res = await fetch("/api/billing/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan, billing }),
+      });
+      const d = await res.json();
+      if (res.ok && d.url) window.location.href = d.url;
+      else setBusy(null);
+    } catch {
+      setBusy(null);
+    }
+  }
+
+  return (
+    <div className="mt-10">
+      <SectionHeader title="Changer de plan" />
+      <p className="-mt-3 mb-4 text-[13px] text-muted">Économisez 20% avec la facturation annuelle.</p>
+
+      {/* Billing toggle (no quarterly) */}
+      <div className="mb-6 inline-flex items-center rounded-full border border-line bg-surface-hover/50 p-1">
+        {([["monthly", "Mensuel"], ["annual", "Annuel"]] as const).map(([v, label]) => (
+          <button
+            key={v}
+            onClick={() => setBilling(v)}
+            className={`rounded-full px-4 py-1.5 text-[13px] font-medium transition ${
+              billing === v ? "bg-surface text-ink shadow-sm" : "text-muted hover:text-ink"
+            }`}
+          >
+            {label}
+            {v === "annual" && (
+              <span className="ml-1.5 rounded bg-success/15 px-1.5 py-0.5 text-[10px] font-semibold text-success">-20%</span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      <div className="grid gap-3 md:grid-cols-3">
+        {PLAN_CARDS.map((p) => {
+          const isCurrent = currentPlan === p.id;
+          const popular = p.popular;
+          return (
+            <div
+              key={p.id}
+              className={`relative flex flex-col rounded-2xl border p-5 ${
+                popular ? "border-primary shadow-[0_8px_30px_rgba(0,81,255,0.10)]" : "border-line"
+              }`}
+            >
+              {popular && (
+                <span className="absolute -top-2.5 left-4 rounded-full bg-primary px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+                  Recommandé
+                </span>
+              )}
+              <div className="text-[15px] font-semibold text-ink">{p.name}</div>
+              <div className="mt-2 flex items-baseline gap-1">
+                <span className="num text-[28px] font-bold text-ink">€{price(p)}</span>
+                <span className="text-[13px] text-muted">/mois</span>
+              </div>
+              {billing === "annual" && (
+                <div className="mt-0.5 text-[11px] text-faint">facturé {price(p) * 12} € / an</div>
+              )}
+
+              <button
+                onClick={() => !isCurrent && commencer(p.id)}
+                disabled={isCurrent || busy !== null}
+                className={`mt-4 flex w-full items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-[13px] font-semibold transition disabled:opacity-60 ${
+                  isCurrent
+                    ? "cursor-default border border-line text-muted"
+                    : popular
+                    ? "bg-primary text-white hover:opacity-90"
+                    : "border border-line text-ink hover:bg-surface-hover"
+                }`}
+              >
+                {busy === p.id ? "…" : isCurrent ? "Plan actuel" : "Commencer ↗"}
+              </button>
+
+              <div className="mt-4 border-t border-line pt-3 text-[12px] font-medium text-primary">
+                {p.monthly.toLocaleString("fr-FR")} crédits / mois
+              </div>
+              <ul className="mt-2 flex-1 space-y-1.5">
+                {p.features.map((f) => (
+                  <li key={f} className="flex items-start gap-2 text-[12px] text-muted">
+                    <span className="mt-0.5 shrink-0 text-primary">✓</span>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function FacturationTab({ plan, renewalDate }: { plan: Plan; renewalDate: string }) {
-  const invoices = plan === "starter" ? [] : [
+  const invoices = plan === "free" ? [] : [
     { date: "01/06/2026", desc: `LogLead ${PLAN_META[plan].label} — Mensuel`, amount: `${PLAN_META[plan].price.split(" ")[0]},00 €` },
     { date: "01/05/2026", desc: `LogLead ${PLAN_META[plan].label} — Mensuel`, amount: `${PLAN_META[plan].price.split(" ")[0]},00 €` },
   ];
@@ -815,25 +989,16 @@ function FacturationTab({ plan, renewalDate }: { plan: Plan; renewalDate: string
           </div>
           <div className="num mt-0.5 text-[13px] text-muted">
             {PLAN_META[plan].price}
-            {plan !== "starter" && ` · Renouvellement le ${renewalDate}`}
+            {plan !== "free" && ` · Renouvellement le ${renewalDate}`}
           </div>
         </div>
-        <BtnGrey onClick={() => alert("Portail de facturation Stripe (démo).")}>Gérer l&apos;abonnement</BtnGrey>
+        {plan !== "free" && (
+          <BtnGrey onClick={() => alert("Portail de facturation Stripe (démo).")}>Gérer l&apos;abonnement</BtnGrey>
+        )}
       </div>
 
-      {plan !== "pro" && (
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-[10px] border border-line px-4 py-3.5">
-          <div>
-            <div className="text-[14px] font-medium text-ink">Passer à Pro</div>
-            <ul className="mt-1 space-y-0.5 text-[13px] text-muted">
-              <li>· Générations et analyses illimitées</li>
-              <li>· CMO IA et analytics avancées</li>
-              <li>· Jusqu&apos;à 10 membres</li>
-            </ul>
-          </div>
-          <Link href="/pricing" className="btn-primary !py-2 text-sm">Voir les offres</Link>
-        </div>
-      )}
+      {/* In-app plans grid (Stripe subscription checkout) */}
+      <BillingPlans currentPlan={plan} />
 
       <SectionHeader title="Historique" className="mt-12" />
       {invoices.length === 0 ? (

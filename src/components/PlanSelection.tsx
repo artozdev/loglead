@@ -1,38 +1,56 @@
 "use client";
 
 import { Check, Loader2, Star } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Logo from "./Logo";
 import { PLAN_CARDS, type PlanCard } from "@/lib/credits";
 import type { Plan } from "@/lib/types";
 
 export default function PlanSelection() {
-  const router = useRouter();
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
   const [busy, setBusy] = useState<Plan | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function choose(plan: Plan) {
+  // Paid plan → Stripe subscription checkout (redirect to Stripe / demo).
+  async function subscribe(plan: Plan) {
     if (busy) return;
     setBusy(plan);
     setError(null);
     try {
-      const res = await fetch("/api/onboarding/plan", {
+      const res = await fetch("/api/billing/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ plan, billing }),
       });
       const data = await res.json();
-      if (!res.ok) {
-        setError(data.error ?? "Impossible de démarrer l'essai.");
+      if (!res.ok || !data.url) {
+        setError(data.error ?? "Le paiement n'a pas pu démarrer.");
         setBusy(null);
         return;
       }
-      // Full reload so the plan gate re-evaluates and the header picks up credits.
-      window.location.href = "/dashboard?trial_started=1";
+      window.location.href = data.url; // Stripe Checkout, or demo success redirect
     } catch {
-      setError("Impossible de démarrer l'essai. Réessaie.");
+      setError("Le paiement n'a pas pu démarrer. Réessaie.");
+      setBusy(null);
+    }
+  }
+
+  // Free offer → grant 200 one-time credits and enter the dashboard.
+  async function startFree() {
+    if (busy) return;
+    setBusy("free");
+    setError(null);
+    try {
+      const res = await fetch("/api/onboarding/plan", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Impossible de démarrer l'offre gratuite.");
+        setBusy(null);
+        return;
+      }
+      window.location.href = "/dashboard?free_started=1";
+    } catch {
+      setError("Impossible de démarrer l'offre gratuite. Réessaie.");
       setBusy(null);
     }
   }
@@ -47,10 +65,10 @@ export default function PlanSelection() {
         <Logo size={30} withWordmark className="[&_.logo-light]:!block [&_.logo-dark]:!hidden" />
 
         <h1 className="mt-8 text-center font-display text-[28px] font-semibold tracking-tight text-slate-900 sm:text-[32px]">
-          Choose your plan to start your free trial
+          Choisis ton plan
         </h1>
         <p className="mt-2 text-center text-[15px] text-slate-500">
-          7 days free on any plan. No credit card required to start.
+          Commence gratuitement avec 100 crédits — ou passe à un plan payant quand tu veux.
         </p>
 
         {/* Billing toggle */}
@@ -96,11 +114,9 @@ export default function PlanSelection() {
                   <span className="text-[34px] font-bold leading-none text-slate-900">€{price(p)}</span>
                   <span className="text-[14px] text-slate-500">/mo</span>
                 </div>
-                <p className="mt-1 text-[12px] font-medium text-[#0051FF]">Try free 7 days</p>
-
                 <div className="mt-4 rounded-xl bg-slate-50 px-3 py-2.5 text-[13px]">
-                  <p className="font-semibold text-slate-900">200 trial credits</p>
-                  <p className="text-slate-500">Then {p.monthly.toLocaleString("en-US")}/mo</p>
+                  <p className="font-semibold text-slate-900">{p.monthly.toLocaleString("fr-FR")} crédits/mois</p>
+                  <p className="text-slate-500">Renouvelés chaque mois</p>
                 </div>
 
                 <ul className="mt-4 flex-1 space-y-2">
@@ -112,7 +128,7 @@ export default function PlanSelection() {
                 </ul>
 
                 <button
-                  onClick={() => choose(p.id)}
+                  onClick={() => subscribe(p.id)}
                   disabled={busy !== null}
                   className={`mt-5 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:opacity-60 ${
                     popular
@@ -121,16 +137,28 @@ export default function PlanSelection() {
                   }`}
                 >
                   {busy === p.id ? <Loader2 size={16} className="animate-spin" /> : null}
-                  Start free trial
+                  Commencer
                 </button>
               </div>
             );
           })}
         </div>
 
-        <p className="mt-6 text-center text-[13px] text-slate-500">
-          200 trial credits included with every plan. No credit card required for the trial.
-        </p>
+        {/* Free offer */}
+        <div className="mt-6 flex w-full max-w-md flex-col items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50/60 px-5 py-4 text-center">
+          <p className="text-[14px] font-semibold text-slate-900">Juste tester ? Commence gratuitement</p>
+          <p className="text-[13px] text-slate-500">
+            100 crédits offerts, sans carte bancaire. Ils expirent une fois épuisés — tu passes à un plan quand tu veux.
+          </p>
+          <button
+            onClick={startFree}
+            disabled={busy !== null}
+            className="mt-1 inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-50 disabled:opacity-60"
+          >
+            {busy === "free" ? <Loader2 size={16} className="animate-spin" /> : null}
+            Continuer en gratuit →
+          </button>
+        </div>
       </div>
     </div>
   );

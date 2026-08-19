@@ -2,8 +2,8 @@ import GeoBoard from "@/components/GeoBoard";
 import { visibilityScans } from "@/lib/db";
 import { requireProfile } from "@/lib/guards";
 
-const SCAN_QUOTA = { starter: 1, growth: 5, pro: Infinity } as const;
-const HISTORY_LIMIT = { starter: 0, growth: 3, pro: 12 } as const;
+const SCAN_QUOTA = { free: 0, starter: 1, growth: 5, pro: Infinity } as const;
+const HISTORY_LIMIT = { free: 0, starter: 0, growth: 3, pro: 12 } as const;
 
 export default async function GeoPage() {
   const { workspace, profile } = await requireProfile();

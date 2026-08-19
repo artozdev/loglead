@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { generateFromBrief, isDemoMode } from "@/lib/ai";
-import { insufficientResponse, spend } from "@/lib/creditGuard";
-import { contentItems, profiles } from "@/lib/db";
+import { postGenerationCost } from "@/lib/credits";
+import { contentItems, credits, profiles } from "@/lib/db";
 import { rateLimit } from "@/lib/ratelimit";
 import { currentWorkspace } from "@/lib/workspace";
 
@@ -52,10 +52,16 @@ export async function POST(req: Request) {
     );
   }
 
-  // Charge credits before doing the work (Part 9, rule 1). Nothing is debited
-  // when the balance is insufficient — the client shows the blocking modal.
-  const charge = await spend(ctx.workspace.id, "generate_post");
-  if (!charge.ok) return insufficientResponse("generate_post", charge.balance);
+  // Charge credits before doing the work (Part 9, rule 1). The cost varies with
+  // the post format — a thread/video script costs more than a simple post.
+  const cost = postGenerationCost(parsed.data);
+  const charge = await credits.consume(ctx.workspace.id, "generate_post", cost);
+  if (!charge.ok) {
+    return NextResponse.json(
+      { error: "insufficient_credits", action: "generate_post", needed: cost, balance: charge.balance },
+      { status: 402 },
+    );
+  }
 
   try {
     const existingPosts = (await contentItems.listByWorkspace(ctx.workspace.id)).map((c) => c.body);

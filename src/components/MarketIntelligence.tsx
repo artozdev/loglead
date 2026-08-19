@@ -1,14 +1,15 @@
 "use client";
 
-import { Lock, Search, Sparkles } from "lucide-react";
+import { Lock, RefreshCw, Search, Sparkles } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { MarketReport } from "@/lib/types";
 
 // ---------------------------------------------------------------------------
-// Market page shell. Real data comes from the business profile (competitors,
-// ICP, sector) and from Claude ("Ask your market" + AI summary). Everything
-// that would require live LinkedIn scraping (trends, competitor metrics,
-// audience, buying signals) is shown as an honest "pending" state — never
-// faked — until the Apify backend + cron + historical storage exist.
+// Market page. Real data comes from: the business profile (competitors), Claude
+// ("Ask your market"), and — on refresh — a live pipeline that scrapes recent
+// LinkedIn posts (Apify) and analyzes them with Claude into a stored report
+// (trends, audience, buying signals, recommendations). Sections without a
+// report yet show an honest empty state.
 // ---------------------------------------------------------------------------
 
 type Competitor = { name: string; diff?: string };
@@ -18,6 +19,7 @@ type Props = {
   icp: string;
   sector?: string;
   competitors: Competitor[];
+  initialReport?: MarketReport | null;
 };
 
 const SECTIONS = [
@@ -35,6 +37,12 @@ const SUGGESTIONS = [
   "Pourquoi l'AI Visibility est tendance ?",
   "Montre-moi des opportunités en France.",
 ];
+
+const MOMENTUM: Record<string, { label: string; cls: string }> = {
+  hot: { label: "🔥 Hot", cls: "bg-danger/10 text-danger" },
+  rising: { label: "📈 Rising", cls: "bg-primary/10 text-primary" },
+  steady: { label: "→ Steady", cls: "bg-surface-hover text-muted" },
+};
 
 // ---- Claude "ask" hook -----------------------------------------------------
 function useMarketAsk() {
@@ -95,12 +103,44 @@ function AiCard({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function MarketIntelligence({ saasName, icp, sector, competitors }: Props) {
+export default function MarketIntelligence({ saasName, icp, sector, competitors, initialReport }: Props) {
   const [active, setActive] = useState("overview");
   const [query, setQuery] = useState("");
+  const [report, setReport] = useState<MarketReport | null>(initialReport ?? null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshError, setRefreshError] = useState<string | null>(null);
   const search = useMarketAsk();
   const summary = useMarketAsk();
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Refresh: scrape LinkedIn posts (Apify) + analyze (Claude) → stored report.
+  const refresh = useCallback(async () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    setRefreshError(null);
+    try {
+      const res = await fetch("/api/market/refresh", { method: "POST" });
+      const data = await res.json();
+      if (res.status === 402) {
+        window.dispatchEvent(
+          new CustomEvent("loglead:insufficient-credits", {
+            detail: { needed: data.needed, balance: data.balance, action: data.action },
+          }),
+        );
+        return;
+      }
+      if (!res.ok) {
+        setRefreshError(data.error ?? "Actualisation impossible.");
+        return;
+      }
+      setReport(data.report);
+      window.dispatchEvent(new CustomEvent("loglead:credits-changed"));
+    } catch {
+      setRefreshError("Connexion impossible. Réessaie.");
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refreshing]);
 
   // Highlight the nav tab of the section currently in view.
   useEffect(() => {
@@ -131,22 +171,37 @@ export default function MarketIntelligence({ saasName, icp, sector, competitors 
     void search.run(question);
   };
 
+  const freshness = report
+    ? new Date(report.createdAt).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })
+    : null;
+
   return (
     <div ref={containerRef} className="space-y-8">
-      {/* Sticky header: AI search + anchor nav */}
+      {/* Sticky header: AI search + anchor nav + refresh */}
       <div className="sticky top-0 z-20 -mx-4 border-b border-line bg-canvas/95 px-4 py-3 backdrop-blur md:-mx-6 md:px-6">
-        <div className="relative">
-          <Search size={17} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") submitSearch(query);
-            }}
-            placeholder="Ask your market..."
-            className="input h-12 !pl-11 pr-4"
-            aria-label="Ask your market"
-          />
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search size={17} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") submitSearch(query);
+              }}
+              placeholder="Ask your market..."
+              className="input h-12 !pl-11 pr-4"
+              aria-label="Ask your market"
+            />
+          </div>
+          <button
+            onClick={refresh}
+            disabled={refreshing}
+            className="btn-primary h-12 shrink-0 !px-4 disabled:opacity-60"
+            title="Scanner LinkedIn (Apify) et analyser ton marché — coûte 30 crédits"
+          >
+            <RefreshCw size={15} className={refreshing ? "animate-spin" : ""} />
+            <span className="hidden sm:inline">{refreshing ? "Analyse…" : "Actualiser"}</span>
+          </button>
         </div>
 
         {/* Suggestion pills */}
@@ -183,6 +238,10 @@ export default function MarketIntelligence({ saasName, icp, sector, competitors 
         </nav>
       </div>
 
+      {refreshError && (
+        <p className="rounded-lg bg-danger/10 px-3 py-2 text-sm text-danger">{refreshError}</p>
+      )}
+
       {/* Search answer panel */}
       {(search.loading || search.answer || search.error) && (
         <div className="rounded-xl border border-line bg-surface p-4">
@@ -197,13 +256,9 @@ export default function MarketIntelligence({ saasName, icp, sector, competitors 
               <div className="h-3 w-2/3 animate-pulse rounded bg-surface-hover" />
             </div>
           )}
-          {search.error && (
-            <p className="mt-2 text-sm text-danger">{search.error}</p>
-          )}
+          {search.error && <p className="mt-2 text-sm text-danger">{search.error}</p>}
           {search.answer && (
-            <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-ink">
-              {search.answer}
-            </p>
+            <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-ink">{search.answer}</p>
           )}
         </div>
       )}
@@ -213,45 +268,46 @@ export default function MarketIntelligence({ saasName, icp, sector, competitors 
         <SectionHeader emoji="📊" title="Market Overview" desc={`Vue d'ensemble de ton marché — ${saasName}.`} />
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {[
-            { k: "Market Score", u: "Claude" },
-            { k: "Opportunities", u: "Apify" },
-            { k: "Trending Topics", u: "Apify" },
-            { k: "Buying Signals", u: "Apify" },
+            { k: "Market Score", v: report ? `${report.marketScore}` : "—" },
+            { k: "Opportunities", v: report ? `${report.signals.length}` : "—" },
+            { k: "Trending Topics", v: report ? `${report.trends.length}` : "—" },
+            { k: "Posts scannés", v: report ? `${report.postsAnalyzed}` : "—" },
           ].map((c) => (
             <div key={c.k} className="card !p-4">
               <p className="text-xs font-medium text-muted">{c.k}</p>
-              <p className="mt-1.5 font-display text-2xl font-semibold text-faint">—</p>
-              <p className="mt-1 text-[11px] text-faint">Via {c.u} · bientôt</p>
+              <p className={`mt-1.5 font-display text-2xl font-semibold ${report ? "text-ink" : "text-faint"}`}>{c.v}</p>
+              <p className="mt-1 text-[11px] text-faint">{freshness ? `MàJ ${freshness}` : "Via Apify · clique Actualiser"}</p>
             </div>
           ))}
         </div>
 
         <AiCard>
           <div className="mb-2 flex items-center justify-between gap-3">
-            <span className="text-xs font-semibold uppercase tracking-wide text-primary">
-              🤖 AI Market Summary
-            </span>
-            <button
-              onClick={() =>
-                summary.run(
-                  `Rédige un brief d'analyste de marché (3 phrases max) pour ${saasName}. ICP : ${icp}. Secteur : ${sector ?? "non précisé"}. Concurrents : ${competitors.map((c) => c.name).join(", ")}. Sans chiffres inventés.`,
-                )
-              }
-              disabled={summary.loading}
-              className="btn-secondary !py-1.5 !text-xs disabled:opacity-50"
-            >
-              {summary.loading ? "Génération…" : "↺ Générer"}
-            </button>
+            <span className="text-xs font-semibold uppercase tracking-wide text-primary">🤖 AI Market Summary</span>
+            {!report && (
+              <button
+                onClick={() =>
+                  summary.run(
+                    `Rédige un brief d'analyste de marché (3 phrases max) pour ${saasName}. ICP : ${icp}. Secteur : ${sector ?? "non précisé"}. Concurrents : ${competitors.map((c) => c.name).join(", ")}. Sans chiffres inventés.`,
+                  )
+                }
+                disabled={summary.loading}
+                className="btn-secondary !py-1.5 !text-xs disabled:opacity-50"
+              >
+                {summary.loading ? "Génération…" : "↺ Générer"}
+              </button>
+            )}
           </div>
-          {summary.error && <p className="text-sm text-danger">{summary.error}</p>}
-          {summary.answer ? (
+          {report ? (
+            <p className="whitespace-pre-wrap">{report.headline}</p>
+          ) : summary.answer ? (
             <p className="whitespace-pre-wrap">{summary.answer}</p>
+          ) : summary.error ? (
+            <p className="text-sm text-danger">{summary.error}</p>
           ) : (
-            !summary.loading &&
-            !summary.error && (
+            !summary.loading && (
               <p className="text-muted">
-                Génère un brief de marché basé sur ton profil (concurrents, ICP, secteur).
-                Nécessite des crédits Claude.
+                Clique <span className="font-medium text-ink">Actualiser</span> pour scanner LinkedIn et générer une analyse réelle de ton marché — ou génère un brief rapide depuis ton profil.
               </p>
             )
           )}
@@ -259,9 +315,26 @@ export default function MarketIntelligence({ saasName, icp, sector, competitors 
       </section>
 
       {/* SECTION 2 — Trends */}
-      <section id="trends" className="scroll-mt-40">
+      <section id="trends" className="scroll-mt-40 space-y-3">
         <SectionHeader emoji="🔥" title="Trending Topics" desc="Ce dont ton marché parle sur LinkedIn en ce moment." />
-        <Pending reason="Les tendances nécessitent le scraping des posts/hashtags LinkedIn (Apify) + un historique pour calculer les évolutions. Disponible une fois le backend Apify + cron branché." />
+        {report && report.trends.length > 0 ? (
+          <div className="grid gap-3 md:grid-cols-2">
+            {report.trends.map((t) => {
+              const m = MOMENTUM[t.momentum] ?? MOMENTUM.steady;
+              return (
+                <div key={t.topic} className="card !p-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="font-semibold text-ink">{t.topic}</p>
+                    <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${m.cls}`}>{m.label}</span>
+                  </div>
+                  <p className="mt-1.5 text-sm text-muted">{t.summary}</p>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <Pending reason="Aucune tendance encore. Clique « Actualiser » pour scanner les posts LinkedIn de ton marché (Apify) et les analyser." />
+        )}
       </section>
 
       {/* SECTION 3 — Competitors (REAL: names + diffs from profile) */}
@@ -282,31 +355,78 @@ export default function MarketIntelligence({ saasName, icp, sector, competitors 
                   {c.diff}
                 </p>
               )}
-              <p className="mt-3 text-[11px] text-faint">
-                Activité LinkedIn (posts, engagement, followers) — bientôt via Apify.
-              </p>
             </div>
           ))}
         </div>
-        <Pending reason="Le tableau comparatif (posts/semaine, engagement, croissance followers) nécessite le scraping des pages entreprises LinkedIn (Apify)." />
       </section>
 
       {/* SECTION 4 — Audience */}
-      <section id="audience" className="scroll-mt-40">
+      <section id="audience" className="scroll-mt-40 space-y-3">
         <SectionHeader emoji="👥" title="Audience Intelligence" desc="Qui est ton marché, de quoi il parle et ce dont il a besoin." />
-        <Pending reason="L'analyse d'audience (sujets, questions, pain points) croise le scraping des commentaires LinkedIn (Apify) avec une analyse Claude. Nécessite le backend Apify + des crédits Claude." />
+        {report && (report.audienceTopics.length || report.audiencePainPoints.length) ? (
+          <div className="grid gap-3 md:grid-cols-3">
+            <div className="card !p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted">Sujets</p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {report.audienceTopics.map((t) => (
+                  <span key={t} className="rounded-full bg-surface-hover px-2.5 py-1 text-xs text-ink">{t}</span>
+                ))}
+              </div>
+            </div>
+            <div className="card !p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted">Questions récurrentes</p>
+              <ul className="mt-2 space-y-1.5 text-sm text-muted">
+                {report.audienceQuestions.map((q) => <li key={q}>• {q}</li>)}
+              </ul>
+            </div>
+            <div className="card !p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted">Pain points</p>
+              <ul className="mt-2 space-y-1.5 text-sm text-muted">
+                {report.audiencePainPoints.map((p) => <li key={p}>• {p}</li>)}
+              </ul>
+            </div>
+          </div>
+        ) : (
+          <Pending reason="L'analyse d'audience (sujets, questions, pain points) apparaît après une actualisation du marché." />
+        )}
       </section>
 
       {/* SECTION 5 — Signals */}
-      <section id="signals" className="scroll-mt-40">
+      <section id="signals" className="scroll-mt-40 space-y-3">
         <SectionHeader emoji="🚀" title="Buying Signals" desc="Entreprises et personnes qui pourraient avoir besoin de ta solution maintenant." />
-        <Pending reason="Les signaux d'achat (levées de fonds, recrutements de commerciaux, nouveaux entrants) proviennent du scraping de posts/offres LinkedIn (Apify). Disponible une fois le backend branché." />
+        {report && report.signals.length > 0 ? (
+          <div className="grid gap-3 md:grid-cols-2">
+            {report.signals.map((s) => (
+              <div key={s.title} className="card !p-4">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-semibold text-ink">{s.title}</p>
+                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">{s.kind}</span>
+                </div>
+                <p className="mt-1 text-xs font-medium text-muted">{s.who}</p>
+                <p className="mt-1.5 text-sm text-muted">{s.why}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <Pending reason="Les signaux d'achat (recrutements, levées, lancements, frustrations) apparaissent après une actualisation du marché." />
+        )}
       </section>
 
       {/* SECTION 6 — Recommendations */}
-      <section id="recommendations" className="scroll-mt-40">
-        <SectionHeader emoji="🤖" title="AI Recommendations" desc="Les 3 actions les plus impactantes de la semaine." />
-        <Pending reason="Les recommandations sont générées par Claude à partir des tendances, concurrents et signaux scrapés. Nécessite le backend Apify (données) + des crédits Claude (analyse)." />
+      <section id="recommendations" className="scroll-mt-40 space-y-3">
+        <SectionHeader emoji="🤖" title="AI Recommendations" desc="Les actions les plus impactantes de la semaine." />
+        {report && report.recommendations.length > 0 ? (
+          <div className="space-y-2">
+            {report.recommendations.map((r, i) => (
+              <div key={i} className="flex items-start gap-3 rounded-xl border border-line bg-surface p-4">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">{i + 1}</span>
+                <p className="text-sm text-ink">{r}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <Pending reason="Les recommandations sont générées à partir des tendances et signaux réels — clique « Actualiser »." />
+        )}
       </section>
     </div>
   );

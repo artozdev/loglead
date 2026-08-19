@@ -161,6 +161,111 @@ export async function askMarket(
   return text && text.type === "text" ? text.text.trim() : "Réponse vide du modèle.";
 }
 
+// ----- Market analysis from scraped LinkedIn posts -------------------------
+
+export type MarketAnalysis = {
+  marketScore: number;
+  headline: string;
+  trends: { topic: string; summary: string; momentum: "hot" | "rising" | "steady" }[];
+  audienceTopics: string[];
+  audienceQuestions: string[];
+  audiencePainPoints: string[];
+  signals: { title: string; who: string; why: string; kind: string }[];
+  recommendations: string[];
+};
+
+const MARKET_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    marketScore: { type: "integer" },
+    headline: { type: "string" },
+    trends: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          topic: { type: "string" },
+          summary: { type: "string" },
+          momentum: { type: "string", enum: ["hot", "rising", "steady"] },
+        },
+        required: ["topic", "summary", "momentum"],
+      },
+    },
+    audienceTopics: { type: "array", items: { type: "string" } },
+    audienceQuestions: { type: "array", items: { type: "string" } },
+    audiencePainPoints: { type: "array", items: { type: "string" } },
+    signals: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          title: { type: "string" },
+          who: { type: "string" },
+          why: { type: "string" },
+          kind: { type: "string" },
+        },
+        required: ["title", "who", "why", "kind"],
+      },
+    },
+    recommendations: { type: "array", items: { type: "string" } },
+  },
+  required: [
+    "marketScore",
+    "headline",
+    "trends",
+    "audienceTopics",
+    "audienceQuestions",
+    "audiencePainPoints",
+    "signals",
+    "recommendations",
+  ],
+} as const;
+
+// Analyze real scraped LinkedIn posts into a structured market report. Grounded
+// strictly in the provided posts — the model must not invent data.
+export async function analyzeMarket(
+  profile: Profile,
+  posts: { content: string; author?: string; likes?: number; comments?: number }[],
+): Promise<MarketAnalysis> {
+  if (isDemoMode()) {
+    throw new Error(
+      "Mode démo : ajoute une clé Claude (ANTHROPIC_API_KEY) pour analyser ton marché.",
+    );
+  }
+  const corpus = posts
+    .slice(0, 40)
+    .map((p, i) => {
+      const eng = [
+        p.likes != null ? `${p.likes} likes` : null,
+        p.comments != null ? `${p.comments} commentaires` : null,
+      ]
+        .filter(Boolean)
+        .join(", ");
+      return `Post ${i + 1}${p.author ? ` — ${p.author}` : ""}${eng ? ` (${eng})` : ""}\n${p.content.slice(0, 700)}`;
+    })
+    .join("\n\n---\n\n");
+
+  const system = `Tu es l'analyste de marché de LogLead. On te fournit de VRAIS posts LinkedIn récents, scrapés sur le marché du founder. Analyse-les et renvoie un rapport structuré en français. Règles STRICTES :
+- Base-toi UNIQUEMENT sur les posts fournis. N'invente aucun chiffre, nom ou fait absent des posts.
+- Les tendances doivent refléter ce dont parlent réellement ces posts.
+- Les signaux d'achat = personnes/entreprises des posts qui montrent un besoin (recrutement, levée, lancement, frustration exprimée).
+- marketScore (0-100) = à quel point le marché est dynamique et porteur d'opportunités d'après les posts.
+- Sois concret et actionnable. Réponds uniquement en JSON.`;
+
+  const user = `Contexte du founder :\n${profileContext(profile)}\n\n${posts.length} posts LinkedIn récents analysés :\n\n"""\n${corpus.slice(0, 14000)}\n"""\n\nProduis : marketScore, headline (brief analyste 2-3 phrases), trends (3-5), audienceTopics (5 mots-clés), audienceQuestions (3), audiencePainPoints (3), signals (3-5), recommendations (3 actions concrètes pour la semaine).`;
+
+  return callJSON<MarketAnalysis>({
+    system,
+    user,
+    schema: MARKET_SCHEMA as unknown as Record<string, unknown>,
+    model: MODEL,
+    maxTokens: 3000,
+  });
+}
+
 function toFriendlyError(err: unknown): Error {
   if (err instanceof Anthropic.AuthenticationError) {
     return new Error(
@@ -291,6 +396,24 @@ const ANTI_AI = `RÈGLES ABSOLUES — UNE VIOLATION = RÉÉCRIRE :
 - Chiffres crédibles et spécifiques (jamais "des milliers"). Termine sur ce qui donne envie de réagir ou de partager.
 - Test permanent : "Est-ce qu'un humain expert dans cette niche aurait pu écrire exactement ça ?" Si non, réécris.`;
 
+// "Style IA LinkedIn" formulas to avoid by reflex — only allowed if they're
+// genuinely part of the user's real language.
+const AI_CLICHE_BANLIST = `Formules "style IA LinkedIn" à NE PAS utiliser par réflexe (uniquement si c'est réellement SON langage) : "Voici ce que j'ai appris", "La vérité c'est que", "Personne ne vous dit que", "Le problème n'est pas X, c'est Y", "J'ai longtemps pensé que", "Et puis j'ai compris une chose", "3 leçons que j'aurais aimé connaître plus tôt", "Si vous êtes entrepreneur, lisez ceci", "Arrêtez de faire X", "Vous n'avez pas besoin de X, vous avez besoin de Y", "La plupart des gens…", "Spoiler :", "On en parle ?", "La leçon ?", "Retenez bien ceci". Ce ne sont pas des mots interdits, mais ne les emploie jamais juste parce que "ça marche" sur LinkedIn.`;
+
+// The 9 voice-mimicry rules — write like the user, not like generic AI LinkedIn.
+function voiceMimicryRules(firstName: string): string {
+  return `PRIORITÉ ABSOLUE — RESSEMBLER À ${firstName}, PAS À "UN CRÉATEUR LINKEDIN" :
+1. APPRENDS SA VOIX depuis ses anciens posts (fournis plus bas) : vocabulaire, expressions, tournures, longueur et rythme des phrases, niveau de langage, spontanéité, humour, style d'argumentation, façon d'ouvrir ET de conclure un post, usage des emojis, des retours à la ligne, de la ponctuation, formulations récurrentes, et ce qu'il/elle n'utilise JAMAIS. Imite la VOIX, jamais le contenu — ne recopie aucun ancien post. Test de réussite : si on remplaçait la signature par le nom de ${firstName}, personne ne verrait la différence.
+2. N'écris JAMAIS "comme un créateur LinkedIn". Fuis les recettes omniprésentes (hook choc → phrases ultra-courtes → "et voici pourquoi" → 3 ou 5 points → leçon → conclusion inspirante → question à l'audience) SAUF si c'est réellement le style naturel de ${firstName}.
+3. Chaque post doit pouvoir se différencier de la masse des posts générés par IA (voir la ban-list ci-dessous).
+4. PAS DE FAUSSE AUTHENTICITÉ : n'ajoute jamais anecdote, émotion, vulnérabilité, détail perso, opinion provocatrice ou histoire INVENTÉS pour créer de l'engagement. N'invente JAMAIS une expérience vécue. Si l'info n'est pas fournie, ne l'invente pas. Une petite idée honnête vaut mieux qu'une grande histoire fabriquée.
+5. DÉTAILS CONCRETS : privilégie le spécifique au contexte réel de ${firstName} plutôt que le générique ("cette expérience m'a appris la persévérance" = à bannir). On doit ressentir "cette personne était vraiment là", pas "une IA a construit une histoire pour illustrer une morale".
+6. LAISSE DE LA PERSONNALITÉ si ça colle à ses posts : phrases longues ou très courtes, parenthèses, interruptions, digressions, formulations imparfaites, opinions tranchées, ironie, changements de rythme. Ne "nettoie" pas le texte pour le rendre parfait. Imparfait mais reconnaissable > parfait mais générique.
+7. CHAQUE POST DIFFÉRENT : ne réutilise pas le même hook, la même longueur, la même structure, le même nombre de paragraphes, le même type de conclusion ni les mêmes expressions. Deux posts doivent avoir des FORMES très différentes tout en restant immédiatement reconnaissables comme venant de ${firstName}. La cohérence vient de la voix, pas d'un template.
+8. NE SUR-OPTIMISE PAS POUR L'ALGO : n'ajoute pas question finale, appel aux commentaires, emojis, listes, phrases choc, lignes vides ou hashtags UNIQUEMENT parce que "ça booste la portée". Seulement si ${firstName} le fait naturellement.
+9. UNE VRAIE PENSÉE : chaque post doit porter une opinion, une observation ou une expérience qui appartient VRAIMENT à ${firstName}. Si ce n'est qu'une banalité que n'importe qui pourrait écrire, trouve un angle plus personnel.`;
+}
+
 // Platform-specific hook & format codes (2026), injected per generation.
 const PLATFORM_HOOKS: Record<AlgoNetwork, string> = {
   linkedin: `LinkedIn 2026 : les 3 premières lignes (avant "voir plus") font tout. Hooks qui marchent : chiffre surprenant / affirmation contrariante / question sur une douleur précise / "J'ai [fait X] — voici ce que j'ai appris" / pattern interrupt ("Stop."). Lignes courtes seules > paragraphes denses ; saut de ligne après chaque phrase importante. Longueur : 150-300 mots (engagement) ou 800-1200 (visibilité). Hashtags : 0-3 max, jamais en vrac.`,
@@ -334,18 +457,35 @@ export function buildVoiceProfile(posts: string[]): string {
   return rules.map((r) => `- ${r}`).join("\n");
 }
 
-function genSystem(profile: Profile, firstName: string, voiceProfile: string): string {
+function genSystem(
+  profile: Profile,
+  firstName: string,
+  voiceProfile: string,
+  samples: string[] = [],
+): string {
+  // Raw samples of the user's real posts — the model reproduces the voice from
+  // these (never copies them). Only injected when we have enough signal.
+  const clean = samples.map((p) => p.trim()).filter((p) => p.length > 40).slice(0, 6);
+  const samplesBlock =
+    clean.length >= 2
+      ? `\n\nANCIENS POSTS DE ${firstName} — analyse-les pour reproduire sa voix (vocabulaire, rythme, ouvertures, ponctuation…). NE LES RECOPIE JAMAIS, imite seulement la voix :\n${clean.map((p, i) => `--- Post ${i + 1} ---\n${p.slice(0, 600)}`).join("\n\n")}`
+      : `\n\n(Pas encore assez d'anciens posts pour extraire une empreinte vocale fiable — applique le ton choisi, reste spécifique, honnête et humain, et évite absolument le "style IA LinkedIn".)`;
+
   return `Tu es le ghostwriter numéro 1 de ${firstName}, fondateur·rice de ${profile.saasName}. Tu connais parfaitement sa voix, son style, sa niche et son audience. Tu écris POUR lui/elle — jamais comme une IA générique.
 
-Avant d'écrire, décompose la demande EN INTERNE (ne l'affiche pas) : (1) l'intention réelle, (2) l'audience et ses douleurs, (3) les codes de la plateforme en 2026, (4) l'angle différenciant propre à ${firstName}, (5) la structure optimale. Puis écris.
+Avant d'écrire, décompose la demande EN INTERNE (ne l'affiche pas) : (1) l'intention réelle, (2) l'audience et ses douleurs, (3) l'angle différenciant propre à ${firstName}, (4) la structure optimale — puis écris.
 
 Profil du founder :
 ${profileContext(profile)}
 
-Règles de style personnalisées de ${firstName} (à appliquer à CHAQUE contenu, même en clonage) :
+${voiceMimicryRules(firstName)}
+
+Signature de style extraite de ses posts (à appliquer à CHAQUE contenu) :
 ${voiceProfile}
 
-${ANTI_AI}`;
+${AI_CLICHE_BANLIST}
+
+${ANTI_AI}${samplesBlock}`;
 }
 
 const VARIANT_ITEM_SCHEMA = {
@@ -458,11 +598,11 @@ ${VARIANT_FIELDS}
 Réponds uniquement en JSON : { "variants": [ { … } ] }.`;
 
   const data = await callJSON<{ variants: BriefVariant[] }>({
-    system: genSystem(profile, ctx.firstName, voice),
+    system: genSystem(profile, ctx.firstName, voice, ctx.existingPosts ?? []),
     user,
     schema: BRIEF_SCHEMA as unknown as Record<string, unknown>,
     model: GEN_MODEL,
-    temperature: 0.88,
+    temperature: 0.9,
     maxTokens: 4000,
   });
   return (data.variants ?? []).slice(0, 3).map(normalizeVariant);
@@ -494,7 +634,7 @@ ${task}
 Réponds en JSON avec une seule variante : { "variants": [ { … } ] } (mêmes champs que d'habitude).
 ${VARIANT_FIELDS}`;
   const data = await callJSON<{ variants: BriefVariant[] }>({
-    system: genSystem(profile, ctx.firstName, voice),
+    system: genSystem(profile, ctx.firstName, voice, ctx.existingPosts ?? []),
     user,
     schema: BRIEF_SCHEMA as unknown as Record<string, unknown>,
     model: GEN_MODEL,
@@ -612,7 +752,7 @@ ${rules}
 Réponds uniquement en JSON : { "variants": [ { "channel", "content", "subject" } ] }.
 Une variante par canal demandé, prête à publier sans retouche. "subject" = objet de l'email (chaîne vide pour les autres canaux).`;
   const data = await callJSON<{ variants: CampaignVariant[] }>({
-    system: genSystem(profile, ctx.firstName, voice),
+    system: genSystem(profile, ctx.firstName, voice, ctx.existingPosts ?? []),
     user,
     schema: CAMPAIGN_SCHEMA as unknown as Record<string, unknown>,
     model: GEN_MODEL,
@@ -1112,7 +1252,7 @@ Analyse ce contenu EN PROFONDEUR, puis crée un équivalent pour ${algoNetworkLa
 Réponds uniquement en JSON.`;
 
   const data = await callJSON<CloneResult>({
-    system: genSystem(profile, ctx.firstName, voice),
+    system: genSystem(profile, ctx.firstName, voice, ctx.existingPosts ?? []),
     user,
     schema: CLONE_SCHEMA as unknown as Record<string, unknown>,
     model: GEN_MODEL,
@@ -1831,7 +1971,7 @@ Action demandée : ${TOOL_INSTRUCTION[args.tool]}
 Renvoie le contenu retravaillé, prêt à publier, dans la voix EXACTE de ${args.firstName}. Réponds uniquement en JSON : { "content": "…" }.`;
 
   const { content } = await callJSON<{ content: string }>({
-    system: genSystem(args.profile, args.firstName, voice),
+    system: genSystem(args.profile, args.firstName, voice, args.existingPosts ?? []),
     user,
     schema: TOOL_SCHEMA as unknown as Record<string, unknown>,
     model: GEN_MODEL,

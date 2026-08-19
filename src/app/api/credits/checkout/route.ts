@@ -55,6 +55,8 @@ export async function POST(req: Request) {
             product_data: {
               name: `LogLead — ${amount.toLocaleString("fr-FR")} crédits`,
               description: `${amount.toLocaleString("fr-FR")} crédits LogLead · sans expiration`,
+              // Required by Stripe Managed Payments (auto-VAT). SaaS, business use.
+              tax_code: process.env.STRIPE_TAX_CODE || "txcd_10103001",
             },
             unit_amount: amount, // 1 credit = 1 cent
           },

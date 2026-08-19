@@ -115,7 +115,7 @@ export default function SidebarUserMenu({
           ) : (
             <MenuLink href="/settings?tab=team" icon="users" label="Membres" onClick={() => { close(); onNavigate?.(); }} />
           )}
-          <MenuLink href="/pricing" icon="card" label="Plans & Pricing" onClick={() => { close(); onNavigate?.(); }} />
+          <MenuLink href="/settings?tab=facturation" icon="card" label="Plan & billing" onClick={() => { close(); onNavigate?.(); }} />
           <MenuLink
             href="/affiliation"
             icon="handshake"

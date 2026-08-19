@@ -14,6 +14,7 @@ import type {
   ContentItem,
   CreditTransaction,
   CreditTransactionType,
+  MarketReport,
   Campaign,
   Lead,
   LeadEvent,
@@ -74,6 +75,7 @@ type Schema = {
   agentConversations: AgentConversation[];
   agentMessages: AgentMessage[];
   creditTransactions: CreditTransaction[];
+  marketReports: MarketReport[];
 };
 
 const DATA_DIR = path.join(process.cwd(), "data");
@@ -103,6 +105,7 @@ const EMPTY: Schema = {
   agentConversations: [],
   agentMessages: [],
   creditTransactions: [],
+  marketReports: [],
 };
 
 // Fill in any missing top-level collections (schema evolution / partial state).
@@ -131,6 +134,7 @@ function hydrate(parsed: Partial<Schema>) {
     agentConversations: parsed.agentConversations ?? [],
     agentMessages: parsed.agentMessages ?? [],
     creditTransactions: parsed.creditTransactions ?? [],
+    marketReports: parsed.marketReports ?? [],
   };
 }
 
@@ -320,6 +324,30 @@ export const workspaces = {
     db.workspaces = db.workspaces.map((w) => (w.id === id ? { ...w, plan } : w));
     await write(db);
   },
+  // Public LinkedIn profile URL — used to auto-detect leads from engagement.
+  async setLinkedInProfileUrl(id: string, url: string) {
+    const db = await read();
+    db.workspaces = db.workspaces.map((w) =>
+      w.id === id ? { ...w, linkedinProfileUrl: url || undefined } : w,
+    );
+    await write(db);
+  },
+  // Stamp the last engagement-detection run (rate-limit cooldown).
+  async markLeadDetect(id: string) {
+    const db = await read();
+    db.workspaces = db.workspaces.map((w) =>
+      w.id === id ? { ...w, lastLeadDetectAt: now() } : w,
+    );
+    await write(db);
+  },
+  // Opt-in to daily automatic lead detection (cron).
+  async setAutoDetectLeads(id: string, on: boolean) {
+    const db = await read();
+    db.workspaces = db.workspaces.map((w) =>
+      w.id === id ? { ...w, autoDetectLeads: on } : w,
+    );
+    await write(db);
+  },
   // Mandatory post-onboarding plan pick: records the plan, starts the 7-day
   // trial, grants the trial credits and logs the grant to the ledger.
   async selectPlan(
@@ -350,6 +378,76 @@ export const workspaces = {
       credits: opts.trialCredits,
       amountEur: null,
       balanceAfter: opts.trialCredits,
+      createdAt: now(),
+    });
+    await write(db);
+    return updated;
+  },
+  // Free offer: grant the one-time credits, mark the plan chosen, NO renewal
+  // and NO trial dates (the credits simply expire once spent). Idempotent-ish:
+  // only grants the bonus the first time the workspace lands on 'free'.
+  async grantFree(id: string, freeCredits: number) {
+    const db = await read();
+    const ws = db.workspaces.find((w) => w.id === id);
+    if (!ws) return undefined;
+    const alreadyGranted = db.creditTransactions.some(
+      (tx) => tx.workspaceId === id && tx.type === "trial",
+    );
+    const credits = alreadyGranted ? (ws.credits ?? 0) : freeCredits;
+    const updated: Workspace = {
+      ...ws,
+      plan: "free",
+      planChosen: true,
+      credits,
+      monthlyCreditsLimit: 0,
+      trialStartsAt: undefined,
+      trialEndsAt: undefined,
+      creditsRenewAt: undefined,
+    };
+    db.workspaces = db.workspaces.map((w) => (w.id === id ? updated : w));
+    if (!alreadyGranted) {
+      db.creditTransactions.push({
+        id: randomUUID(),
+        workspaceId: id,
+        type: "trial",
+        action: "signup_bonus",
+        credits: freeCredits,
+        amountEur: null,
+        balanceAfter: freeCredits,
+        createdAt: now(),
+      });
+    }
+    await write(db);
+    return updated;
+  },
+  // Activate a paid subscription after a successful Stripe payment: set the
+  // plan, its monthly quota, add this month's credits and schedule renewal.
+  async activateSubscription(id: string, plan: Plan, monthlyCredits: number) {
+    const db = await read();
+    const ws = db.workspaces.find((w) => w.id === id);
+    if (!ws) return undefined;
+    const renew = new Date();
+    renew.setMonth(renew.getMonth() + 1);
+    const next = (ws.credits ?? 0) + monthlyCredits;
+    const updated: Workspace = {
+      ...ws,
+      plan,
+      planChosen: true,
+      credits: next,
+      monthlyCreditsLimit: monthlyCredits,
+      trialStartsAt: undefined,
+      trialEndsAt: undefined,
+      creditsRenewAt: renew.toISOString(),
+    };
+    db.workspaces = db.workspaces.map((w) => (w.id === id ? updated : w));
+    db.creditTransactions.push({
+      id: randomUUID(),
+      workspaceId: id,
+      type: "monthly_renewal",
+      action: `subscribe_${plan}`,
+      credits: monthlyCredits,
+      amountEur: null,
+      balanceAfter: next,
       createdAt: now(),
     });
     await write(db);
@@ -480,6 +578,20 @@ export const credits = {
       .filter((tx) => tx.workspaceId === workspaceId)
       .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
       .slice(0, limit);
+  },
+};
+
+// ----- Market Intelligence reports (one per workspace, overwritten) ---------
+export const marketReports = {
+  async get(workspaceId: string): Promise<MarketReport | null> {
+    return (await read()).marketReports.find((r) => r.workspaceId === workspaceId) ?? null;
+  },
+  async save(report: MarketReport): Promise<MarketReport> {
+    const db = await read();
+    db.marketReports = db.marketReports.filter((r) => r.workspaceId !== report.workspaceId);
+    db.marketReports.push(report);
+    await write(db);
+    return report;
   },
 };
 

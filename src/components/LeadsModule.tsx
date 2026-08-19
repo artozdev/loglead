@@ -145,6 +145,8 @@ export default function LeadsModule({
   const [view, setView] = useState<"list" | "grid">("list");
   const [seeding, setSeeding] = useState(false);
   const [shared, setShared] = useState(false);
+  const [detecting, setDetecting] = useState(false);
+  const [detectMsg, setDetectMsg] = useState<string | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
@@ -209,6 +211,36 @@ export default function LeadsModule({
       refresh();
     } finally {
       setSeeding(false);
+    }
+  }
+
+  // Auto-detect leads from LinkedIn post engagement (reactions + comments).
+  async function detectLeads() {
+    if (detecting) return;
+    setDetecting(true);
+    setDetectMsg(null);
+    try {
+      const res = await fetch("/api/leads/detect", { method: "POST" });
+      const d = await res.json();
+      if (res.status === 402) {
+        window.dispatchEvent(
+          new CustomEvent("loglead:insufficient-credits", {
+            detail: { needed: d.needed, balance: d.balance, action: d.action },
+          }),
+        );
+        return;
+      }
+      if (!res.ok) {
+        setDetectMsg(d.error ?? "Détection impossible.");
+        return;
+      }
+      setDetectMsg(`${d.created} lead(s) ajouté(s)${d.skipped ? ` · ${d.skipped} déjà connu(s)` : ""}`);
+      window.dispatchEvent(new CustomEvent("loglead:credits-changed"));
+      refresh();
+    } catch {
+      setDetectMsg("Connexion impossible.");
+    } finally {
+      setDetecting(false);
     }
   }
 
@@ -337,12 +369,24 @@ export default function LeadsModule({
               ⌘F
             </kbd>
           </button>
+          <button
+            onClick={detectLeads}
+            disabled={detecting}
+            title="Détecter les leads depuis les réactions/commentaires de tes posts LinkedIn — 5 crédits par nouveau lead · 1×/jour max"
+            className="btn-primary !py-2 text-[13px] disabled:opacity-60"
+          >
+            {detecting ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} strokeWidth={1.5} />}
+            {detecting ? "Détection…" : "Détecter mes leads"}
+          </button>
           <button onClick={share} className="btn-secondary !py-2 text-[13px]">
             <Share2 size={14} strokeWidth={1.5} />
             {shared ? "Lien copié !" : "Partager"}
           </button>
         </div>
       </div>
+      )}
+      {detectMsg && (
+        <p className="-mt-2 mb-2 text-[12px] text-muted">{detectMsg}</p>
       )}
 
       {/* Metric band + sparklines */}

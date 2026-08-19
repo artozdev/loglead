@@ -18,12 +18,13 @@ import { currentWorkspace } from "@/lib/workspace";
 
 // Per-plan caps: monthly scans, analyzed queries, tracked competitors,
 // action plan and competitor source analysis.
-const SCAN_QUOTA: Record<Plan, number> = { starter: 1, growth: 5, pro: Infinity };
-const QUERY_CAP: Record<Plan, number> = { starter: 5, growth: 15, pro: 15 };
-const COMPETITOR_CAP: Record<Plan, number> = { starter: 0, growth: 2, pro: Infinity };
-const ACTION_PLAN_ALLOWED: Record<Plan, boolean> = { starter: false, growth: true, pro: true };
-const INSIGHTS_ALLOWED: Record<Plan, boolean> = { starter: false, growth: false, pro: true };
+const SCAN_QUOTA: Record<Plan, number> = { free: 0, starter: 1, growth: 5, pro: Infinity };
+const QUERY_CAP: Record<Plan, number> = { free: 3, starter: 5, growth: 15, pro: 15 };
+const COMPETITOR_CAP: Record<Plan, number> = { free: 0, starter: 0, growth: 2, pro: Infinity };
+const ACTION_PLAN_ALLOWED: Record<Plan, boolean> = { free: false, starter: false, growth: true, pro: true };
+const INSIGHTS_ALLOWED: Record<Plan, boolean> = { free: false, starter: false, growth: false, pro: true };
 const CUSTOM_QUERIES_ALLOWED: Record<Plan, boolean> = {
+  free: false,
   starter: false,
   growth: false,
   pro: true,

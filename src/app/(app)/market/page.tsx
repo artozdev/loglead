@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { Telescope } from "lucide-react";
 import MarketIntelligence from "@/components/MarketIntelligence";
+import { marketReports } from "@/lib/db";
 import { requireProfile } from "@/lib/guards";
 
 export default async function MarketPage() {
   const { profile } = await requireProfile();
   const competitors = (profile.competitors ?? []).filter(Boolean);
   const diffs = profile.competitorDiffs ?? [];
+  const initialReport = await marketReports.get(profile.workspaceId);
 
   // Empty state — the whole page is driven by the competitors/niche in the
   // business profile; without them there's nothing to track.
@@ -36,6 +38,7 @@ export default async function MarketPage() {
       icp={profile.icp}
       sector={profile.sector}
       competitors={competitors.map((name, i) => ({ name, diff: diffs[i] }))}
+      initialReport={initialReport}
     />
   );
 }

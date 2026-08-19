@@ -77,13 +77,23 @@ export async function POST(
     }
   }
 
-  // Firmographics from the public LinkedIn profile via Apify (best-effort).
-  if (hasApify() && lead.linkedinUrl && (!lead.jobTitle || !lead.company || !lead.sector)) {
+  // Firmographics + email from the public LinkedIn profile via Apify
+  // (HarvestAPI, no cookie). Best-effort; runs when anything useful is missing.
+  const emailStillMissing = !lead.email && !patch.email;
+  if (
+    hasApify() &&
+    lead.linkedinUrl &&
+    (!lead.jobTitle || !lead.company || !lead.sector || emailStillMissing)
+  ) {
     const li = await enrichLinkedInProfile(lead.linkedinUrl);
     if (li) {
       if (!lead.jobTitle && li.jobTitle) patch.jobTitle = li.jobTitle;
       if (!lead.company && li.company) patch.company = li.company;
       if (!lead.sector && li.sector) patch.sector = li.sector;
+      // Prefer a real Apify email over the mock fallback set above.
+      if (li.email && (!lead.email && (!patch.email || patch.email === mockEmail(lead.firstName, lead.lastName, lead.company)))) {
+        patch.email = li.email;
+      }
     }
   }
 

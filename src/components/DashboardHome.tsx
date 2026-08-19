@@ -106,7 +106,7 @@ export default function DashboardHome({
             {banner.kind === "trial" ? (
               <>
                 <p className="text-sm font-semibold text-ink">🎉 Welcome to LogLead! Your 7-day free trial has started.</p>
-                <p className="mt-0.5 text-[13px] text-muted">You have 200 trial credits. Use them wisely.</p>
+                <p className="mt-0.5 text-[13px] text-muted">You have 100 free credits. Use them wisely.</p>
               </>
             ) : (
               <>

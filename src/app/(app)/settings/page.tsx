@@ -54,6 +54,8 @@ export default async function SettingsPage({
       initialTab={initialTab}
       emailPrefs={user.emailPrefs ?? {}}
       linkedin={{ connected: Boolean(active?.linkedin), name: active?.linkedin?.name }}
+      linkedinProfileUrl={active?.linkedinProfileUrl}
+      linkedinAutoDetect={active?.autoDetectLeads}
     />
   );
 }

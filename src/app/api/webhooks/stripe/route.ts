@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { credits } from "@/lib/db";
+import { credits, workspaces } from "@/lib/db";
+import type { Plan } from "@/lib/types";
 
 // Signature verification needs the raw body + Node runtime; never cache.
 export const runtime = "nodejs";
@@ -31,15 +32,29 @@ export async function POST(req: Request) {
   if (event.type === "checkout.session.completed") {
     const s = event.data.object as Stripe.Checkout.Session;
     const workspaceId = s.metadata?.workspace_id;
-    const amount = parseInt(s.metadata?.credits ?? "0", 10);
-    const paymentIntent = typeof s.payment_intent === "string" ? s.payment_intent : null;
-    if (workspaceId && amount > 0) {
-      await credits.add(workspaceId, amount, {
-        type: "purchase",
-        amountEur: (s.amount_total ?? amount) / 100,
-        stripePaymentIntent: paymentIntent,
-      });
+
+    if (workspaceId && s.metadata?.type === "subscription") {
+      // Paid plan activated: set plan + grant this month's credits.
+      const plan = s.metadata.plan as Plan;
+      const monthly = parseInt(s.metadata.monthly_credits ?? "0", 10);
+      await workspaces.activateSubscription(workspaceId, plan, monthly);
+    } else if (workspaceId) {
+      // Credit top-up (one-time). Idempotent on payment_intent.
+      const amount = parseInt(s.metadata?.credits ?? "0", 10);
+      const paymentIntent = typeof s.payment_intent === "string" ? s.payment_intent : null;
+      if (amount > 0) {
+        await credits.add(workspaceId, amount, {
+          type: "purchase",
+          amountEur: (s.amount_total ?? amount) / 100,
+          stripePaymentIntent: paymentIntent,
+        });
+      }
     }
+  } else if (event.type === "customer.subscription.deleted") {
+    // Subscription cancelled/ended → drop the workspace back to the free offer.
+    const sub = event.data.object as Stripe.Subscription;
+    const workspaceId = sub.metadata?.workspace_id;
+    if (workspaceId) await workspaces.setPlan(workspaceId, "free");
   }
 
   return NextResponse.json({ received: true });
