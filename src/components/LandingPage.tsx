@@ -900,7 +900,11 @@ export function LandingFooter({ tone = "light" }: { tone?: "light" | "dark" }) {
         </div>
         <div className={`mt-12 flex flex-wrap items-center justify-between gap-2 border-t ${BORDER} pt-6 pb-8 text-[12px] ${FAINT}`}>
           <p>{t("© 2026 LogLead — All rights reserved.", "© 2026 LogLead — Tous droits réservés.")} {t("Not affiliated with LinkedIn Corporation.", "Non affilié à LinkedIn Corporation.")} · SIRET 104 040 456 00014</p>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <Link href="/terms" className="transition hover:text-[color:var(--lp-fg)]">{t("Terms of Sale", "CGV")}</Link>
+            <span>·</span>
+            <Link href="/privacy" className="transition hover:text-[color:var(--lp-fg)]">{t("Privacy Policy", "Confidentialité")}</Link>
+            <span>·</span>
             <button onClick={() => setLang("fr")} className={lang === "fr" ? `font-semibold ${FG}` : ""}>Français</button>
             <span>·</span>
             <button onClick={() => setLang("en")} className={lang === "en" ? `font-semibold ${FG}` : ""}>English</button>
