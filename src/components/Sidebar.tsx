@@ -298,8 +298,28 @@ export default function Sidebar({
           ))}
         </nav>
 
-        {/* Bottom — Pro card + user block */}
+        {/* Bottom — choose-a-plan + credits card + user block */}
         <div className="shrink-0 space-y-2 px-2.5 py-3">
+          {isCollapsed ? (
+            <Link
+              href="/settings?tab=facturation"
+              title="Choisir un plan"
+              aria-label="Choisir un plan"
+              onClick={() => drawer && setMobileOpen(false)}
+              className="mx-auto flex h-9 w-9 items-center justify-center rounded-xl bg-[#A3E635] text-[#0A0A0A] transition hover:bg-[#B4F04A]"
+            >
+              <Zap size={16} strokeWidth={2.2} />
+            </Link>
+          ) : (
+            <Link
+              href="/settings?tab=facturation"
+              onClick={() => drawer && setMobileOpen(false)}
+              className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#A3E635] px-3 py-2.5 text-[13px] font-semibold text-[#0A0A0A] transition hover:bg-[#B4F04A]"
+            >
+              <Zap size={15} strokeWidth={2.4} /> Choisir un plan
+            </Link>
+          )}
+
           {(() => {
             const quota = creditsQuota > 0 ? creditsQuota : Math.max(credits, 200);
             const pct = Math.min(100, Math.round((credits / quota) * 100));
