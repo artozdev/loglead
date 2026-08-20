@@ -9,7 +9,6 @@ import {
   ChevronRight,
   Home,
   PenSquare,
-  Plus,
   Sparkles,
   Telescope,
   Users,
@@ -306,7 +305,7 @@ export default function Sidebar({
               title="Choisir un plan"
               aria-label="Choisir un plan"
               onClick={() => drawer && setMobileOpen(false)}
-              className="mx-auto flex h-9 w-9 items-center justify-center rounded-xl bg-[#A3E635] text-[#0A0A0A] transition hover:bg-[#B4F04A]"
+              className="mx-auto flex h-9 w-9 items-center justify-center rounded-xl bg-brand-gradient text-white transition hover:opacity-90"
             >
               <Zap size={16} strokeWidth={2.2} />
             </Link>
@@ -314,7 +313,7 @@ export default function Sidebar({
             <Link
               href="/settings?tab=facturation"
               onClick={() => drawer && setMobileOpen(false)}
-              className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#A3E635] px-3 py-2.5 text-[13px] font-semibold text-[#0A0A0A] transition hover:bg-[#B4F04A]"
+              className="btn-primary flex w-full items-center justify-center gap-1.5 !py-2.5 text-[13px] font-semibold"
             >
               <Zap size={15} strokeWidth={2.4} /> Choisir un plan
             </Link>
@@ -342,7 +341,10 @@ export default function Sidebar({
             }
 
             return (
-              <div className="rounded-xl border border-line bg-surface-hover/40 p-3">
+              <button
+                onClick={openCredits}
+                className="w-full rounded-xl border border-line bg-surface-hover/40 p-3 text-left transition hover:border-primary/40 hover:bg-surface-hover/60"
+              >
                 <div className="flex items-center justify-between">
                   <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted">
                     <Zap size={12} strokeWidth={1.5} className="text-primary" /> Crédits
@@ -354,17 +356,13 @@ export default function Sidebar({
                 <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-hover">
                   <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
                 </div>
-                <p className="mt-1.5 text-[11px] text-muted">
-                  {creditsQuota > 0 ? `sur ${quota.toLocaleString("fr-FR")} / mois` : "Crédits d'essai"}
-                </p>
-                <button
-                  onClick={openCredits}
-                  className="btn-primary mt-3 flex w-full items-center justify-center gap-1.5 !py-2 text-xs"
-                >
-                  <Plus size={13} strokeWidth={2} />
-                  Ajouter des crédits
-                </button>
-              </div>
+                <div className="mt-1.5 flex items-center justify-between">
+                  <p className="text-[11px] text-muted">
+                    {creditsQuota > 0 ? `sur ${quota.toLocaleString("fr-FR")} / mois` : "Crédits d'essai"}
+                  </p>
+                  <span className="text-[11px] font-medium text-primary">Voir mes crédits →</span>
+                </div>
+              </button>
             );
           })()}
 
