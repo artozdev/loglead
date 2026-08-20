@@ -366,7 +366,7 @@ export default function Sidebar({
   return (
     <>
       <aside
-        className={`sticky top-0 hidden h-screen shrink-0 flex-col bg-transparent transition-[width] duration-200 ease-smooth md:flex ${
+        className={`force-dark sticky top-0 hidden h-screen shrink-0 flex-col bg-[#0A0A0A] text-ink transition-[width] duration-200 ease-smooth md:flex ${
           collapsed ? "w-[68px]" : "w-64"
         }`}
       >
@@ -380,7 +380,7 @@ export default function Sidebar({
             onClick={() => setMobileOpen(false)}
             className="absolute inset-0 modal-overlay backdrop-blur-sm"
           />
-          <aside className="absolute left-0 top-0 h-full w-72 bg-canvas shadow-pop">
+          <aside className="force-dark absolute left-0 top-0 h-full w-72 bg-[#0A0A0A] text-ink shadow-pop">
             {inner(true)}
           </aside>
         </div>
