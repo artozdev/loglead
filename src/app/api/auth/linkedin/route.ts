@@ -9,17 +9,8 @@ export async function GET(req: Request) {
   const ctx = await currentWorkspace();
   if (!ctx) return NextResponse.redirect(new URL("/login", req.url));
   if (!hasLinkedInOAuth()) {
-    // Diagnostic (booleans only, no secret values) — tells us which var the
-    // deployed environment is actually missing.
     return NextResponse.json(
-      {
-        error: "LinkedIn OAuth non configuré (variables d'env manquantes).",
-        present: {
-          LINKEDIN_CLIENT_ID: Boolean(process.env.LINKEDIN_CLIENT_ID),
-          LINKEDIN_CLIENT_SECRET: Boolean(process.env.LINKEDIN_CLIENT_SECRET),
-          LINKEDIN_REDIRECT_URI: Boolean(process.env.LINKEDIN_REDIRECT_URI),
-        },
-      },
+      { error: "LinkedIn OAuth non configuré (variables d'env manquantes)." },
       { status: 500 },
     );
   }
