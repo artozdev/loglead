@@ -21,8 +21,16 @@ export async function GET(req: Request) {
 
   for (const ws of await workspaces.listAll()) {
     if (!ws.autoDetectLeads || !ws.linkedinProfileUrl) continue;
-    // Cadence by plan: Growth/Pro daily, Starter/Free every 3 days.
-    const r = await runLeadDetection(ws, { cooldownMs: planDetectIntervalMs(ws.plan) });
+    // Free plan: automatic detection runs ONCE only. After any run, they must
+    // upgrade for recurring detection.
+    if (ws.plan === "free" && ws.lastLeadDetectAt) {
+      skipped++;
+      continue;
+    }
+    // Cadence for paid plans: Growth/Pro daily, Starter every 3 days.
+    // (Free's single run uses no cooldown so it fires the first time.)
+    const cooldownMs = ws.plan === "free" ? 0 : planDetectIntervalMs(ws.plan);
+    const r = await runLeadDetection(ws, { cooldownMs });
     if (r.ok) {
       runs++;
       created += r.created;
