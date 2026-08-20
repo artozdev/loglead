@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { PLAN_CARDS, type PlanCard } from "@/lib/credits";
 import type { EmailPrefs, Plan, Profile } from "@/lib/types";
 import ProfileForm from "./ProfileForm";
@@ -57,6 +58,14 @@ export default function SettingsHub(props: SettingsHubProps) {
   const [dirty, setDirty] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+
+  // Keep the active tab in sync with the ?tab= URL param, so navigating to
+  // /settings?tab=facturation switches tabs even when already on /settings.
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    const t = searchParams.get("tab");
+    if (t && TABS.some((x) => x.id === t)) setTab(t as TabId);
+  }, [searchParams]);
 
   function go(next: TabId) {
     if (next === tab) return;

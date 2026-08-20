@@ -313,9 +313,9 @@ export default function Sidebar({
             <Link
               href="/settings?tab=facturation"
               onClick={() => drawer && setMobileOpen(false)}
-              className="btn-primary flex w-full items-center justify-center gap-1.5 !py-2.5 text-[13px] font-semibold"
+              className="btn-primary flex w-full items-center justify-center gap-1.5 !py-1.5 text-[12px] font-semibold"
             >
-              <Zap size={15} strokeWidth={2.4} /> Choisir un plan
+              <Zap size={13} strokeWidth={2.4} /> Choisir un plan
             </Link>
           )}
 
