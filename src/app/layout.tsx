@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { cookies } from "next/headers";
+import CrispChat from "@/components/CrispChat";
 import { LocaleProvider } from "@/components/LocaleProvider";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { localeFromCookie } from "@/lib/i18n";
@@ -55,6 +56,7 @@ export default async function RootLayout({
         <LocaleProvider initialLocale={locale}>
           <ThemeProvider>{children}</ThemeProvider>
         </LocaleProvider>
+        <CrispChat />
       </body>
     </html>
   );
