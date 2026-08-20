@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { workspaces } from "@/lib/db";
 import { cronAuthorized } from "@/lib/emails/cron";
-import { runLeadDetection } from "@/lib/leadDetect";
+import { planDetectIntervalMs, runLeadDetection } from "@/lib/leadDetect";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -21,7 +21,8 @@ export async function GET(req: Request) {
 
   for (const ws of await workspaces.listAll()) {
     if (!ws.autoDetectLeads || !ws.linkedinProfileUrl) continue;
-    const r = await runLeadDetection(ws);
+    // Cadence by plan: Growth/Pro daily, Starter/Free every 3 days.
+    const r = await runLeadDetection(ws, { cooldownMs: planDetectIntervalMs(ws.plan) });
     if (r.ok) {
       runs++;
       created += r.created;

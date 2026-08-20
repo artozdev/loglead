@@ -761,7 +761,7 @@ function LinkedInLeadSource({ initialUrl, initialAuto }: { initialUrl?: string; 
           className="mt-0.5 h-4 w-4 accent-[var(--color-primary,#0051FF)]"
         />
         <span>
-          Détecter automatiquement (tous les 3 jours).{" "}
+          Détecter automatiquement — tous les jours (Growth/Pro) ou tous les 3 jours (Starter).{" "}
           <span className="text-faint">5 crédits par nouveau lead uniquement — 0 crédit s&apos;il n&apos;y a rien de neuf.</span>
         </span>
       </label>

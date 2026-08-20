@@ -1,5 +1,5 @@
 import "server-only";
-import type { Workspace } from "./types";
+import type { Plan, Workspace } from "./types";
 import { hasApify, scrapeMyEngagers, type Engager } from "./apify";
 import { credits, leads, workspaces, type LeadInput } from "./db";
 
@@ -10,8 +10,15 @@ import { credits, leads, workspaces, type LeadInput } from "./db";
 // already-known people (or nothing) costs 0 credits.
 
 export const DETECT_CREDITS_PER_LEAD = 5; // credits per new lead imported
-export const DETECT_COOLDOWN_MS = 24 * 60 * 60 * 1000; // one run / 24h / workspace
+export const DETECT_COOLDOWN_MS = 24 * 60 * 60 * 1000; // manual: one run / 24h
 const MAX_IMPORT = 40;
+
+// Automatic (cron) cadence per plan: Growth/Pro daily, others every 3 days.
+// A 1h grace absorbs the daily cron's timing jitter so a run is never skipped.
+export function planDetectIntervalMs(plan: Plan): number {
+  const hours = plan === "growth" || plan === "pro" ? 24 : 72;
+  return (hours - 1) * 60 * 60 * 1000;
+}
 
 export type DetectResult =
   | { ok: true; created: number; skipped: number; found: number; balance: number }
@@ -28,16 +35,21 @@ function norm(url?: string | null): string {
   return url.toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").split("?")[0].replace(/\/$/, "");
 }
 
-export async function runLeadDetection(workspace: Workspace): Promise<DetectResult> {
+export async function runLeadDetection(
+  workspace: Workspace,
+  opts: { cooldownMs?: number } = {},
+): Promise<DetectResult> {
+  const cooldown = opts.cooldownMs ?? DETECT_COOLDOWN_MS;
   const profileUrl = workspace.linkedinProfileUrl;
   if (!profileUrl) return { ok: false, reason: "no_url" };
   if (!hasApify()) return { ok: false, reason: "no_apify" };
 
-  // Rate limit — bounds our Apify spend per workspace.
+  // Rate limit — bounds our Apify spend per workspace (24h for manual runs,
+  // plan-based interval when called by the cron).
   if (workspace.lastLeadDetectAt) {
     const elapsed = Date.now() - new Date(workspace.lastLeadDetectAt).getTime();
-    if (elapsed < DETECT_COOLDOWN_MS) {
-      return { ok: false, reason: "cooldown", hoursLeft: Math.ceil((DETECT_COOLDOWN_MS - elapsed) / 3.6e6) };
+    if (elapsed < cooldown) {
+      return { ok: false, reason: "cooldown", hoursLeft: Math.ceil((cooldown - elapsed) / 3.6e6) };
     }
   }
 
