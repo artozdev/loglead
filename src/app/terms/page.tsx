@@ -47,7 +47,9 @@ export default function TermsPage() {
                 </table>
               </div>
               <p>
-                The Growth and Pro plans include a <strong>14-day free trial with no credit card required</strong>.
+                Every new account starts with a <strong>free offer of 100 one-time credits, with no credit
+                card required</strong>. These credits do not renew and expire once used. Paid plans (Starter,
+                Growth, Pro) are then billed by subscription as shown above.
               </p>
 
               <h2>3. Billing and Payment</h2>

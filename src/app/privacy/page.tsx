@@ -47,10 +47,14 @@ export default function PrivacyPage() {
               <p>We use the following service providers to operate LogLead:</p>
               <ul>
                 <li><strong>Supabase</strong> — Database</li>
-                <li><strong>Anthropic</strong> — AI services</li>
-                <li><strong>Stripe</strong> — Payments</li>
                 <li><strong>Vercel</strong> — Hosting</li>
-                <li><strong>Ayrshare / Unipile</strong> — Social media services</li>
+                <li><strong>Stripe</strong> — Payments</li>
+                <li><strong>Anthropic</strong> — AI content generation</li>
+                <li><strong>OpenAI, Google, Mistral, Perplexity, xAI</strong> — AI visibility analysis</li>
+                <li><strong>Apify</strong> — LinkedIn public data (enrichment &amp; lead detection)</li>
+                <li><strong>FullEnrich</strong> — Contact enrichment (email &amp; phone)</li>
+                <li><strong>Firecrawl</strong> — Website analysis</li>
+                <li><strong>Resend</strong> — Transactional emails</li>
               </ul>
               <p>
                 All of these providers process your data strictly within the scope necessary to provide
