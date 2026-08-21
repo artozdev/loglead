@@ -17,8 +17,8 @@ export async function generateMetadata({
   const { slug } = await params;
   const v = getVertical(slug);
   if (!v) return {};
-  const title = v.h1;
-  const description = v.intro;
+  const title = v.h1.en;
+  const description = v.intro.en;
   return {
     title,
     description,
