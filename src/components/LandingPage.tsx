@@ -17,14 +17,6 @@ const SIGNUP = "/signup";
 // Flip to true once we have real customer testimonials to show.
 const SHOW_TESTIMONIALS = false;
 
-// Footer link targets for known (string) labels — internal linking to SEO pages.
-const FOOTER_HREFS: Record<string, string> = {
-  "LogLead vs Lemlist": "/vs/loglead-vs-lemlist",
-  "LogLead vs Apollo": "/vs/loglead-vs-apollo",
-  "LogLead vs Instantly": "/vs/loglead-vs-instantly",
-  "LogLead vs Clay": "/vs/loglead-vs-clay",
-};
-
 const NAV = [
   { href: "/#features", en: "Product", fr: "Produit" },
   { href: "/pricing", en: "Pricing", fr: "Tarifs" },
@@ -875,11 +867,46 @@ function MockDashboard() {
 export function LandingFooter({ tone = "light" }: { tone?: "light" | "dark" }) {
   const t = useTr();
   const { lang, setLang } = useLang();
-  const cols = [
-    { title: t("Product", "Produit"), links: ["Market", "Post Generator", "Pipeline", "Enrich Leads", "Inbox delivery"] },
-    { title: "Solutions", links: [t("Startup founder", "Fondateur de startup"), t("B2B sales", "Ventes B2B"), t("Agency", "Agence")] },
-    { title: t("Comparison", "Comparaison"), links: ["LogLead vs Lemlist", "LogLead vs Apollo", "LogLead vs Instantly", "LogLead vs Clay"] },
-    { title: t("Resources", "Ressources"), links: [t("Tools", "Outils"), "Blog", t("Affiliate", "Affiliation")] },
+  const cols: { title: React.ReactNode; links: { label: React.ReactNode; href: string }[] }[] = [
+    {
+      title: "Solutions",
+      links: [
+        { label: t("SaaS founders", "Fondateurs SaaS"), href: "/for/saas-founders" },
+        { label: t("Agencies", "Agences"), href: "/for/agencies" },
+        { label: t("Consultants", "Consultants"), href: "/for/consultants" },
+        { label: t("Sales teams", "Équipes sales"), href: "/for/sales-teams" },
+        { label: t("Startups", "Startups"), href: "/for/startups" },
+        { label: t("B2B companies", "Entreprises B2B"), href: "/for/b2b-companies" },
+      ],
+    },
+    {
+      title: t("Comparison", "Comparaison"),
+      links: [
+        { label: "LogLead vs Lemlist", href: "/vs/loglead-vs-lemlist" },
+        { label: "LogLead vs Apollo", href: "/vs/loglead-vs-apollo" },
+        { label: "LogLead vs Taplio", href: "/vs/loglead-vs-taplio" },
+        { label: "LogLead vs Clay", href: "/vs/loglead-vs-clay" },
+        { label: "LogLead vs Instantly", href: "/vs/loglead-vs-instantly" },
+      ],
+    },
+    {
+      title: t("Alternatives", "Alternatives"),
+      links: [
+        { label: t("Lemlist alternative", "Alternative à Lemlist"), href: "/alternative/lemlist-alternative" },
+        { label: t("Apollo alternative", "Alternative à Apollo"), href: "/alternative/apollo-alternative" },
+        { label: t("Taplio alternative", "Alternative à Taplio"), href: "/alternative/taplio-alternative" },
+        { label: t("Clay alternative", "Alternative à Clay"), href: "/alternative/clay-alternative" },
+      ],
+    },
+    {
+      title: t("Resources", "Ressources"),
+      links: [
+        { label: t("Pricing", "Tarifs"), href: "/pricing" },
+        { label: t("Affiliate", "Affiliation"), href: "/affiliate" },
+        { label: t("Privacy", "Confidentialité"), href: "/privacy" },
+        { label: t("Terms", "CGV"), href: "/terms" },
+      ],
+    },
   ];
   const socials = [
     { label: "X", icon: <path d="M18.9 2H22l-7.6 8.7L23.3 22h-6.9l-5.4-7-6.2 7H1.7l8.1-9.3L1 2h7.1l4.9 6.4L18.9 2zm-1.2 18h1.9L6.4 4H4.4l13.3 16z" /> },
@@ -905,7 +932,7 @@ export function LandingFooter({ tone = "light" }: { tone?: "light" | "dark" }) {
           {cols.map((c, ci) => (
             <div key={ci}>
               <p className={`text-[14px] font-bold ${FG}`}>{c.title}</p>
-              <ul className="mt-4 space-y-3">{c.links.map((l) => { const href = (typeof l === "string" && FOOTER_HREFS[l]) || "#"; return <li key={l}><Link href={href} className={`text-[14px] ${MUTED} transition hover:text-[color:var(--lp-fg)]`}>{l}</Link></li>; })}</ul>
+              <ul className="mt-4 space-y-3">{c.links.map((l) => <li key={l.href}><Link href={l.href} className={`text-[14px] ${MUTED} transition hover:text-[color:var(--lp-fg)]`}>{l.label}</Link></li>)}</ul>
             </div>
           ))}
         </div>
