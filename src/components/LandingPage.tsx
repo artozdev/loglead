@@ -123,7 +123,7 @@ export default function LandingPage() {
         <Comparison />
         {/* Avis masqués tant qu'on n'a pas de vrais témoignages (code conservé). */}
         {SHOW_TESTIMONIALS && <Testimonials />}
-        {/* From the FAQ down: everything is black. The white Testimonials above has
+        {/* From the FAQ down: everything is black. The last white section above has
             a rounded bottom and sits over this black region for the white→black seam. */}
         <div className="relative z-0 -mt-10 bg-[#0A0A0A]">
           <FAQ tone="dark" />
@@ -390,7 +390,7 @@ function Comparison() {
     { icon: "✍️", t: t("Writing content", "Rédiger le contenu"), day: t("Day 1", "Jour 1"), tag: t("Same system", "Même système") },
   ];
   return (
-    <section id="compare" className="lp-light px-5 py-24 sm:px-6">
+    <section id="compare" className="lp-light relative z-10 overflow-hidden rounded-b-[40px] px-5 py-24 sm:px-6">
       <div className="mx-auto max-w-5xl">
         <SectionTitle
           badge={t("How it works", "Comment ça marche")}
