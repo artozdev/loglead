@@ -14,6 +14,8 @@ import UrlAnalyzer from "./UrlAnalyzer";
 // ---------------------------------------------------------------------------
 
 const SIGNUP = "/signup";
+// Flip to true once we have real customer testimonials to show.
+const SHOW_TESTIMONIALS = false;
 
 const NAV = [
   { href: "/#features", en: "Product", fr: "Produit" },
@@ -119,7 +121,8 @@ export default function LandingPage() {
         <Problem />
         <Process />
         <Comparison />
-        <Testimonials />
+        {/* Avis masqués tant qu'on n'a pas de vrais témoignages (code conservé). */}
+        {SHOW_TESTIMONIALS && <Testimonials />}
         {/* From the FAQ down: everything is black. The white Testimonials above has
             a rounded bottom and sits over this black region for the white→black seam. */}
         <div className="relative z-0 -mt-10 bg-[#0A0A0A]">
@@ -267,7 +270,7 @@ function Hero() {
                 <span key={i} className="h-8 w-8 rounded-full border-2 border-white" style={{ background: c }} />
               ))}
             </div>
-            <span className="text-[13px] font-medium text-[#475569]">{t("500+ B2B teams growing with LogLead", "500+ équipes B2B en croissance avec LogLead")}</span>
+            <span className="text-[13px] font-medium text-[#475569]">{t("+10 B2B companies growing with LogLead", "+10 entreprises B2B en croissance avec LogLead")}</span>
           </div>
         </Reveal>
       </div>
