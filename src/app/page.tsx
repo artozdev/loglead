@@ -1,30 +1,23 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import JsonLd from "@/components/JsonLd";
 import LandingPage from "@/components/LandingPage";
 import { getCurrentUser } from "@/lib/auth";
-
-const TITLE = "LogLead — Le système de croissance IA pour les entreprises B2B";
-const DESC =
-  "LogLead transforme LinkedIn en moteur d'acquisition. Identifiez vos meilleurs prospects, détectez leurs signaux d'intérêt et créez le contenu qui les attire.";
+import { softwareApplicationSchema } from "@/lib/schema";
+import { SITE } from "@/lib/seo.config";
 
 export const metadata: Metadata = {
-  title: TITLE,
-  description: DESC,
-  alternates: { canonical: "https://loglead.io" },
-  openGraph: { title: TITLE, description: DESC, url: "https://loglead.io", siteName: "LogLead", type: "website" },
-  twitter: { card: "summary_large_image", title: TITLE, description: DESC },
-};
-
-// SoftwareApplication + Organization structured data for SEO.
-const JSON_LD = {
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  name: "LogLead",
-  applicationCategory: "BusinessApplication",
-  operatingSystem: "Web",
-  description: DESC,
-  offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" },
-  publisher: { "@type": "Organization", name: "LogLead", url: "https://loglead.io" },
+  title: SITE.defaultTitle,
+  description: SITE.description,
+  alternates: { canonical: "/" },
+  openGraph: {
+    title: SITE.defaultTitle,
+    description: SITE.description,
+    url: SITE.url,
+    siteName: SITE.name,
+    type: "website",
+  },
+  twitter: { card: "summary_large_image", title: SITE.defaultTitle, description: SITE.description },
 };
 
 export default async function Home({
@@ -39,7 +32,7 @@ export default async function Home({
   if (user && sp.preview === undefined) redirect("/dashboard");
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
+      <JsonLd data={softwareApplicationSchema()} />
       <LandingPage />
     </>
   );

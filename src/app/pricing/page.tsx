@@ -4,9 +4,16 @@ import { LangProvider } from "@/components/lpLang";
 import { BTN_P, FAQ, LandingFooter, LandingNavbar, PricingLanding, Roll } from "@/components/LandingPage";
 
 export const metadata: Metadata = {
-  title: "LogLead Pricing — Start for free · 7-day trial",
+  title: "Pricing — Start free with 100 credits",
   description:
-    "Choose your LogLead plan — Free, Starter, Growth or Pro. 7-day free trial, no credit card required. 1 credit = €0.01.",
+    "Choose your LogLead plan — Free, Starter, Growth or Pro. Start free with 100 credits, no credit card required. 1 credit = €0.01.",
+  alternates: { canonical: "/pricing" },
+  openGraph: {
+    title: "LogLead Pricing — Start free with 100 credits",
+    description: "Free, Starter, Growth or Pro. Start free with 100 credits, no credit card required.",
+    url: "/pricing",
+    type: "website",
+  },
 };
 
 const PRICING_FAQ: [string, string][] = [

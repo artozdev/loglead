@@ -3,8 +3,9 @@ import { LangProvider } from "@/components/lpLang";
 import { LandingFooter, LandingNavbar } from "@/components/LandingPage";
 
 export const metadata: Metadata = {
-  title: "Terms and Conditions of Sale · LogLead",
+  title: "Terms and Conditions of Sale",
   description: "The terms and conditions governing access to the LogLead SaaS platform.",
+  alternates: { canonical: "/terms" },
 };
 
 const PROSE =

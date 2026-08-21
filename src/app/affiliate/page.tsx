@@ -4,9 +4,16 @@ import { LangProvider } from "@/components/lpLang";
 import { AffiliateSection, BTN_P, FAQ, LandingFooter, LandingNavbar, Roll } from "@/components/LandingPage";
 
 export const metadata: Metadata = {
-  title: "Affiliate Program — Earn 40% recurring commission · LogLead",
+  title: "Affiliate Program — Earn 40% recurring commission",
   description:
     "Share LogLead and earn 40% of every referral's subscription, every month, for life. A recurring commission with no limit.",
+  alternates: { canonical: "/affiliate" },
+  openGraph: {
+    title: "LogLead Affiliate — 40% recurring commission for life",
+    description: "Earn 40% of every referral's subscription, every month, for life.",
+    url: "/affiliate",
+    type: "website",
+  },
 };
 
 const AFFILIATE_FAQ: [string, string][] = [

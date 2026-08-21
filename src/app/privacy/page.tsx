@@ -3,8 +3,9 @@ import { LangProvider } from "@/components/lpLang";
 import { LandingFooter, LandingNavbar } from "@/components/LandingPage";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy · LogLead",
+  title: "Privacy Policy",
   description: "How LogLead collects, uses, and protects your personal data.",
+  alternates: { canonical: "/privacy" },
 };
 
 const PROSE =
