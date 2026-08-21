@@ -17,6 +17,14 @@ const SIGNUP = "/signup";
 // Flip to true once we have real customer testimonials to show.
 const SHOW_TESTIMONIALS = false;
 
+// Footer link targets for known (string) labels — internal linking to SEO pages.
+const FOOTER_HREFS: Record<string, string> = {
+  "LogLead vs Lemlist": "/vs/loglead-vs-lemlist",
+  "LogLead vs Apollo": "/vs/loglead-vs-apollo",
+  "LogLead vs Instantly": "/vs/loglead-vs-instantly",
+  "LogLead vs Clay": "/vs/loglead-vs-clay",
+};
+
 const NAV = [
   { href: "/#features", en: "Product", fr: "Produit" },
   { href: "/pricing", en: "Pricing", fr: "Tarifs" },
@@ -897,7 +905,7 @@ export function LandingFooter({ tone = "light" }: { tone?: "light" | "dark" }) {
           {cols.map((c, ci) => (
             <div key={ci}>
               <p className={`text-[14px] font-bold ${FG}`}>{c.title}</p>
-              <ul className="mt-4 space-y-3">{c.links.map((l) => <li key={l}><a href="#" className={`text-[14px] ${MUTED} transition hover:text-[color:var(--lp-fg)]`}>{l}</a></li>)}</ul>
+              <ul className="mt-4 space-y-3">{c.links.map((l) => { const href = (typeof l === "string" && FOOTER_HREFS[l]) || "#"; return <li key={l}><Link href={href} className={`text-[14px] ${MUTED} transition hover:text-[color:var(--lp-fg)]`}>{l}</Link></li>; })}</ul>
             </div>
           ))}
         </div>
