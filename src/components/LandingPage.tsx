@@ -869,6 +869,15 @@ export function LandingFooter({ tone = "light" }: { tone?: "light" | "dark" }) {
   const { lang, setLang } = useLang();
   const cols: { title: React.ReactNode; links: { label: React.ReactNode; href: string }[] }[] = [
     {
+      title: t("Features", "Fonctionnalités"),
+      links: [
+        { label: t("Market Intelligence", "Veille marché"), href: "/#features" },
+        { label: t("Lead Detection", "Détection de leads"), href: "/#features" },
+        { label: t("Content Studio", "Studio de contenu"), href: "/#features" },
+        { label: t("AI Visibility (GEO)", "Visibilité IA (GEO)"), href: "/#features" },
+      ],
+    },
+    {
       title: "Solutions",
       links: [
         { label: t("SaaS founders", "Fondateurs SaaS"), href: "/for/saas-founders" },
@@ -880,22 +889,13 @@ export function LandingFooter({ tone = "light" }: { tone?: "light" | "dark" }) {
       ],
     },
     {
-      title: t("Comparison", "Comparaison"),
+      title: t("Comparatives", "Comparatifs"),
       links: [
         { label: "LogLead vs Lemlist", href: "/vs/loglead-vs-lemlist" },
         { label: "LogLead vs Apollo", href: "/vs/loglead-vs-apollo" },
         { label: "LogLead vs Taplio", href: "/vs/loglead-vs-taplio" },
         { label: "LogLead vs Clay", href: "/vs/loglead-vs-clay" },
         { label: "LogLead vs Instantly", href: "/vs/loglead-vs-instantly" },
-      ],
-    },
-    {
-      title: t("Alternatives", "Alternatives"),
-      links: [
-        { label: t("Lemlist alternative", "Alternative à Lemlist"), href: "/alternative/lemlist-alternative" },
-        { label: t("Apollo alternative", "Alternative à Apollo"), href: "/alternative/apollo-alternative" },
-        { label: t("Taplio alternative", "Alternative à Taplio"), href: "/alternative/taplio-alternative" },
-        { label: t("Clay alternative", "Alternative à Clay"), href: "/alternative/clay-alternative" },
       ],
     },
     {
@@ -932,7 +932,7 @@ export function LandingFooter({ tone = "light" }: { tone?: "light" | "dark" }) {
           {cols.map((c, ci) => (
             <div key={ci}>
               <p className={`text-[14px] font-bold ${FG}`}>{c.title}</p>
-              <ul className="mt-4 space-y-3">{c.links.map((l) => <li key={l.href}><Link href={l.href} className={`text-[14px] ${MUTED} transition hover:text-[color:var(--lp-fg)]`}>{l.label}</Link></li>)}</ul>
+              <ul className="mt-4 space-y-3">{c.links.map((l, li) => <li key={`${ci}-${li}`}><Link href={l.href} className={`text-[14px] ${MUTED} transition hover:text-[color:var(--lp-fg)]`}>{l.label}</Link></li>)}</ul>
             </div>
           ))}
         </div>
