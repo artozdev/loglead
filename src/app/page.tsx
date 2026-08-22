@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import JsonLd from "@/components/JsonLd";
 import LandingPage from "@/components/LandingPage";
-import LandingSplash from "@/components/LandingSplash";
 import { getCurrentUser } from "@/lib/auth";
 import { softwareApplicationSchema } from "@/lib/schema";
 import { SITE } from "@/lib/seo.config";
@@ -34,7 +33,6 @@ export default async function Home({
   return (
     <>
       <JsonLd data={softwareApplicationSchema()} />
-      <LandingSplash />
       <LandingPage />
     </>
   );
