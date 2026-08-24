@@ -3,14 +3,10 @@
 import {
   BarChart3,
   Bot,
-  CalendarDays,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   Home,
-  PenSquare,
-  Sparkles,
-  Telescope,
   Users,
   Zap,
   X,
@@ -50,15 +46,6 @@ const NAV_SECTIONS: { labelKey: string | null; items: NavItem[] }[] = [
   {
     labelKey: "nav.section.dashboard",
     items: [
-      { href: "/market", labelKey: "nav.marketIntelligence", icon: Telescope, hintKey: "nav.marketIntelligence.hint" },
-      {
-        labelKey: "nav.group.content",
-        icon: PenSquare,
-        children: [
-          { href: "/post-generator", labelKey: "nav.contentEngine", icon: Sparkles, hintKey: "nav.contentEngine.hint" },
-          { href: "/calendar", labelKey: "nav.calendar", icon: CalendarDays, hintKey: "nav.calendar.hint" },
-        ],
-      },
       { href: "/leads", labelKey: "nav.pipeline", icon: Users, hintKey: "nav.pipeline.hint" },
       { href: "/linkedin-analytics", labelKey: "nav.linkedinAnalytics", icon: BarChart3, hintKey: "nav.linkedinAnalytics.hint" },
     ],
