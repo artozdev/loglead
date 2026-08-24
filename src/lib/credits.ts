@@ -26,7 +26,7 @@ export const CREDIT_COSTS = {
   enrich_lead_phone: 20,
   enrich_lead_full: 35,
   calculate_lead_score: 10,
-  generate_message: 10,
+  generate_message: 15,
 
   // AI Growth Partner
   ai_chat_message: 10,
@@ -37,6 +37,21 @@ export const CREDIT_COSTS = {
   // AI Visibility (GEO)
   geo_scan: 100,
   geo_competitor_scan: 50,
+
+  // ----- LogAgent (product refonte) -----
+  search_query: 20, // launch a prospect search
+  score_prospect: 5, // per prospect scored
+  search_google_maps: 30, // per 10 results
+  search_linkedin: 40, // per 10 results
+  search_reddit: 20,
+  search_instagram: 25,
+  search_tiktok: 25,
+  search_facebook: 20,
+  search_twitter: 20,
+  enrich_email: 20, // Fullenrich
+  enrich_phone: 20, // Fullenrich
+  enrich_full: 35,
+  ai_chat: 10, // general question to the agent
 } as const;
 
 export type CreditAction = keyof typeof CREDIT_COSTS;

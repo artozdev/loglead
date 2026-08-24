@@ -15,6 +15,9 @@ import type {
   CreditTransaction,
   CreditTransactionType,
   MarketReport,
+  Search,
+  Prospect,
+  ProspectStage,
   Campaign,
   Lead,
   LeadEvent,
@@ -76,6 +79,8 @@ type Schema = {
   agentMessages: AgentMessage[];
   creditTransactions: CreditTransaction[];
   marketReports: MarketReport[];
+  searches: Search[];
+  prospects: Prospect[];
 };
 
 const DATA_DIR = path.join(process.cwd(), "data");
@@ -106,6 +111,8 @@ const EMPTY: Schema = {
   agentMessages: [],
   creditTransactions: [],
   marketReports: [],
+  searches: [],
+  prospects: [],
 };
 
 // Fill in any missing top-level collections (schema evolution / partial state).
@@ -135,6 +142,8 @@ function hydrate(parsed: Partial<Schema>) {
     agentMessages: parsed.agentMessages ?? [],
     creditTransactions: parsed.creditTransactions ?? [],
     marketReports: parsed.marketReports ?? [],
+    searches: parsed.searches ?? [],
+    prospects: parsed.prospects ?? [],
   };
 }
 
@@ -592,6 +601,89 @@ export const marketReports = {
     db.marketReports.push(report);
     await write(db);
     return report;
+  },
+};
+
+// ----- LogAgent: searches ---------------------------------------------------
+export const searches = {
+  async create(input: Omit<Search, "id" | "createdAt">): Promise<Search> {
+    const db = await read();
+    const s: Search = { ...input, id: randomUUID(), createdAt: now() };
+    db.searches.push(s);
+    await write(db);
+    return s;
+  },
+  async update(id: string, workspaceId: string, patch: Partial<Search>) {
+    const db = await read();
+    const s = db.searches.find((x) => x.id === id && x.workspaceId === workspaceId);
+    if (!s) return undefined;
+    Object.assign(s, patch);
+    await write(db);
+    return s;
+  },
+  async findById(id: string, workspaceId: string) {
+    return (await read()).searches.find((s) => s.id === id && s.workspaceId === workspaceId);
+  },
+  async listByWorkspace(workspaceId: string, limit = 50) {
+    return (await read()).searches
+      .filter((s) => s.workspaceId === workspaceId)
+      .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
+      .slice(0, limit);
+  },
+};
+
+// ----- LogAgent: prospects (email/phone encrypted at rest) ------------------
+function decryptProspect(p: Prospect): Prospect {
+  return { ...p, contactEmail: decryptField(p.contactEmail), contactPhone: decryptField(p.contactPhone) };
+}
+
+export const prospects = {
+  async create(input: Omit<Prospect, "id" | "createdAt" | "updatedAt">): Promise<Prospect> {
+    const db = await read();
+    const p: Prospect = {
+      ...input,
+      contactEmail: encryptField(input.contactEmail ?? null),
+      contactPhone: encryptField(input.contactPhone ?? null),
+      id: randomUUID(),
+      createdAt: now(),
+      updatedAt: now(),
+    };
+    db.prospects.push(p);
+    await write(db);
+    return decryptProspect(p);
+  },
+  async update(id: string, workspaceId: string, patch: Partial<Prospect>) {
+    const db = await read();
+    const p = db.prospects.find((x) => x.id === id && x.workspaceId === workspaceId);
+    if (!p) return undefined;
+    const next: Prospect = { ...p, ...patch, updatedAt: now() };
+    if ("contactEmail" in patch) next.contactEmail = encryptField(patch.contactEmail ?? null);
+    if ("contactPhone" in patch) next.contactPhone = encryptField(patch.contactPhone ?? null);
+    db.prospects = db.prospects.map((x) => (x.id === id ? next : x));
+    await write(db);
+    return decryptProspect(next);
+  },
+  async findById(id: string, workspaceId: string) {
+    const p = (await read()).prospects.find((x) => x.id === id && x.workspaceId === workspaceId);
+    return p ? decryptProspect(p) : undefined;
+  },
+  async listBySearch(searchId: string, workspaceId: string) {
+    return (await read()).prospects
+      .filter((p) => p.searchId === searchId && p.workspaceId === workspaceId)
+      .map(decryptProspect)
+      .sort((a, b) => b.fitScore - a.fitScore);
+  },
+  async listPipeline(workspaceId: string, stage?: ProspectStage) {
+    return (await read()).prospects
+      .filter((p) => p.workspaceId === workspaceId && p.inPipeline && (!stage || p.stage === stage))
+      .map(decryptProspect)
+      .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+  },
+  async listByWorkspace(workspaceId: string) {
+    return (await read()).prospects
+      .filter((p) => p.workspaceId === workspaceId)
+      .map(decryptProspect)
+      .sort((a, b) => b.fitScore - a.fitScore);
   },
 };
 

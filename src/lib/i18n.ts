@@ -26,6 +26,8 @@ export const MESSAGES: Record<string, Entry> = {
   "nav.section.publish": { en: "Publish", fr: "Publier" },
   "nav.section.analytics": { en: "Analytics", fr: "Analytics" },
   "nav.home": { en: "Home", fr: "Accueil" },
+  "nav.logagent": { en: "LogAgent", fr: "LogAgent" },
+  "nav.logagent.hint": { en: "Find prospects with AI", fr: "Trouve tes prospects avec l'IA" },
   "nav.growthPartner": { en: "AI Growth Partner", fr: "Partenaire IA" },
   "nav.contentEngine": { en: "Post Generator", fr: "Générateur Post" },
   "nav.calendar": { en: "Content Calendar", fr: "Calendrier éditorial" },

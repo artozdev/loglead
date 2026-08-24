@@ -44,15 +44,7 @@ const NAV_SECTIONS: { labelKey: string | null; items: NavItem[] }[] = [
     labelKey: null,
     items: [
       { href: "/dashboard", labelKey: "nav.home", icon: Home, hintKey: "nav.home.hint" },
-      // Hidden on request — restore this item to bring "AI Growth Partner" back.
-      // {
-      //   href: "/logagent",
-      //   labelKey: "nav.growthPartner",
-      //   icon: Bot,
-      //   hintKey: "nav.growthPartner.hint",
-      //   proOnly: true,
-      //   badge: "Beta Pro",
-      // },
+      { href: "/logagent", labelKey: "nav.logagent", icon: Bot, hintKey: "nav.logagent.hint", badge: "New" },
     ],
   },
   {

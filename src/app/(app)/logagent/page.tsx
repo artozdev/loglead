@@ -1,26 +1,9 @@
-import { redirect } from "next/navigation";
-import LogAgentBoard from "@/components/LogAgentBoard";
-import { agentMessages } from "@/lib/db";
+import LogAgent from "@/components/LogAgent";
 import { requireProfile } from "@/lib/guards";
-import { planAllows } from "@/lib/plan";
-import { AGENT_MONTHLY_QUOTA } from "@/lib/types";
 
+// LogAgent — the product core (search + AI copilot). Available on all plans;
+// individual actions cost credits.
 export default async function LogAgentPage() {
-  const { user, workspace } = await requireProfile();
-  // LogAgent is a Pro-only beta.
-  if (!planAllows(workspace.plan, "agent")) redirect("/pricing");
-
-  const local = (user.email.split("@")[0] || user.email).replace(/[._-]+/g, " ").trim();
-  const firstName =
-    (local.split(" ")[0] || "toi").charAt(0).toUpperCase() + (local.split(" ")[0] || "").slice(1);
-
-  return (
-    <LogAgentBoard
-      firstName={firstName}
-      initialCredits={{
-        used: await agentMessages.creditsUsedThisMonth(workspace.id),
-        quota: AGENT_MONTHLY_QUOTA,
-      }}
-    />
-  );
+  await requireProfile();
+  return <LogAgent />;
 }

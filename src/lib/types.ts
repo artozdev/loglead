@@ -1160,3 +1160,80 @@ export type MarketReport = {
   queries: string[];
   createdAt: string; // ISO
 };
+
+// ----- LogAgent: searches + prospects (product refonte) --------------------
+
+export type SearchIntent = "prospect_search" | "pipeline_analysis" | "message_generation" | "general";
+
+export type ProspectSource =
+  | "linkedin_jobs"
+  | "linkedin_company"
+  | "google_maps"
+  | "google_search"
+  | "reddit"
+  | "instagram"
+  | "tiktok"
+  | "facebook"
+  | "twitter"
+  | "manual";
+
+// Parsed search criteria extracted from the natural-language query by Claude.
+export type SearchCriteria = {
+  type?: "company" | "person" | "local_business";
+  sector?: string;
+  signal?: string; // e.g. "job_posting", "no_website", "low_rating"
+  jobTitle?: string;
+  location?: string;
+  sizeMin?: number;
+  sizeMax?: number;
+  keywords?: string[];
+};
+
+export type Search = {
+  id: string;
+  workspaceId: string;
+  query: string;
+  intent: SearchIntent;
+  criteria: SearchCriteria;
+  sources: ProspectSource[];
+  title: string; // AI-generated title
+  totalResults: number;
+  qualifiedResults: number;
+  creditsUsed: number;
+  status: "pending" | "running" | "done" | "error";
+  createdAt: string;
+};
+
+export type ProspectStage = "new" | "hot" | "to_contact" | "contacted" | "converted" | "archived";
+
+export type ProspectSignal = { level: "hot" | "warm" | "cold"; text: string };
+
+export type Prospect = {
+  id: string;
+  workspaceId: string;
+  searchId: string | null;
+  companyName: string;
+  companyLogoUrl?: string;
+  companyDomain?: string;
+  companySize?: string;
+  companySector?: string;
+  companyLocation?: string;
+  contactName?: string;
+  contactEmail?: string | null; // encrypted at rest
+  contactPhone?: string | null; // encrypted at rest
+  contactLinkedinUrl?: string;
+  source: ProspectSource;
+  signalType?: string;
+  signalDescription?: string;
+  signalDate?: string;
+  fitScore: number; // 0-100
+  fitReasoning?: string;
+  signals?: ProspectSignal[];
+  stage: ProspectStage;
+  notes?: string;
+  lastMessageGenerated?: string;
+  inPipeline: boolean; // added to the Pipeline module
+  enrichedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+};

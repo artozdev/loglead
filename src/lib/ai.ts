@@ -25,7 +25,10 @@ import {
   type LeadSignals,
   type Platform,
   type Profile,
+  type ProspectSource,
   type RecommendedAction,
+  type SearchCriteria,
+  type SearchIntent,
   type Tone,
 } from "./types";
 
@@ -263,6 +266,66 @@ export async function analyzeMarket(
     schema: MARKET_SCHEMA as unknown as Record<string, unknown>,
     model: MODEL,
     maxTokens: 3000,
+  });
+}
+
+// ----- LogAgent: analyze a natural-language search query -------------------
+
+export type SearchAnalysis = {
+  intent: SearchIntent;
+  title: string;
+  criteria: SearchCriteria;
+  sources: ProspectSource[];
+};
+
+const SEARCH_ANALYSIS_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    intent: { type: "string", enum: ["prospect_search", "pipeline_analysis", "message_generation", "general"] },
+    title: { type: "string" },
+    criteria: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        type: { type: "string", enum: ["company", "person", "local_business"] },
+        sector: { type: "string" },
+        signal: { type: "string" },
+        jobTitle: { type: "string" },
+        location: { type: "string" },
+        sizeMin: { type: "integer" },
+        sizeMax: { type: "integer" },
+        keywords: { type: "array", items: { type: "string" } },
+      },
+      required: [],
+    },
+    sources: {
+      type: "array",
+      items: { type: "string", enum: ["linkedin_jobs", "linkedin_company", "google_maps", "google_search"] },
+    },
+  },
+  required: ["intent", "title", "criteria", "sources"],
+} as const;
+
+// Detect intent + parse criteria + pick sources for a LogAgent query, in one
+// call. `sources` is limited to the V1 scrapers.
+export async function analyzeSearchQuery(query: string): Promise<SearchAnalysis> {
+  if (isDemoMode()) {
+    return { intent: "prospect_search", title: query.slice(0, 60), criteria: { keywords: [query] }, sources: ["linkedin_jobs", "google_search"] };
+  }
+  const system = `Tu es le routeur du copilote LogAgent (prospection B2B). Analyse la requête de l'utilisateur et renvoie du JSON.
+- intent : "prospect_search" (chercher des entreprises/personnes), "pipeline_analysis" (analyser ses prospects existants), "message_generation" (rédiger un message), "general" (question).
+- title : un titre court et clair de la recherche (max 8 mots), dans la langue de la requête.
+- criteria : critères extraits (type d'entité, secteur, signal comme "job_posting"/"no_website"/"low_rating", intitulé de poste, localisation, taille min/max, mots-clés).
+- sources : parmi ["linkedin_jobs","linkedin_company","google_maps","google_search"], choisis les plus pertinentes. Recrutement → linkedin_jobs. Commerces/PME locales/restaurants → google_maps. Recherche sectorielle large → google_search. Pages entreprises → linkedin_company.
+N'invente rien : si un critère est absent, omets-le.`;
+  const user = `Requête : "${query}"`;
+  return callJSON<SearchAnalysis>({
+    system,
+    user,
+    schema: SEARCH_ANALYSIS_SCHEMA as unknown as Record<string, unknown>,
+    model: MODEL,
+    maxTokens: 600,
   });
 }
 
