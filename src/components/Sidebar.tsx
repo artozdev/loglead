@@ -1,12 +1,12 @@
 "use client";
 
 import {
-  BarChart3,
   Bot,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   Home,
+  Mail,
   Users,
   Zap,
   X,
@@ -41,13 +41,8 @@ const NAV_SECTIONS: { labelKey: string | null; items: NavItem[] }[] = [
     items: [
       { href: "/dashboard", labelKey: "nav.home", icon: Home, hintKey: "nav.home.hint" },
       { href: "/logagent", labelKey: "nav.logagent", icon: Bot, hintKey: "nav.logagent.hint", badge: "New" },
-    ],
-  },
-  {
-    labelKey: "nav.section.dashboard",
-    items: [
-      { href: "/leads", labelKey: "nav.pipeline", icon: Users, hintKey: "nav.pipeline.hint" },
-      { href: "/linkedin-analytics", labelKey: "nav.linkedinAnalytics", icon: BarChart3, hintKey: "nav.linkedinAnalytics.hint" },
+      { href: "/leads", labelKey: "nav.leads", icon: Users, hintKey: "nav.leads.hint" },
+      { href: "/contact", labelKey: "nav.contact", icon: Mail, hintKey: "nav.contact.hint" },
     ],
   },
 ];

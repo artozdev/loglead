@@ -1206,6 +1206,14 @@ export type Search = {
 
 export type ProspectStage = "new" | "hot" | "to_contact" | "contacted" | "converted" | "archived";
 
+export type ContactStatus =
+  | "to_contact"
+  | "message_sent"
+  | "replied"
+  | "meeting_booked"
+  | "converted"
+  | "not_interested";
+
 export type ProspectSignal = { level: "hot" | "warm" | "cold"; text: string };
 
 export type Prospect = {
@@ -1233,6 +1241,13 @@ export type Prospect = {
   notes?: string;
   lastMessageGenerated?: string;
   inPipeline: boolean; // added to the Pipeline module
+  // ----- Contact module (outreach tracking) -----
+  inContact?: boolean;
+  contactStatus?: ContactStatus;
+  contactAddedAt?: string;
+  lastMessageSentAt?: string;
+  lastReplyReceived?: string;
+  lastReplyAt?: string;
   enrichedAt?: string;
   createdAt: string;
   updatedAt: string;
