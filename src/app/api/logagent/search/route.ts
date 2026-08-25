@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { analyzeSearchQuery, scoreProspects } from "@/lib/ai";
-import { hasApify, searchGooglePlaces, searchLinkedInJobs, type RawProspect } from "@/lib/apify";
+import { hasApify, searchGooglePlaces, searchLinkedInJobs, searchSocial, type RawProspect } from "@/lib/apify";
 import { insufficientResponse, spend } from "@/lib/creditGuard";
 import { credits, profiles, prospects, searches } from "@/lib/db";
 import type { ProspectSignal } from "@/lib/types";
@@ -53,11 +53,28 @@ export async function POST(req: Request) {
     status: "running",
   });
 
-  // Run the relevant scrapers (best-effort, in parallel).
+  // Run the relevant scrapers (best-effort, in parallel). Each source used is
+  // recorded with its credit cost, charged once results come back.
+  const SOCIAL = new Set(["instagram", "tiktok", "facebook", "twitter"]);
+  const SOURCE_COST: Record<string, { action: string; n: number }> = {
+    google_maps: { action: "search_google_maps", n: 30 },
+    linkedin_jobs: { action: "search_linkedin", n: 40 },
+    linkedin_company: { action: "search_linkedin", n: 40 },
+    instagram: { action: "search_instagram", n: 25 },
+    tiktok: { action: "search_tiktok", n: 25 },
+    facebook: { action: "search_facebook", n: 20 },
+    twitter: { action: "search_twitter", n: 20 },
+  };
   const runs: Promise<RawProspect[]>[] = [];
-  if (analysis.sources.includes("google_maps")) runs.push(searchGooglePlaces(analysis.criteria, MAX_RESULTS));
-  if (analysis.sources.includes("linkedin_jobs")) runs.push(searchLinkedInJobs(analysis.criteria, MAX_RESULTS));
-  if (runs.length === 0) runs.push(searchLinkedInJobs(analysis.criteria, MAX_RESULTS)); // default
+  const used: { action: string; n: number }[] = [];
+  for (const s of analysis.sources) {
+    if (s === "google_maps") runs.push(searchGooglePlaces(analysis.criteria, MAX_RESULTS));
+    else if (s === "linkedin_jobs" || s === "linkedin_company") runs.push(searchLinkedInJobs(analysis.criteria, MAX_RESULTS));
+    else if (SOCIAL.has(s)) runs.push(searchSocial(s as "instagram" | "tiktok" | "facebook" | "twitter", analysis.criteria, MAX_RESULTS));
+    else continue;
+    if (SOURCE_COST[s]) used.push(SOURCE_COST[s]);
+  }
+  if (runs.length === 0) { runs.push(searchLinkedInJobs(analysis.criteria, MAX_RESULTS)); used.push(SOURCE_COST.linkedin_jobs); }
 
   let raws: RawProspect[] = [];
   try {
@@ -68,11 +85,14 @@ export async function POST(req: Request) {
 
   // Charge each source used (best-effort — the results are already fetched).
   let creditsUsed = 20;
-  const usedGmaps = analysis.sources.includes("google_maps");
-  const usedLinkedin = analysis.sources.includes("linkedin_jobs") || !usedGmaps;
   if (raws.length > 0) {
-    if (usedGmaps) { await credits.consume(ctx.workspace.id, "search_google_maps", 30); creditsUsed += 30; }
-    if (usedLinkedin) { await credits.consume(ctx.workspace.id, "search_linkedin", 40); creditsUsed += 40; }
+    const chargedActions = new Set<string>();
+    for (const u of used) {
+      if (chargedActions.has(u.action)) continue;
+      chargedActions.add(u.action);
+      await credits.consume(ctx.workspace.id, u.action, u.n);
+      creditsUsed += u.n;
+    }
   }
 
   if (raws.length === 0) {

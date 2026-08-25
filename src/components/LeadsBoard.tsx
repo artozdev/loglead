@@ -23,6 +23,9 @@ const SOURCE_BADGE: Record<string, { label: string; cls: string }> = {
   google_search: { label: "Google", cls: "bg-slate-500/10 text-slate-600" },
   reddit: { label: "Reddit", cls: "bg-orange-500/10 text-orange-600" },
   instagram: { label: "Instagram", cls: "bg-pink-500/10 text-pink-600" },
+  tiktok: { label: "TikTok", cls: "bg-slate-900/10 text-slate-800" },
+  facebook: { label: "Facebook", cls: "bg-[#1877F2]/10 text-[#1877F2]" },
+  twitter: { label: "X", cls: "bg-slate-900/10 text-slate-800" },
   manual: { label: "Manual", cls: "bg-slate-500/10 text-slate-600" },
 };
 

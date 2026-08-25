@@ -301,7 +301,7 @@ const SEARCH_ANALYSIS_SCHEMA = {
     },
     sources: {
       type: "array",
-      items: { type: "string", enum: ["linkedin_jobs", "linkedin_company", "google_maps", "google_search"] },
+      items: { type: "string", enum: ["linkedin_jobs", "linkedin_company", "google_maps", "google_search", "instagram", "tiktok", "facebook", "twitter"] },
     },
   },
   required: ["intent", "title", "criteria", "sources"],
@@ -317,7 +317,7 @@ export async function analyzeSearchQuery(query: string): Promise<SearchAnalysis>
 - intent : "prospect_search" (chercher des entreprises/personnes), "pipeline_analysis" (analyser ses prospects existants), "message_generation" (rédiger un message), "general" (question).
 - title : un titre court et clair de la recherche (max 8 mots), dans la langue de la requête.
 - criteria : critères extraits (type d'entité, secteur, signal comme "job_posting"/"no_website"/"low_rating", intitulé de poste, localisation, taille min/max, mots-clés).
-- sources : parmi ["linkedin_jobs","linkedin_company","google_maps","google_search"], choisis les plus pertinentes. Recrutement → linkedin_jobs. Commerces/PME locales/restaurants → google_maps. Recherche sectorielle large → google_search. Pages entreprises → linkedin_company.
+- sources : parmi ["linkedin_jobs","linkedin_company","google_maps","google_search","instagram","tiktok","facebook","twitter"], choisis les plus pertinentes. Recrutement → linkedin_jobs. Commerces/PME locales/restaurants → google_maps. Recherche sectorielle large → google_search. Pages entreprises → linkedin_company. Créateurs/marques/influence sur un réseau social → instagram, tiktok, facebook ou twitter selon le réseau cité.
 N'invente rien : si un critère est absent, omets-le.`;
   const user = `Requête : "${query}"`;
   return callJSON<SearchAnalysis>({

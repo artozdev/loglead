@@ -384,3 +384,95 @@ export async function searchLinkedInJobs(criteria: SearchCriteria, max = 15): Pr
   }
   return out;
 }
+
+// ----- Social discovery sources (Instagram, TikTok, Facebook, X) -----------
+// Experimental V1.2 sources: search by keyword → profiles as prospects.
+const SOCIAL_ACTORS: Record<string, string> = {
+  instagram: process.env.APIFY_INSTAGRAM_ACTOR || "apify~instagram-scraper",
+  tiktok: process.env.APIFY_TIKTOK_ACTOR || "clockworks~tiktok-scraper",
+  facebook: process.env.APIFY_FACEBOOK_ACTOR || "apify~facebook-search-scraper",
+  twitter: process.env.APIFY_TWITTER_ACTOR || "apidojo~twitter-user-scraper",
+};
+
+function nested(o: Record<string, unknown>, path: string): Record<string, unknown> | undefined {
+  const v = o[path];
+  return v && typeof v === "object" ? (v as Record<string, unknown>) : undefined;
+}
+
+export async function searchSocial(
+  source: "instagram" | "tiktok" | "facebook" | "twitter",
+  criteria: SearchCriteria,
+  max = 15,
+): Promise<RawProspect[]> {
+  const term =
+    [criteria.sector, criteria.jobTitle, ...(criteria.keywords ?? [])].filter(Boolean).join(" ") ||
+    criteria.location ||
+    "business";
+  const actor = SOCIAL_ACTORS[source];
+
+  const input: Record<string, unknown> =
+    source === "instagram"
+      ? { search: term, searchType: "user", searchLimit: max, resultsType: "details" }
+      : source === "tiktok"
+        ? { hashtags: [term.replace(/\s+/g, "")], resultsPerPage: max, profileScrapeSections: ["videos"] }
+        : source === "twitter"
+          ? { searchTerms: [term], maxItems: max, getAbout: true }
+          : { searchQueries: [term], maxResults: max }; // facebook
+
+  const items = await runActor(actor, input, 180000);
+  if (!items) return [];
+
+  const seen = new Set<string>();
+  const out: RawProspect[] = [];
+  for (const it of items) {
+    if (!it || typeof it !== "object") continue;
+    const o = it as Record<string, unknown>;
+    let name: string | undefined;
+    let handle: string | undefined;
+    let url: string | undefined;
+    let followers: number | undefined;
+    let website: string | undefined;
+
+    if (source === "instagram") {
+      name = pick(o, ["fullName", "username", "name"]);
+      handle = pick(o, ["username"]);
+      website = pick(o, ["externalUrl"]);
+      url = pick(o, ["url"]) ?? (handle ? `https://instagram.com/${handle}` : undefined);
+      followers = typeof o.followersCount === "number" ? o.followersCount : undefined;
+    } else if (source === "tiktok") {
+      const a = nested(o, "authorMeta");
+      name = a ? pick(a, ["nickName", "name"]) : pick(o, ["name"]);
+      handle = a ? pick(a, ["name"]) : undefined;
+      url = handle ? `https://tiktok.com/@${handle}` : undefined;
+      followers = a && typeof a.fans === "number" ? a.fans : undefined;
+    } else if (source === "twitter") {
+      name = pick(o, ["name", "fullName"]);
+      handle = pick(o, ["userName", "screen_name", "username"]);
+      url = pick(o, ["url"]) ?? (handle ? `https://x.com/${handle}` : undefined);
+      followers = typeof o.followers === "number" ? o.followers : undefined;
+    } else {
+      // facebook
+      name = pick(o, ["title", "name", "pageName"]);
+      url = pick(o, ["url", "pageUrl", "facebookUrl"]);
+      website = pick(o, ["website"]);
+      followers = typeof o.likes === "number" ? o.likes : undefined;
+    }
+
+    if (!name) continue;
+    const key = (handle ?? name).toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    out.push({
+      companyName: name,
+      companyDomain: domainFrom(website),
+      website,
+      contactLinkedinUrl: url,
+      source,
+      signalType: source,
+      signalDescription: followers != null ? `${followers.toLocaleString("fr-FR")} abonnés ${source === "twitter" ? "X" : source}` : `Profil ${source}`,
+    });
+    if (out.length >= max) break;
+  }
+  return out;
+}

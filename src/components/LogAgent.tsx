@@ -31,6 +31,10 @@ const SOURCE_LABEL: Record<string, string> = {
   linkedin_company: "LinkedIn",
   google_maps: "Google Maps",
   google_search: "Google",
+  instagram: "Instagram",
+  tiktok: "TikTok",
+  facebook: "Facebook",
+  twitter: "X",
 };
 
 export default function LogAgent() {
