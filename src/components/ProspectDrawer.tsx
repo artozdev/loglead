@@ -2,6 +2,7 @@
 
 import { ArrowUpRight, Check, Copy, Loader2, Sparkles, X } from "lucide-react";
 import { useState } from "react";
+import MessageComposer from "./MessageComposer";
 import type { Prospect } from "@/lib/types";
 
 const SOURCE_LABEL: Record<string, string> = {
@@ -27,6 +28,7 @@ export default function ProspectDrawer({
   const p = prospect;
   const [busy, setBusy] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [showComposer, setShowComposer] = useState(false);
   const scoreColor = p.fitScore > 80 ? "#10B981" : p.fitScore >= 60 ? "#F59E0B" : "#EF4444";
 
   async function patch(body: Record<string, unknown>, key: string) {
@@ -138,9 +140,10 @@ export default function ProspectDrawer({
 
           {/* Actions */}
           <div className="flex gap-2 pt-2">
-            <button disabled className="btn-secondary flex-1 !py-2 text-[13px] disabled:opacity-50" title="Bientôt"><Sparkles size={14} /> Generate message</button>
+            <button onClick={() => setShowComposer((v) => !v)} className="btn-primary flex-1 !py-2 text-[13px]"><Sparkles size={14} /> Generate message</button>
             <button onClick={() => navigator.clipboard?.writeText(`${p.contactName ?? p.companyName} · ${p.companyDomain ?? ""} · ${p.contactEmail ?? ""}`)} className="btn-secondary !py-2 text-[13px]"><Copy size={14} /> Copy</button>
           </div>
+          {showComposer && <MessageComposer prospectId={p.id} name={p.contactName ?? p.companyName} />}
         </div>
       </aside>
     </div>

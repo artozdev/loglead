@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Copy, Info, Send, Sparkles, Zap } from "lucide-react";
+import { Info, Send, Sparkles, Zap } from "lucide-react";
 import { useMemo, useState } from "react";
+import MessageComposer from "./MessageComposer";
 import type { ContactStatus, Prospect } from "@/lib/types";
 
 // Contact module — the prospects the user wants to reach out to. Not a full
@@ -25,18 +26,30 @@ function heat(score: number) {
 
 export default function ContactBoard({ prospects }: { prospects: Prospect[] }) {
   const [status, setStatus] = useState<ContactStatus>("to_contact");
+  const [data, setData] = useState<Prospect[]>(prospects);
+  const [openId, setOpenId] = useState<string | null>(null);
 
   const metrics = useMemo(() => ({
-    toContact: prospects.filter((p) => (p.contactStatus ?? "to_contact") === "to_contact").length,
-    contacted: prospects.filter((p) => p.contactStatus === "message_sent").length,
-    replied: prospects.filter((p) => p.contactStatus === "replied").length,
-    converted: prospects.filter((p) => p.contactStatus === "converted").length,
-  }), [prospects]);
+    toContact: data.filter((p) => (p.contactStatus ?? "to_contact") === "to_contact").length,
+    contacted: data.filter((p) => p.contactStatus === "message_sent").length,
+    replied: data.filter((p) => p.contactStatus === "replied").length,
+    converted: data.filter((p) => p.contactStatus === "converted").length,
+  }), [data]);
 
   const items = useMemo(
-    () => prospects.filter((p) => (p.contactStatus ?? "to_contact") === status).sort((a, b) => b.fitScore - a.fitScore),
-    [prospects, status],
+    () => data.filter((p) => (p.contactStatus ?? "to_contact") === status).sort((a, b) => b.fitScore - a.fitScore),
+    [data, status],
   );
+
+  async function markSent(id: string) {
+    try {
+      const res = await fetch(`/api/prospects/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ contactStatus: "message_sent" }) });
+      if (res.ok) {
+        setData((list) => list.map((p) => (p.id === id ? { ...p, contactStatus: "message_sent" } : p)));
+        setOpenId(null);
+      }
+    } catch { /* ignore */ }
+  }
 
   return (
     <div className="mx-auto max-w-4xl px-5 py-6 sm:px-6">
@@ -107,11 +120,15 @@ export default function ContactBoard({ prospects }: { prospects: Prospect[] }) {
                   </div>
                 </div>
                 {p.signalDescription && <p className="mt-2 text-[13px] text-muted">Signal : {p.signalDescription}</p>}
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <button className="btn-primary !py-1.5 text-[12px]"><Sparkles size={13} /> Generate message</button>
-                  <button className="btn-secondary !py-1.5 text-[12px]"><Copy size={13} /> Copy</button>
-                  <button className="btn-secondary !py-1.5 text-[12px]">Mark as sent</button>
-                </div>
+                {openId === p.id ? (
+                  <div className="mt-3">
+                    <MessageComposer prospectId={p.id} name={p.contactName ?? p.companyName} onMarkSent={() => markSent(p.id)} />
+                  </div>
+                ) : (
+                  <div className="mt-3">
+                    <button onClick={() => setOpenId(p.id)} className="btn-primary !py-1.5 text-[12px]"><Sparkles size={13} /> Generate message</button>
+                  </div>
+                )}
               </div>
             );
           })}

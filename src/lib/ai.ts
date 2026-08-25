@@ -386,6 +386,65 @@ ${list.map((c, i) => `${i + 1}. ${c.companyName}${c.companySector ? ` — ${c.co
   }
 }
 
+// ----- LogAgent: draft a personalized outreach message ---------------------
+
+export type ProspectMessage = { message: string; score: number; reasons: string[] };
+
+const MESSAGE_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    message: { type: "string" },
+    score: { type: "integer" },
+    reasons: { type: "array", items: { type: "string" } },
+  },
+  required: ["message", "score", "reasons"],
+} as const;
+
+const CHANNEL_HINT: Record<string, string> = {
+  linkedin: "DM LinkedIn : court (4-6 lignes), tutoiement, pas de formule de politesse ampoulée, une seule question de clôture.",
+  email: "Email : objet implicite, 5-8 lignes, ton pro mais direct, signature avec le prénom.",
+  whatsapp: "WhatsApp : très court (2-4 lignes), ton chaleureux et informel, une question simple.",
+};
+
+// Write a personalized first-touch message for a prospect, grounded in the real
+// signal. Never invents facts. Returns the message + a quality score + reasons.
+export async function draftProspectMessage(
+  profile: Profile,
+  prospect: { companyName: string; contactName?: string; signalDescription?: string; fitReasoning?: string; companySector?: string },
+  channel: "linkedin" | "email" | "whatsapp",
+): Promise<ProspectMessage> {
+  const firstName = prospect.contactName?.split(/\s+/)[0] ?? "";
+  if (isDemoMode()) {
+    return {
+      message: `Salut${firstName ? " " + firstName : ""},\n\nJ'ai vu ${prospect.signalDescription ?? "votre activité"} — ça m'a fait penser à ce qu'on fait chez ${profile.saasName}.\n\nTu aurais 15 min cette semaine pour en parler ?\n\n${profile.saasName}`,
+      score: 80,
+      reasons: ["Référence un signal réel", "Court et direct", "Question de clôture naturelle"],
+    };
+  }
+  const system = `Tu écris un premier message de prise de contact B2B pour ${profile.saasName}. ${CHANNEL_HINT[channel]}
+Règles ABSOLUES : appuie-toi UNIQUEMENT sur le signal réel fourni, n'invente aucun fait. Pas de pitch commercial lourd, crée de la curiosité. Écris en français, dans un ton naturel et humain (jamais "IA LinkedIn"). Termine par UNE question ouverte. Renvoie aussi un score 0-100 (qualité du message) et 3 raisons courtes de son efficacité.`;
+  const user = `Offre : ${profile.offer}
+Proposition de valeur : ${profile.valueProp}
+ICP : ${profile.icp}
+
+Prospect : ${prospect.contactName ?? prospect.companyName}${prospect.companySector ? ` (${prospect.companySector})` : ""}
+Entreprise : ${prospect.companyName}
+Signal réel détecté : ${prospect.signalDescription ?? "aucun signal spécifique"}
+Contexte : ${prospect.fitReasoning ?? ""}
+
+Rédige le message (canal : ${channel}).`;
+
+  return callJSON<ProspectMessage>({
+    system,
+    user,
+    schema: MESSAGE_SCHEMA as unknown as Record<string, unknown>,
+    model: GEN_MODEL,
+    temperature: 0.85,
+    maxTokens: 1200,
+  });
+}
+
 function toFriendlyError(err: unknown): Error {
   if (err instanceof Anthropic.AuthenticationError) {
     return new Error(
