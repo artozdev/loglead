@@ -329,6 +329,63 @@ N'invente rien : si un critère est absent, omets-le.`;
   });
 }
 
+// ----- LogAgent: score prospect candidates against the ICP + criteria -------
+
+export type ScoredProspect = { fitScore: number; fitReasoning: string };
+
+const SCORE_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    scores: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: { fitScore: { type: "integer" }, reasoning: { type: "string" } },
+        required: ["fitScore", "reasoning"],
+      },
+    },
+  },
+  required: ["scores"],
+} as const;
+
+// Batch-score candidates (one Claude call). Returns one entry per candidate,
+// in order. Falls back to a heuristic in demo mode.
+export async function scoreProspects(
+  profile: Profile,
+  criteria: { sector?: string; jobTitle?: string; location?: string; signal?: string },
+  candidates: { companyName: string; companySector?: string; companyLocation?: string; signalDescription?: string; rating?: number }[],
+): Promise<ScoredProspect[]> {
+  const list = candidates.slice(0, 20);
+  if (isDemoMode()) {
+    return list.map((c) => ({
+      fitScore: Math.max(40, Math.min(95, 70 + (c.rating != null ? Math.round((c.rating - 3.5) * 8) : 0))),
+      fitReasoning: c.signalDescription ?? "Correspond aux critères de recherche.",
+    }));
+  }
+  const system = `Tu notes des prospects B2B pour un founder. Pour chaque candidat, donne un fitScore 0-100 (à quel point il correspond à l'ICP et aux critères de recherche) et une raison en 1 phrase (français). Sois discriminant : réserve >85 aux correspondances vraiment fortes. Réponds uniquement en JSON, un score par candidat, dans l'ordre.`;
+  const user = `ICP du founder : ${profile.icp}
+Secteur du founder : ${profile.sector ?? "non précisé"}
+Critères de recherche : ${JSON.stringify(criteria)}
+
+Candidats :
+${list.map((c, i) => `${i + 1}. ${c.companyName}${c.companySector ? ` — ${c.companySector}` : ""}${c.companyLocation ? ` (${c.companyLocation})` : ""}${c.signalDescription ? ` — signal : ${c.signalDescription}` : ""}${c.rating != null ? ` — note ${c.rating}` : ""}`).join("\n")}`;
+
+  try {
+    const data = await callJSON<{ scores: ScoredProspect[] }>({
+      system,
+      user,
+      schema: SCORE_SCHEMA as unknown as Record<string, unknown>,
+      model: GEN_MODEL,
+      maxTokens: 2000,
+    });
+    return list.map((c, i) => data.scores[i] ?? { fitScore: 60, fitReasoning: c.signalDescription ?? "" });
+  } catch {
+    return list.map((c) => ({ fitScore: 60, fitReasoning: c.signalDescription ?? "" }));
+  }
+}
+
 function toFriendlyError(err: unknown): Error {
   if (err instanceof Anthropic.AuthenticationError) {
     return new Error(

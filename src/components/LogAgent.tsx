@@ -13,7 +13,11 @@ type Criteria = {
   location?: string; sizeMin?: number; sizeMax?: number; keywords?: string[];
 };
 type Analysis = { intent: string; title: string; criteria: Criteria; sources: string[] };
-type SearchRow = { search: { id: string; title: string } | null; analysis: Analysis };
+type ProspectRow = {
+  id: string; companyName: string; companyDomain?: string; companyLocation?: string;
+  fitScore: number; signalDescription?: string; source: string; contactName?: string;
+};
+type SearchRow = { search: { id: string; title: string } | null; analysis: Analysis; prospects: ProspectRow[] };
 
 const SUGGESTIONS = [
   "Web agencies hiring a sales rep in France",
@@ -63,11 +67,12 @@ export default function LogAgent() {
       const a: Analysis = data.analysis;
       window.dispatchEvent(new CustomEvent("loglead:credits-changed"));
       if (a.intent === "prospect_search") {
-        setMessages((m) => [...m, { role: "agent", text: `Searching for ${a.title.toLowerCase()}… Scanning ${a.sources.map((s) => SOURCE_LABEL[s] ?? s).join(" · ")}.` }]);
-        setResult({ search: data.search, analysis: a });
+        const found: ProspectRow[] = data.prospects ?? [];
+        setMessages((m) => [...m, { role: "agent", text: found.length > 0 ? `● ${found.length} prospects trouvés — scannés sur ${a.sources.map((s) => SOURCE_LABEL[s] ?? s).join(" · ")}.` : `Aucun résultat pour cette recherche. Essaie d'être plus précis ou de changer de source.` }]);
+        setResult({ search: data.search, analysis: a, prospects: found });
       } else {
         setMessages((m) => [...m, { role: "agent", text: replyForIntent(a) }]);
-        setResult({ search: null, analysis: a });
+        setResult({ search: null, analysis: a, prospects: [] });
       }
     } catch {
       setMessages((m) => [...m, { role: "agent", text: "Connexion impossible. Réessaie." }]);
@@ -181,19 +186,37 @@ function ResultsPanel({ row }: { row: SearchRow }) {
         </div>
       )}
 
-      {/* Streaming table (placeholder — scrapers wired next) */}
-      <div className="mt-6 overflow-hidden rounded-2xl border border-line">
-        <div className="grid grid-cols-[56px_1.4fr_1fr_1.2fr_90px_100px] border-b border-line bg-surface-hover/50 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-muted">
-          <span>Fit</span><span>Entreprise</span><span>Domaine</span><span>Signal</span><span>Publié</span><span>Ville</span>
+      {/* Results */}
+      <div className="mt-2 text-[12px] text-muted">{row.prospects.length} prospects · {row.prospects.filter((p) => p.fitScore > 80).length} qualifiés (score &gt; 80)</div>
+      <div className="mt-3 overflow-hidden rounded-2xl border border-line">
+        <div className="grid grid-cols-[64px_1.4fr_1fr_1.4fr_100px] border-b border-line bg-surface-hover/50 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-muted">
+          <span>Fit</span><span>Entreprise</span><span>Domaine</span><span>Signal</span><span>Ville</span>
         </div>
-        <div className="flex flex-col items-center justify-center gap-2 px-4 py-16 text-center">
-          <Sparkles size={20} className="animate-pulse text-primary" />
-          <p className="text-[14px] font-medium text-ink">Scanning {analysis.sources.map((s) => SOURCE_LABEL[s] ?? s).join(" · ")}…</p>
-          <p className="max-w-sm text-[12px] text-muted">
-            L&apos;intent et les critères sont détectés. La récupération streaming des prospects (Apify) est la prochaine étape du build.
-          </p>
-        </div>
+        {row.prospects.length === 0 ? (
+          <div className="px-4 py-12 text-center text-[13px] text-muted">Aucun résultat.</div>
+        ) : (
+          <div className="divide-y divide-line">
+            {row.prospects.map((p) => {
+              const color = p.fitScore > 80 ? "#10B981" : p.fitScore >= 60 ? "#F59E0B" : "#EF4444";
+              return (
+                <div key={p.id} className="grid grid-cols-[64px_1.4fr_1fr_1.4fr_100px] items-center px-4 py-3 text-[13px]">
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full" style={{ background: color }} />
+                    <span className="num font-semibold text-ink">{p.fitScore}</span>
+                  </span>
+                  <span className="truncate font-medium text-ink">{p.companyName}</span>
+                  <span className="truncate text-muted">{p.companyDomain ?? "—"}</span>
+                  <span className="truncate text-muted">{p.signalDescription ?? "—"}</span>
+                  <span className="truncate text-faint">{p.companyLocation ?? "—"}</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
+      {row.prospects.length > 0 && (
+        <p className="mt-3 text-[12px] text-muted">Retrouve ces prospects dans <a href="/leads" className="text-primary hover:underline">Leads</a> — scoring terminé.</p>
+      )}
     </div>
   );
 }

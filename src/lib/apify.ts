@@ -1,4 +1,5 @@
 import "server-only";
+import type { ProspectSource, SearchCriteria } from "./types";
 
 // ---------------------------------------------------------------------------
 // Apify — LinkedIn public data (profile enrichment, competitor posts, prospect
@@ -270,4 +271,116 @@ export async function searchLinkedInPosts(
       };
     })
     .filter((p): p is MarketPost => p !== null);
+}
+
+// ----- LogAgent: prospect sources (Google Maps, LinkedIn Jobs) -------------
+const GMAPS_ACTOR = process.env.APIFY_GMAPS_ACTOR || "compass~crawler-google-places";
+const LINKEDIN_JOBS_ACTOR = process.env.APIFY_LINKEDIN_JOBS_ACTOR || "bebity~linkedin-jobs-scraper";
+
+// Normalized candidate before scoring/persisting.
+export type RawProspect = {
+  companyName: string;
+  companyDomain?: string;
+  companyLocation?: string;
+  companySector?: string;
+  contactName?: string;
+  contactLinkedinUrl?: string;
+  website?: string;
+  phone?: string;
+  rating?: number;
+  source: ProspectSource;
+  signalType?: string;
+  signalDescription?: string;
+  signalDate?: string;
+};
+
+function domainFrom(url?: string): string | undefined {
+  if (!url) return undefined;
+  try {
+    return new URL(url.startsWith("http") ? url : `https://${url}`).hostname.replace(/^www\./, "");
+  } catch {
+    return undefined;
+  }
+}
+
+// Google Maps — local businesses (restaurants, SMBs…). No cookie.
+export async function searchGooglePlaces(criteria: SearchCriteria, max = 15): Promise<RawProspect[]> {
+  const terms = [criteria.sector, ...(criteria.keywords ?? [])].filter(Boolean).join(" ") || "business";
+  const items = await runActor(
+    GMAPS_ACTOR,
+    {
+      searchStringsArray: [terms],
+      locationQuery: criteria.location || undefined,
+      maxCrawledPlacesPerSearch: Math.min(30, max * 2),
+      language: "fr",
+      website: criteria.signal === "no_website" ? "withoutWebsite" : "allPlaces",
+    },
+    180000,
+  );
+  if (!items) return [];
+  const wantLowRating = criteria.signal === "low_rating";
+  return items
+    .map((it): RawProspect | null => {
+      if (!it || typeof it !== "object") return null;
+      const o = it as Record<string, unknown>;
+      const name = pick(o, ["title", "name"]);
+      if (!name) return null;
+      const rating = typeof o.totalScore === "number" ? o.totalScore : undefined;
+      const website = pick(o, ["website"]);
+      return {
+        companyName: name,
+        website,
+        companyDomain: domainFrom(website),
+        phone: pick(o, ["phone", "phoneUnformatted"]),
+        companyLocation: pick(o, ["city", "address"]),
+        companySector: pick(o, ["categoryName"]),
+        rating,
+        source: "google_maps",
+        signalType: website ? "google_maps" : "no_website",
+        signalDescription: !website
+          ? "Sans site web"
+          : rating != null
+            ? `Note ${rating.toFixed(1)}★`
+            : "Google Maps",
+      };
+    })
+    .filter((p): p is RawProspect => p !== null)
+    .filter((p) => (wantLowRating ? (p.rating ?? 5) < 4 : true))
+    .slice(0, max);
+}
+
+// LinkedIn Jobs — companies actively hiring (a strong buying signal).
+export async function searchLinkedInJobs(criteria: SearchCriteria, max = 15): Promise<RawProspect[]> {
+  const items = await runActor(
+    LINKEDIN_JOBS_ACTOR,
+    {
+      title: criteria.jobTitle || criteria.sector || "",
+      location: criteria.location || "France",
+      rows: Math.min(25, max * 2),
+      proxy: { useApifyProxy: true, apifyProxyGroups: ["RESIDENTIAL"] },
+    },
+    180000,
+  );
+  if (!items) return [];
+  const seen = new Set<string>();
+  const out: RawProspect[] = [];
+  for (const it of items) {
+    if (!it || typeof it !== "object") continue;
+    const o = it as Record<string, unknown>;
+    const company = pick(o, ["companyName", "company"]);
+    if (!company || seen.has(company.toLowerCase())) continue;
+    seen.add(company.toLowerCase());
+    const jobTitle = pick(o, ["title", "jobTitle"]);
+    out.push({
+      companyName: company,
+      companyLocation: pick(o, ["location"]),
+      contactLinkedinUrl: pick(o, ["companyLinkedinUrl", "companyUrl"]),
+      source: "linkedin_jobs",
+      signalType: "job_posting",
+      signalDescription: jobTitle ? `Recrute : ${jobTitle}` : "Recrutement en cours",
+      signalDate: pick(o, ["publishedAt", "postedAt"]),
+    });
+    if (out.length >= max) break;
+  }
+  return out;
 }
