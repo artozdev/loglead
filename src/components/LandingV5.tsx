@@ -11,8 +11,8 @@ import { Reveal } from "./LandingPage";
 
 const SIGNUP = "/signup";
 const BTN = "inline-flex items-center justify-center gap-2 rounded-[10px] bg-gradient-to-br from-[#0051FF] to-[#0085FF] px-7 py-3.5 text-[15px] font-semibold text-white shadow-[0_0_20px_#0051FF40] transition hover:-translate-y-0.5 hover:shadow-[0_0_36px_#0051FF70]";
-const BTN_SEC = "inline-flex items-center justify-center gap-2 rounded-[10px] border border-[#1E2D4A] px-7 py-3.5 text-[15px] text-[#8B9EC4] transition hover:border-[#0051FF60] hover:text-[#F0F4FF]";
-const EY = "inline-flex items-center gap-2 rounded-full border border-[#1E2D4A] bg-[#0D1526] px-3 py-1 text-[12px] font-medium text-[#8B9EC4]";
+const BTN_SEC = "inline-flex items-center justify-center gap-2 rounded-[10px] border border-[#E2E8F0] px-7 py-3.5 text-[15px] text-[#475569] transition hover:border-[#0051FF60] hover:text-[#0F172A]";
+const EY = "inline-flex items-center gap-2 rounded-full border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-1 text-[12px] font-medium text-[#475569]";
 
 function Nav() {
   const [scrolled, setScrolled] = useState(false);
@@ -23,20 +23,20 @@ function Nav() {
     return () => window.removeEventListener("scroll", on);
   }, []);
   return (
-    <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${scrolled ? "border-b border-[#1E2D4A] bg-[#050A14CC] backdrop-blur-xl" : "border-b border-transparent"}`}>
+    <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${scrolled ? "border-b border-[#E2E8F0] bg-[#FFFFFFEE] backdrop-blur-xl" : "border-b border-transparent"}`}>
       <nav className="mx-auto flex h-[72px] max-w-6xl items-center justify-between px-5 sm:px-6">
-        <Link href="/" className="flex items-center gap-2 text-[17px] font-bold text-[#F0F4FF]">
+        <Link href="/" className="flex items-center gap-2 text-[17px] font-bold text-[#0F172A]">
           <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[#0051FF] to-[#0085FF] text-[14px] font-bold text-white">L</span>
           LogLead
         </Link>
-        <div className="hidden items-center gap-7 text-[14px] text-[#8B9EC4] lg:flex">
-          <a href="#how" className="transition hover:text-[#F0F4FF]">How it works</a>
-          <a href="#features" className="transition hover:text-[#F0F4FF]">Features</a>
-          <a href="#pricing" className="transition hover:text-[#F0F4FF]">Pricing</a>
-          <Link href="/affiliate" className="transition hover:text-[#F0F4FF]">Affiliate</Link>
+        <div className="hidden items-center gap-7 text-[14px] text-[#475569] lg:flex">
+          <a href="#how" className="transition hover:text-[#0F172A]">How it works</a>
+          <a href="#features" className="transition hover:text-[#0F172A]">Features</a>
+          <a href="#pricing" className="transition hover:text-[#0F172A]">Pricing</a>
+          <Link href="/affiliate" className="transition hover:text-[#0F172A]">Affiliate</Link>
         </div>
         <div className="flex items-center gap-3">
-          <Link href="/login" className="hidden text-[14px] text-[#8B9EC4] transition hover:text-[#F0F4FF] sm:block">Log in</Link>
+          <Link href="/login" className="hidden text-[14px] text-[#475569] transition hover:text-[#0F172A] sm:block">Log in</Link>
           <Link href={SIGNUP} className={`${BTN} !px-5 !py-2.5 !text-[14px]`}>Hire your agent →</Link>
         </div>
       </nav>
@@ -50,12 +50,12 @@ function Hero() {
       <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[560px]" style={{ background: "radial-gradient(ellipse 900px 500px at 50% -5%, #0051FF12, transparent)" }} />
       <div className="relative mx-auto max-w-4xl text-center">
         <Reveal>
-          <span className="v5-badge inline-flex items-center gap-2 px-4 py-1.5 text-[12px] font-medium text-[#8B9EC4]">
-            <span className="text-[#00D4FF]">✦</span> AI Sales Agent · LinkedIn · Google Maps · Email · WhatsApp
+          <span className="v5-badge inline-flex items-center gap-2 px-4 py-1.5 text-[12px] font-medium text-[#475569]">
+            <span className="text-[#0085FF]">✦</span> AI Sales Agent · LinkedIn · Google Maps · Email · WhatsApp
           </span>
         </Reveal>
         <Reveal delay={80}>
-          <h1 className="mx-auto mt-7 max-w-3xl text-[40px] font-bold leading-[1.03] tracking-[-0.03em] text-[#F0F4FF] sm:text-[64px] lg:text-[72px]">
+          <h1 className="mx-auto mt-7 max-w-3xl text-[40px] font-bold leading-[1.03] tracking-[-0.03em] text-[#0F172A] sm:text-[64px] lg:text-[72px]">
             Your AI Sales Agent<br />for <span className="v5-gradient-text">B2B.</span>
           </h1>
         </Reveal>
@@ -63,7 +63,7 @@ function Hero() {
           <Link href={SIGNUP} className={`v5-pulse ${BTN} mx-auto mt-8`}>→ Hire your agent — Free for 7 days</Link>
         </Reveal>
         <Reveal delay={240}>
-          <p className="mx-auto mt-6 max-w-[540px] text-[17px] leading-[1.7] text-[#8B9EC4]">
+          <p className="mx-auto mt-6 max-w-[540px] text-[17px] leading-[1.7] text-[#475569]">
             LogLead finds your ideal prospects across LinkedIn, Google Maps and the web — then messages them, follows up automatically and sends you only the conversations worth your time.
           </p>
         </Reveal>
@@ -71,11 +71,11 @@ function Hero() {
           <div className="mt-7 flex flex-col items-center gap-2">
             <div className="flex items-center gap-3">
               <div className="flex -space-x-2">
-                {["#0051FF", "#00A3FF", "#4F8BFF", "#00D4FF", "#1A6BFF"].map((c, i) => <span key={i} className="h-7 w-7 rounded-full border-2 border-[#050A14]" style={{ background: c }} />)}
+                {["#0051FF", "#00A3FF", "#0051FF", "#0085FF", "#1A6BFF"].map((c, i) => <span key={i} className="h-7 w-7 rounded-full border-2 border-[#FFFFFF]" style={{ background: c }} />)}
               </div>
-              <span className="text-[13px] text-[#8B9EC4]">Trusted by 500+ B2B sales teams</span>
+              <span className="text-[13px] text-[#475569]">Trusted by 500+ B2B sales teams</span>
             </div>
-            <p className="text-[13px] text-[#8B9EC4]"><span className="text-[#F59E0B]">★★★★★</span> &ldquo;Like having a full-time SDR for €59/month&rdquo;</p>
+            <p className="text-[13px] text-[#475569]"><span className="text-[#F59E0B]">★★★★★</span> &ldquo;Like having a full-time SDR for €59/month&rdquo;</p>
           </div>
         </Reveal>
 
@@ -97,41 +97,41 @@ function HeroDashboard() {
   return (
     <div className="relative mx-auto max-w-3xl">
       {/* floating cards */}
-      <div className="v5-float absolute -left-4 top-16 z-10 hidden rounded-xl border border-[#1E2D4A] bg-[#162035] px-3.5 py-2.5 text-left text-[12px] text-[#8B9EC4] shadow-[0_10px_30px_#00000060] lg:block">
-        <span className="text-[#F0F4FF]">47 prospects found</span><br />LinkedIn + Google Maps
+      <div className="v5-float absolute -left-4 top-16 z-10 hidden rounded-xl border border-[#E2E8F0] bg-[#F1F5F9] px-3.5 py-2.5 text-left text-[12px] text-[#475569] shadow-[0_10px_30px_#00000060] lg:block">
+        <span className="text-[#0F172A]">47 prospects found</span><br />LinkedIn + Google Maps
       </div>
-      <div className="v5-float absolute -right-4 top-40 z-10 hidden rounded-xl border border-[#1E2D4A] bg-[#162035] px-3.5 py-2.5 text-left text-[12px] text-[#F0F4FF] shadow-[0_10px_30px_#00000060] lg:block" style={{ animationDelay: "1.5s" }}>
+      <div className="v5-float absolute -right-4 top-40 z-10 hidden rounded-xl border border-[#E2E8F0] bg-[#F1F5F9] px-3.5 py-2.5 text-left text-[12px] text-[#0F172A] shadow-[0_10px_30px_#00000060] lg:block" style={{ animationDelay: "1.5s" }}>
         3 replies this morning 🔥
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-[#1E2D4A] bg-[#0D1526] text-left shadow-[0_40px_80px_#0051FF20]">
-        <div className="flex items-center justify-between border-b border-[#1E2D4A] px-5 py-3">
-          <span className="flex items-center gap-2 text-[14px] font-semibold text-[#F0F4FF]">🤖 LogLead Agent</span>
-          <span className="text-[12px] text-[#4A5980]">Last 8 hours</span>
+      <div className="overflow-hidden rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] text-left shadow-[0_40px_80px_#0051FF20]">
+        <div className="flex items-center justify-between border-b border-[#E2E8F0] px-5 py-3">
+          <span className="flex items-center gap-2 text-[14px] font-semibold text-[#0F172A]">🤖 LogLead Agent</span>
+          <span className="text-[12px] text-[#94A3B8]">Last 8 hours</span>
         </div>
         <div className="px-5 py-5">
-          <p className="text-[13px] text-[#8B9EC4]">While you were sleeping, your agent:</p>
-          <ul className="mt-3 space-y-2 text-[14px] text-[#F0F4FF]">
+          <p className="text-[13px] text-[#475569]">While you were sleeping, your agent:</p>
+          <ul className="mt-3 space-y-2 text-[14px] text-[#0F172A]">
             <li>✅ Found <b>47 new prospects</b> matching your ICP</li>
             <li>✅ Sent <b>23 personalized first messages</b></li>
             <li>✅ Sent <b>8 follow-ups</b> to prospects who didn&apos;t reply</li>
             <li>🔥 Got <b>3 positive replies</b> — ready for you</li>
           </ul>
         </div>
-        <div className="border-t border-[#1E2D4A] px-5 py-4">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-[#4A5980]">Hot conversations — Action needed</p>
+        <div className="border-t border-[#E2E8F0] px-5 py-4">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">Hot conversations — Action needed</p>
           <div className="mt-3 space-y-3">
             {convos.map((c) => (
-              <div key={c.name} className="flex items-start gap-3 rounded-xl border border-[#1E2D4A] bg-[#162035] p-3">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#0051FF]/20 text-[13px] font-bold text-[#4F8BFF]">{c.name.charAt(0)}</span>
+              <div key={c.name} className="flex items-start gap-3 rounded-xl border border-[#E2E8F0] bg-[#F1F5F9] p-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#0051FF]/20 text-[13px] font-bold text-[#0051FF]">{c.name.charAt(0)}</span>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-[13px] font-semibold text-[#F0F4FF]">{c.name}</span>
-                    <span className="text-[11px] text-[#4A5980]">{c.role}</span>
+                    <span className="text-[13px] font-semibold text-[#0F172A]">{c.name}</span>
+                    <span className="text-[11px] text-[#94A3B8]">{c.role}</span>
                     <span className="ml-auto flex items-center gap-1 text-[12px] font-semibold text-[#22C55E]">● {c.score}{c.hot ? " 🔥" : ""}</span>
                   </div>
-                  <p className="mt-1 text-[13px] italic text-[#8B9EC4]">&ldquo;{c.msg}&rdquo;</p>
-                  <button className="mt-1.5 text-[12px] font-medium text-[#4F8BFF]">{c.cta}</button>
+                  <p className="mt-1 text-[13px] italic text-[#475569]">&ldquo;{c.msg}&rdquo;</p>
+                  <button className="mt-1.5 text-[12px] font-medium text-[#0051FF]">{c.cta}</button>
                 </div>
               </div>
             ))}
@@ -152,21 +152,21 @@ const STEPS = [
 
 function HowItWorks() {
   return (
-    <section id="how" className="bg-[#0D1526] px-5 py-24 sm:px-6">
+    <section id="how" className="bg-[#F8FAFC] px-5 py-24 sm:px-6">
       <div className="mx-auto max-w-3xl">
         <div className="text-center">
-          <span className={EY}><span className="text-[#00D4FF]">✦</span> How your agent works</span>
-          <h2 className="mt-5 text-[36px] font-bold leading-[1.05] tracking-[-0.02em] text-[#F0F4FF] sm:text-[48px]">Set it up once.<br /><span className="v5-gradient-text">Let it run forever.</span></h2>
-          <p className="mx-auto mt-4 max-w-lg text-[16px] text-[#8B9EC4]">Your AI Sales Agent works around the clock. You review and close.</p>
+          <span className={EY}><span className="text-[#0085FF]">✦</span> How your agent works</span>
+          <h2 className="mt-5 text-[36px] font-bold leading-[1.05] tracking-[-0.02em] text-[#0F172A] sm:text-[48px]">Set it up once.<br /><span className="v5-gradient-text">Let it run forever.</span></h2>
+          <p className="mx-auto mt-4 max-w-lg text-[16px] text-[#475569]">Your AI Sales Agent works around the clock. You review and close.</p>
         </div>
         <div className="relative mt-14 pl-8">
           <div aria-hidden className="absolute bottom-2 left-[7px] top-2 w-px bg-[#0051FF30]" />
           {STEPS.map((s) => (
             <Reveal key={s.n} className="relative mb-10 last:mb-0">
-              <span className="absolute -left-8 top-1 h-3.5 w-3.5 rounded-full border-2 border-[#050A14] bg-[#0051FF]" />
+              <span className="absolute -left-8 top-1 h-3.5 w-3.5 rounded-full border-2 border-[#FFFFFF] bg-[#0051FF]" />
               <div className="text-[13px] font-bold text-[#0051FF]">{s.n}</div>
-              <h3 className="mt-1 text-[19px] font-semibold text-[#F0F4FF]">{s.h}</h3>
-              <p className="mt-1.5 text-[15px] leading-relaxed text-[#8B9EC4]">{s.d}</p>
+              <h3 className="mt-1 text-[19px] font-semibold text-[#0F172A]">{s.h}</h3>
+              <p className="mt-1.5 text-[15px] leading-relaxed text-[#475569]">{s.d}</p>
             </Reveal>
           ))}
         </div>
@@ -189,15 +189,15 @@ function Capabilities() {
     <section id="features" className="px-5 py-24 sm:px-6">
       <div className="mx-auto max-w-5xl">
         <div className="text-center">
-          <span className={EY}><span className="text-[#00D4FF]">✦</span> Your agent&apos;s capabilities</span>
-          <h2 className="mt-5 text-[36px] font-bold tracking-[-0.02em] text-[#F0F4FF] sm:text-[48px]">More than prospecting.<br />A full sales workflow.</h2>
+          <span className={EY}><span className="text-[#0085FF]">✦</span> Your agent&apos;s capabilities</span>
+          <h2 className="mt-5 text-[36px] font-bold tracking-[-0.02em] text-[#0F172A] sm:text-[48px]">More than prospecting.<br />A full sales workflow.</h2>
         </div>
         <div className="mt-12 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {CAPS.map((c) => (
-            <Reveal key={c.t} className="group rounded-2xl border border-[#1E2D4A] bg-[#162035] p-6 transition hover:border-[#0051FF60] hover:shadow-[0_0_40px_#0051FF12]">
+            <Reveal key={c.t} className="group rounded-2xl border border-[#E2E8F0] bg-[#F1F5F9] p-6 transition hover:border-[#0051FF60] hover:shadow-[0_0_40px_#0051FF12]">
               <div className="text-[28px]">{c.icon}</div>
-              <h3 className="mt-3 text-[17px] font-semibold text-[#F0F4FF]">{c.t}</h3>
-              <p className="mt-2 text-[14px] leading-relaxed text-[#8B9EC4]">{c.d}</p>
+              <h3 className="mt-3 text-[17px] font-semibold text-[#0F172A]">{c.t}</h3>
+              <p className="mt-2 text-[14px] leading-relaxed text-[#475569]">{c.d}</p>
             </Reveal>
           ))}
         </div>
@@ -222,16 +222,16 @@ function Sources() {
     <section className="px-5 py-20 sm:px-6">
       <div className="mx-auto max-w-4xl">
         <div className="text-center">
-          <span className={EY}><span className="text-[#00D4FF]">✦</span> Where your agent searches</span>
-          <h2 className="mt-5 text-[32px] font-bold tracking-[-0.02em] text-[#F0F4FF] sm:text-[40px]">Your agent searches<br />everywhere they are.</h2>
+          <span className={EY}><span className="text-[#0085FF]">✦</span> Where your agent searches</span>
+          <h2 className="mt-5 text-[32px] font-bold tracking-[-0.02em] text-[#0F172A] sm:text-[40px]">Your agent searches<br />everywhere they are.</h2>
         </div>
         <div className="mt-10 grid grid-cols-2 gap-3 md:grid-cols-4">
           {SOURCES.map((s) => (
-            <Reveal key={s.n} className={`relative rounded-xl border border-[#1E2D4A] bg-[#0D1526] p-4 ${s.soon ? "opacity-50" : ""}`}>
-              {s.soon && <span className="absolute right-2 top-2 rounded-full bg-[#0051FF]/15 px-1.5 py-0.5 text-[9px] font-semibold text-[#4F8BFF]">Coming soon</span>}
+            <Reveal key={s.n} className={`relative rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 ${s.soon ? "opacity-50" : ""}`}>
+              {s.soon && <span className="absolute right-2 top-2 rounded-full bg-[#0051FF]/15 px-1.5 py-0.5 text-[9px] font-semibold text-[#0051FF]">Coming soon</span>}
               <div className="text-[20px]">{s.i}</div>
-              <div className="mt-1.5 text-[14px] font-medium text-[#F0F4FF]">{s.n}</div>
-              <div className="text-[12px] text-[#4A5980]">{s.d}</div>
+              <div className="mt-1.5 text-[14px] font-medium text-[#0F172A]">{s.n}</div>
+              <div className="text-[12px] text-[#94A3B8]">{s.d}</div>
             </Reveal>
           ))}
         </div>
@@ -244,18 +244,18 @@ function BeforeAfter() {
   const before = ["4 hours/day searching for prospects manually", "Copy-pasting from LinkedIn, Google, Maps", "Generic messages that get ignored", "Forgetting to follow up", "Missing signals that mean \"ready to buy\"", "€3,000+/month for a human SDR", "Your pipeline depends on one person"];
   const after = ["Agent finds 50+ qualified prospects overnight", "6 sources searched simultaneously", "Every message personalized with real signals", "Automatic follow-ups on perfect timing", "Only hot replies surface to your inbox", "€59/month. Works 24/7. Never quits.", "Your pipeline runs while you sleep"];
   return (
-    <section className="bg-[#0D1526] px-5 py-24 sm:px-6">
+    <section className="bg-[#F8FAFC] px-5 py-24 sm:px-6">
       <div className="mx-auto max-w-4xl">
         <div className="text-center">
-          <h2 className="text-[36px] font-bold tracking-[-0.02em] text-[#F0F4FF] sm:text-[48px]">Replace your SDR.<br />Or supercharge them.</h2>
-          <p className="mx-auto mt-4 max-w-lg text-[16px] text-[#8B9EC4]">What your sales process looks like before and after LogLead.</p>
+          <h2 className="text-[36px] font-bold tracking-[-0.02em] text-[#0F172A] sm:text-[48px]">Replace your SDR.<br />Or supercharge them.</h2>
+          <p className="mx-auto mt-4 max-w-lg text-[16px] text-[#475569]">What your sales process looks like before and after LogLead.</p>
         </div>
         <div className="mt-10 grid gap-4 md:grid-cols-2">
           <div className="rounded-2xl border-l-[3px] border-[#EF4444] bg-[#EF4444]/[0.04] p-6">
-            {before.map((b) => <p key={b} className="flex items-start gap-2 py-1.5 text-[14px] text-[#8B9EC4]"><span className="text-[#EF4444]">✕</span> {b}</p>)}
+            {before.map((b) => <p key={b} className="flex items-start gap-2 py-1.5 text-[14px] text-[#475569]"><span className="text-[#EF4444]">✕</span> {b}</p>)}
           </div>
           <div className="rounded-2xl border-l-[3px] border-[#22C55E] bg-[#22C55E]/[0.04] p-6">
-            {after.map((a) => <Reveal key={a} className="flex items-start gap-2 py-1.5 text-[14px] text-[#F0F4FF]"><span className="text-[#22C55E]">✓</span> {a}</Reveal>)}
+            {after.map((a) => <Reveal key={a} className="flex items-start gap-2 py-1.5 text-[14px] text-[#0F172A]"><span className="text-[#22C55E]">✓</span> {a}</Reveal>)}
           </div>
         </div>
       </div>
@@ -275,21 +275,21 @@ function Testimonials() {
     <section className="px-5 py-24 sm:px-6">
       <div className="mx-auto max-w-5xl">
         <div className="text-center">
-          <span className={EY}><span className="text-[#00D4FF]">✦</span> What sales teams say</span>
-          <h2 className="mt-5 text-[36px] font-bold tracking-[-0.02em] text-[#F0F4FF] sm:text-[48px]">They let the agent work.<br />They just closed.</h2>
+          <span className={EY}><span className="text-[#0085FF]">✦</span> What sales teams say</span>
+          <h2 className="mt-5 text-[36px] font-bold tracking-[-0.02em] text-[#0F172A] sm:text-[48px]">They let the agent work.<br />They just closed.</h2>
         </div>
         <div className="mt-12 grid items-center gap-4 md:grid-cols-3">
           {TESTIS.map((t) => (
-            <Reveal key={t.n} className={`rounded-2xl border bg-[#0D1526] p-6 ${t.mid ? "border-[#0051FF40] md:scale-105" : "border-[#1E2D4A]"}`}>
+            <Reveal key={t.n} className={`rounded-2xl border bg-[#F8FAFC] p-6 ${t.mid ? "border-[#0051FF40] md:scale-105" : "border-[#E2E8F0]"}`}>
               <p className="text-[#F59E0B]">★★★★★</p>
-              <p className="mt-3 text-[14px] leading-relaxed text-[#F0F4FF]">&ldquo;{t.q}&rdquo;</p>
-              <p className="mt-4 text-[13px] font-semibold text-[#F0F4FF]">{t.n}</p>
-              <p className="text-[12px] text-[#4A5980]">{t.r}</p>
+              <p className="mt-3 text-[14px] leading-relaxed text-[#0F172A]">&ldquo;{t.q}&rdquo;</p>
+              <p className="mt-4 text-[13px] font-semibold text-[#0F172A]">{t.n}</p>
+              <p className="text-[12px] text-[#94A3B8]">{t.r}</p>
             </Reveal>
           ))}
         </div>
         <div className="mt-12 overflow-hidden">
-          <div className="v5-marquee flex w-max gap-8 text-[13px] text-[#4A5980]">
+          <div className="v5-marquee flex w-max gap-8 text-[13px] text-[#94A3B8]">
             {[0, 1].map((k) => <span key={k} className="whitespace-nowrap">{marquee} · {marquee}</span>)}
           </div>
         </div>
@@ -307,31 +307,31 @@ const PLANS = [
 
 function Pricing() {
   return (
-    <section id="pricing" className="bg-[#0D1526] px-5 py-24 sm:px-6">
+    <section id="pricing" className="bg-[#F8FAFC] px-5 py-24 sm:px-6">
       <div className="mx-auto max-w-6xl">
         <div className="text-center">
-          <span className={EY}><span className="text-[#00D4FF]">✦</span> Pricing</span>
-          <h2 className="mt-5 text-[36px] font-bold tracking-[-0.02em] text-[#F0F4FF] sm:text-[48px]">One agent.<br />Three levels of autonomy.</h2>
-          <p className="mx-auto mt-4 max-w-md text-[16px] text-[#8B9EC4]">Start free. Upgrade when your pipeline grows.</p>
+          <span className={EY}><span className="text-[#0085FF]">✦</span> Pricing</span>
+          <h2 className="mt-5 text-[36px] font-bold tracking-[-0.02em] text-[#0F172A] sm:text-[48px]">One agent.<br />Three levels of autonomy.</h2>
+          <p className="mx-auto mt-4 max-w-md text-[16px] text-[#475569]">Start free. Upgrade when your pipeline grows.</p>
         </div>
         <div className="mt-12 grid gap-4 lg:grid-cols-4">
           {PLANS.map((p) => (
-            <Reveal key={p.name} className={`relative flex flex-col rounded-2xl border p-6 ${p.popular ? "border-2 border-[#0051FF] shadow-[0_0_60px_#0051FF20]" : "border-[#1E2D4A] bg-[#0D1526]"}`} style={p.popular ? { background: "linear-gradient(180deg,#0D2060,#0D1526)" } : undefined}>
+            <Reveal key={p.name} className={`relative flex flex-col rounded-2xl border p-6 ${p.popular ? "border-2 border-[#0051FF] shadow-[0_0_60px_#0051FF20]" : "border-[#E2E8F0] bg-[#F8FAFC]"}`} style={p.popular ? { background: "linear-gradient(180deg,#EAF1FF,#F8FAFC)" } : undefined}>
               {p.popular && <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-br from-[#0051FF] to-[#0085FF] px-3 py-1 text-[11px] font-semibold text-white">Most popular</span>}
-              <p className="text-[15px] font-bold text-[#F0F4FF]">{p.name}</p>
-              <p className="mt-1 text-[12px] text-[#8B9EC4]">{p.tag}</p>
-              <p className="mt-4 text-[30px] font-bold text-[#F0F4FF]">{p.price}<span className="text-[13px] font-normal text-[#4A5980]">{p.per ?? ""}</span></p>
-              <ul className="mt-4 flex-1 space-y-2 text-[13px] text-[#8B9EC4]">
-                {p.feats.map((f) => <li key={f} className="flex items-start gap-2"><span className="text-[#4F8BFF]">✓</span>{f}</li>)}
+              <p className="text-[15px] font-bold text-[#0F172A]">{p.name}</p>
+              <p className="mt-1 text-[12px] text-[#475569]">{p.tag}</p>
+              <p className="mt-4 text-[30px] font-bold text-[#0F172A]">{p.price}<span className="text-[13px] font-normal text-[#94A3B8]">{p.per ?? ""}</span></p>
+              <ul className="mt-4 flex-1 space-y-2 text-[13px] text-[#475569]">
+                {p.feats.map((f) => <li key={f} className="flex items-start gap-2"><span className="text-[#0051FF]">✓</span>{f}</li>)}
               </ul>
               <Link href={SIGNUP} className={`${BTN} mt-6 w-full !py-2.5 !text-[14px]`}>{p.cta}</Link>
-              {p.note && <p className="mt-2 text-center text-[11px] text-[#4A5980]">{p.note}</p>}
+              {p.note && <p className="mt-2 text-center text-[11px] text-[#94A3B8]">{p.note}</p>}
             </Reveal>
           ))}
         </div>
-        <div className="mt-8 text-center text-[13px] text-[#8B9EC4]">
+        <div className="mt-8 text-center text-[13px] text-[#475569]">
           ✓ 7-day free trial on all plans · ✓ No credit card to start · ✓ Cancel anytime<br />
-          <span className="text-[#4A5980]">1 credit = 1 action · Buy extra from €5/500 credits</span>
+          <span className="text-[#94A3B8]">1 credit = 1 action · Buy extra from €5/500 credits</span>
         </div>
       </div>
     </section>
@@ -351,14 +351,14 @@ function Faq() {
   return (
     <section className="px-5 py-20 sm:px-6">
       <div className="mx-auto max-w-2xl">
-        <h2 className="text-center text-[32px] font-bold tracking-[-0.02em] text-[#F0F4FF] sm:text-[40px]">Questions about your agent.</h2>
-        <div className="mt-8 divide-y divide-[#1E2D4A] rounded-2xl border border-[#1E2D4A]">
+        <h2 className="text-center text-[32px] font-bold tracking-[-0.02em] text-[#0F172A] sm:text-[40px]">Questions about your agent.</h2>
+        <div className="mt-8 divide-y divide-[#E2E8F0] rounded-2xl border border-[#E2E8F0]">
           {FAQS.map(([q, a]) => (
             <details key={q} className="group px-5 py-4">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[15px] font-semibold text-[#F0F4FF]">
-                {q}<span className="text-[#4F8BFF] transition group-open:rotate-45">+</span>
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[15px] font-semibold text-[#0F172A]">
+                {q}<span className="text-[#0051FF] transition group-open:rotate-45">+</span>
               </summary>
-              <p className="mt-3 text-[14px] leading-relaxed text-[#8B9EC4]">{a}</p>
+              <p className="mt-3 text-[14px] leading-relaxed text-[#475569]">{a}</p>
             </details>
           ))}
         </div>
@@ -369,18 +369,18 @@ function Faq() {
 
 function FinalCta() {
   return (
-    <section className="px-5 py-28 sm:px-6" style={{ background: "linear-gradient(180deg, #0051FF08, #050A14)" }}>
+    <section className="px-5 py-28 sm:px-6" style={{ background: "linear-gradient(180deg, #0051FF08, #FFFFFF)" }}>
       <div className="mx-auto max-w-2xl text-center">
-        <h2 className="text-[40px] font-bold leading-[1.05] tracking-[-0.03em] text-[#F0F4FF] sm:text-[56px]">Your AI Sales Agent<br /><span className="v5-gradient-text">starts tonight.</span></h2>
-        <p className="mx-auto mt-5 max-w-lg text-[17px] text-[#8B9EC4]">While you sleep, your agent prospects, messages and follows up. You wake up to hot conversations ready to close.</p>
+        <h2 className="text-[40px] font-bold leading-[1.05] tracking-[-0.03em] text-[#0F172A] sm:text-[56px]">Your AI Sales Agent<br /><span className="v5-gradient-text">starts tonight.</span></h2>
+        <p className="mx-auto mt-5 max-w-lg text-[17px] text-[#475569]">While you sleep, your agent prospects, messages and follows up. You wake up to hot conversations ready to close.</p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Link href={SIGNUP} className={BTN}>→ Hire your agent — Free for 7 days</Link>
           <a href="#" className={BTN_SEC}>Book a demo</a>
         </div>
-        <p className="mt-4 text-[12px] text-[#4A5980]">No credit card · Ready in 60 seconds · Cancel anytime</p>
+        <p className="mt-4 text-[12px] text-[#94A3B8]">No credit card · Ready in 60 seconds · Cancel anytime</p>
         <div className="mt-6 flex items-center justify-center gap-3">
-          <div className="flex -space-x-2">{["#0051FF", "#00A3FF", "#4F8BFF", "#00D4FF", "#1A6BFF"].map((c, i) => <span key={i} className="h-7 w-7 rounded-full border-2 border-[#050A14]" style={{ background: c }} />)}</div>
-          <span className="text-[13px] text-[#8B9EC4]">500+ B2B sales teams</span>
+          <div className="flex -space-x-2">{["#0051FF", "#00A3FF", "#0051FF", "#0085FF", "#1A6BFF"].map((c, i) => <span key={i} className="h-7 w-7 rounded-full border-2 border-[#FFFFFF]" style={{ background: c }} />)}</div>
+          <span className="text-[13px] text-[#475569]">500+ B2B sales teams</span>
         </div>
       </div>
     </section>
@@ -394,22 +394,22 @@ function Footer() {
     { t: "Resources", links: [["Help Center", "#"], ["Documentation", "#"], ["Privacy", "/privacy"], ["Terms", "/terms"]] },
   ];
   return (
-    <footer className="border-t border-[#1E2D4A] px-5 py-14 sm:px-6">
+    <footer className="border-t border-[#E2E8F0] px-5 py-14 sm:px-6">
       <div className="mx-auto grid max-w-6xl gap-8 md:grid-cols-4">
         <div>
-          <div className="flex items-center gap-2 text-[16px] font-bold text-[#F0F4FF]"><span className="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-[#0051FF] to-[#0085FF] text-[12px] text-white">L</span> LogLead</div>
-          <p className="mt-3 text-[13px] text-[#4A5980]">Your AI Sales Agent for B2B.</p>
+          <div className="flex items-center gap-2 text-[16px] font-bold text-[#0F172A]"><span className="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-[#0051FF] to-[#0085FF] text-[12px] text-white">L</span> LogLead</div>
+          <p className="mt-3 text-[13px] text-[#94A3B8]">Your AI Sales Agent for B2B.</p>
         </div>
         {cols.map((c) => (
           <div key={c.t}>
-            <p className="text-[13px] font-bold text-[#F0F4FF]">{c.t}</p>
+            <p className="text-[13px] font-bold text-[#0F172A]">{c.t}</p>
             <ul className="mt-4 space-y-2.5">
-              {c.links.map(([l, h]) => <li key={l}><Link href={h} className="text-[13px] text-[#8B9EC4] transition hover:text-[#F0F4FF]">{l}</Link></li>)}
+              {c.links.map(([l, h]) => <li key={l}><Link href={h} className="text-[13px] text-[#475569] transition hover:text-[#0F172A]">{l}</Link></li>)}
             </ul>
           </div>
         ))}
       </div>
-      <div className="mx-auto mt-10 flex max-w-6xl flex-col items-center justify-between gap-2 border-t border-[#1E2D4A] pt-6 text-[12px] text-[#4A5980] sm:flex-row">
+      <div className="mx-auto mt-10 flex max-w-6xl flex-col items-center justify-between gap-2 border-t border-[#E2E8F0] pt-6 text-[12px] text-[#94A3B8] sm:flex-row">
         <p>© 2026 LogLead · Your AI Sales Agent for B2B</p>
         <p>Not affiliated with LinkedIn Corporation. · SIRET 104 040 456 00014</p>
       </div>
@@ -419,7 +419,7 @@ function Footer() {
 
 export default function LandingV5() {
   return (
-    <div className="min-h-screen bg-[#050A14] font-sans antialiased">
+    <div className="min-h-screen bg-[#FFFFFF] font-sans antialiased">
       <Nav />
       <Hero />
       <HowItWorks />
