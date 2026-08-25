@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { CountUp, Reveal } from "./LandingPage";
+import { Reveal } from "./LandingPage";
 
 // ---------------------------------------------------------------------------
 // Landing v5 — "Your AI Sales Agent for B2B". Dark, self-contained (its own
@@ -139,28 +139,6 @@ function HeroDashboard() {
         </div>
       </div>
     </div>
-  );
-}
-
-function Proof() {
-  const stats = [
-    { n: 47, suf: "", top: "prospects", sub: "found overnight" },
-    { n: 23, suf: "", top: "messages", sub: "sent automatically" },
-    { n: 3, suf: "", top: "replies", sub: "this morning" },
-    { n: 59, pre: "€", top: "/month", sub: "vs €3,000 for an SDR" },
-  ];
-  return (
-    <section className="border-y border-[#1E2D4A] px-5 py-14 sm:px-6" style={{ background: "linear-gradient(90deg, transparent, #0051FF08, transparent)" }}>
-      <div className="mx-auto grid max-w-5xl grid-cols-2 gap-8 lg:grid-cols-4">
-        {stats.map((s) => (
-          <Reveal key={s.sub} className="text-center">
-            <div className="v5-gradient-text text-[40px] font-bold">{s.pre}<CountUp to={s.n} />{s.top === "/month" ? "" : ""}<span className="text-[24px]">{s.top === "/month" ? "/mo" : ""}</span></div>
-            <div className="mt-1 text-[13px] font-medium text-[#F0F4FF]">{s.top === "/month" ? "per month" : s.top}</div>
-            <div className="text-[12px] text-[#4A5980]">{s.sub}</div>
-          </Reveal>
-        ))}
-      </div>
-    </section>
   );
 }
 
@@ -444,7 +422,6 @@ export default function LandingV5() {
     <div className="min-h-screen bg-[#050A14] font-sans antialiased">
       <Nav />
       <Hero />
-      <Proof />
       <HowItWorks />
       <Capabilities />
       <Sources />
