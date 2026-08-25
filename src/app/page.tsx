@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import JsonLd from "@/components/JsonLd";
-import LandingPage from "@/components/LandingPage";
+import LandingV5 from "@/components/LandingV5";
 import { getCurrentUser } from "@/lib/auth";
 import { softwareApplicationSchema } from "@/lib/schema";
 import { SITE } from "@/lib/seo.config";
 
 export const metadata: Metadata = {
-  title: SITE.defaultTitle,
-  description: SITE.description,
+  title: "LogLead — Your AI Sales Agent for B2B",
+  description:
+    "LogLead prospects, messages and follows up automatically. You only see the hot conversations. Start your 7-day free trial.",
   alternates: { canonical: "/" },
   openGraph: {
     title: SITE.defaultTitle,
@@ -33,7 +34,7 @@ export default async function Home({
   return (
     <>
       <JsonLd data={softwareApplicationSchema()} />
-      <LandingPage />
+      <LandingV5 />
     </>
   );
 }

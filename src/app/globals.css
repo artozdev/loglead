@@ -588,3 +588,22 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* ---- Landing v5 (AI Sales Agent, dark) --------------------------------- */
+@keyframes v5-float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+.v5-float { animation: v5-float 4s ease-in-out infinite; }
+@keyframes v5-pulse-glow { 0%,100%{box-shadow:0 0 20px #0051FF40} 50%{box-shadow:0 0 40px #0051FF90} }
+.v5-pulse { animation: v5-pulse-glow 2s ease-in-out 1.5s infinite; }
+@keyframes v5-spin { to { transform: rotate(360deg); } }
+/* Animated gradient border for the hero badge. */
+.v5-badge { position: relative; background: #0D1526; border-radius: 99px; }
+.v5-badge::before {
+  content: ""; position: absolute; inset: 0; border-radius: 99px; padding: 1px;
+  background: conic-gradient(from 0deg, #0051FF, #00D4FF, #0051FF, #0D1526, #0051FF);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  animation: v5-spin 3s linear infinite;
+}
+@keyframes v5-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.v5-marquee { animation: v5-marquee 22s linear infinite; }
+.v5-gradient-text { background: linear-gradient(135deg, #4F8BFF, #00D4FF); -webkit-background-clip: text; background-clip: text; color: transparent; }
