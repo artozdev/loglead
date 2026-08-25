@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Reveal } from "./LandingPage";
 
 // ---------------------------------------------------------------------------
@@ -25,18 +25,18 @@ function Nav() {
   return (
     <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${scrolled ? "border-b border-[#E2E8F0] bg-[#FFFFFFEE] backdrop-blur-xl" : "border-b border-transparent"}`}>
       <nav className="mx-auto flex h-[72px] max-w-6xl items-center justify-between px-5 sm:px-6">
-        <Link href="/" className="flex items-center gap-2 text-[17px] font-bold text-[#0F172A]">
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[#0051FF] to-[#0085FF] text-[14px] font-bold text-white">L</span>
-          LogLead
+        <Link href="/" aria-label="LogLead">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={scrolled ? "/loglead-logo.svg" : "/loglead-logo-appicon.svg"} alt="LogLead" className="h-7 w-auto" />
         </Link>
-        <div className="hidden items-center gap-7 text-[14px] text-[#475569] lg:flex">
-          <a href="#how" className="transition hover:text-[#0F172A]">How it works</a>
-          <a href="#features" className="transition hover:text-[#0F172A]">Features</a>
-          <a href="#pricing" className="transition hover:text-[#0F172A]">Pricing</a>
-          <Link href="/affiliate" className="transition hover:text-[#0F172A]">Affiliate</Link>
+        <div className={`hidden items-center gap-7 text-[14px] lg:flex ${scrolled ? "text-[#475569]" : "text-[#8B9EC4]"}`}>
+          <a href="#how" className="transition hover:opacity-70">How it works</a>
+          <a href="#features" className="transition hover:opacity-70">Features</a>
+          <a href="#pricing" className="transition hover:opacity-70">Pricing</a>
+          <Link href="/affiliate" className="transition hover:opacity-70">Affiliate</Link>
         </div>
         <div className="flex items-center gap-3">
-          <Link href="/login" className="hidden text-[14px] text-[#475569] transition hover:text-[#0F172A] sm:block">Log in</Link>
+          <Link href="/login" className={`hidden text-[14px] transition sm:block ${scrolled ? "text-[#475569] hover:text-[#0F172A]" : "text-[#8B9EC4] hover:text-white"}`}>Log in</Link>
           <Link href={SIGNUP} className={`${BTN} !px-5 !py-2.5 !text-[14px]`}>Hire your agent →</Link>
         </div>
       </nav>
@@ -44,101 +44,148 @@ function Nav() {
   );
 }
 
+const DEMO_QUERIES = [
+  "Restaurants in Lyon with Google rating under 4 stars and no website",
+  "Web agencies in France hiring a sales rep",
+  "B2B SaaS between 20 and 200 employees in Paris",
+  "E-commerce brands with low engagement on Instagram",
+];
+const CHIPS = [
+  "🏪 Local businesses without website",
+  "💼 B2B SaaS hiring a sales rep",
+  "⭐ Restaurants with low Google rating",
+  "🏗️ Construction companies in France",
+  "📱 E-commerce brands on TikTok",
+];
+
 function Hero() {
+  const [query, setQuery] = useState("");
+  const [typed, setTyped] = useState("");
+  const [srcOpen, setSrcOpen] = useState(false);
+  const [sources, setSources] = useState<Record<string, boolean>>({ LinkedIn: true, "Google Maps": true, Reddit: true });
+  const taRef = useRef<HTMLTextAreaElement>(null);
+  const typing = useRef(true);
+
+  // Typewriter placeholder cycling through examples. Stops once the user types.
+  useEffect(() => {
+    let qi = 0, ci = 0, erasing = false;
+    const tick = () => {
+      if (!typing.current) return;
+      const full = DEMO_QUERIES[qi];
+      if (!erasing) {
+        ci++;
+        setTyped(full.slice(0, ci));
+        if (ci >= full.length) { erasing = true; return void (t = setTimeout(tick, 1800)); }
+      } else {
+        ci -= 3;
+        setTyped(full.slice(0, Math.max(0, ci)));
+        if (ci <= 0) { erasing = false; ci = 0; qi = (qi + 1) % DEMO_QUERIES.length; }
+      }
+      t = setTimeout(tick, erasing ? 20 : 42);
+    };
+    let t = setTimeout(tick, 1000);
+    return () => clearTimeout(t);
+  }, []);
+
+  // Auto-resize the textarea.
+  useEffect(() => {
+    const ta = taRef.current;
+    if (ta) { ta.style.height = "auto"; ta.style.height = `${Math.max(80, ta.scrollHeight)}px`; }
+  }, [query]);
+
+  function onType(v: string) {
+    typing.current = false;
+    setQuery(v);
+  }
+  function find() {
+    const q = query.trim();
+    window.location.href = `${SIGNUP}${q ? `?q=${encodeURIComponent(q)}` : ""}`;
+  }
+
   return (
-    <section className="relative overflow-hidden px-5 pb-24 pt-16 sm:px-6">
-      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[560px]" style={{ background: "radial-gradient(ellipse 900px 500px at 50% -5%, #0051FF12, transparent)" }} />
-      <div className="relative mx-auto max-w-4xl text-center">
+    <section className="relative overflow-hidden bg-[#050A14] px-5 pb-28 pt-28 sm:px-6">
+      {/* Animated glow blobs */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="v5-blob v5-blob-a" style={{ left: "8%", top: "28%", width: 420, height: 340, background: "#0051FF", opacity: 0.22 }} />
+        <div className="v5-blob v5-blob-b" style={{ right: "6%", top: "8%", width: 360, height: 300, background: "#6E56FF", opacity: 0.18 }} />
+        <div className="v5-blob v5-blob-c" style={{ left: "42%", bottom: "6%", width: 380, height: 300, background: "#00D4FF", opacity: 0.12 }} />
+      </div>
+
+      <div className="relative mx-auto max-w-3xl text-center">
         <Reveal>
-          <span className="v5-badge inline-flex items-center gap-2 px-4 py-1.5 text-[12px] font-medium text-[#475569]">
-            <span className="text-[#0085FF]">✦</span> AI Sales Agent · LinkedIn · Google Maps · Email · WhatsApp
-          </span>
-        </Reveal>
-        <Reveal delay={80}>
-          <h1 className="mx-auto mt-7 max-w-3xl text-[40px] font-bold leading-[1.03] tracking-[-0.03em] text-[#0F172A] sm:text-[64px] lg:text-[72px]">
-            Your AI Sales Agent<br />for <span className="v5-gradient-text">B2B.</span>
+          <h1 className="mx-auto max-w-2xl text-[40px] font-bold leading-[1.05] tracking-[-0.03em] text-white sm:text-[64px] lg:text-[68px]">
+            Find your ideal clients<br /><span className="v5-gradient-text">before your competitors do.</span>
           </h1>
         </Reveal>
-        <Reveal delay={160}>
-          <Link href={SIGNUP} className={`v5-pulse ${BTN} mx-auto mt-8`}>→ Hire your agent — Free for 7 days</Link>
-        </Reveal>
-        <Reveal delay={240}>
-          <p className="mx-auto mt-6 max-w-[540px] text-[17px] leading-[1.7] text-[#475569]">
-            LogLead finds your ideal prospects across LinkedIn, Google Maps and the web — then messages them, follows up automatically and sends you only the conversations worth your time.
+        <Reveal delay={120}>
+          <p className="mx-auto mt-6 max-w-[500px] text-[17px] leading-[1.7] text-[#8B9EC4]">
+            Describe who you&apos;re looking for. Your AI Sales Agent finds them, messages them and sends you only the hot replies.
           </p>
         </Reveal>
-        <Reveal delay={320}>
-          <div className="mt-7 flex flex-col items-center gap-2">
-            <div className="flex items-center gap-3">
-              <div className="flex -space-x-2">
-                {["#0051FF", "#00A3FF", "#0051FF", "#0085FF", "#1A6BFF"].map((c, i) => <span key={i} className="h-7 w-7 rounded-full border-2 border-[#FFFFFF]" style={{ background: c }} />)}
-              </div>
-              <span className="text-[13px] text-[#475569]">Trusted by 500+ B2B sales teams</span>
+
+        {/* Chat bubble */}
+        <Reveal delay={200}>
+          <div className="v5-chat mx-auto mt-10 w-full max-w-[720px] rounded-2xl border border-[#1E2D4A] bg-[#0D1526] p-5 text-left shadow-[0_8px_40px_rgba(0,0,0,0.4)]">
+            <textarea
+              ref={taRef}
+              value={query}
+              onChange={(e) => onType(e.target.value)}
+              placeholder={typed || "Describe your ideal prospect…"}
+              className="min-h-[80px] w-full resize-none bg-transparent text-[15px] leading-relaxed text-[#F0F4FF] outline-none placeholder:text-[#8B9EC4]"
+            />
+            {/* Suggestion chips */}
+            <div className="v5-chips mt-2 flex gap-2 overflow-x-auto pb-1">
+              {CHIPS.map((c) => (
+                <button key={c} onClick={() => onType(c.replace(/^\S+\s/, ""))} className="shrink-0 whitespace-nowrap rounded-full border border-[#1E2D4A] bg-[#162035] px-3 py-1.5 text-[13px] text-[#8B9EC4] transition hover:border-[#0051FF60] hover:text-[#F0F4FF]">
+                  {c}
+                </button>
+              ))}
             </div>
-            <p className="text-[13px] text-[#475569]"><span className="text-[#F59E0B]">★★★★★</span> &ldquo;Like having a full-time SDR for €59/month&rdquo;</p>
+            {/* Bottom bar */}
+            <div className="mt-3 flex items-center gap-2 border-t border-[#1E2D4A] pt-3">
+              <button title="Add context" className="flex h-8 w-8 items-center justify-center rounded-lg text-[#8B9EC4] transition hover:bg-[#162035] hover:text-[#F0F4FF]">+</button>
+              <div className="relative ml-auto">
+                <button onClick={() => setSrcOpen((v) => !v)} className="rounded-lg border border-[#1E2D4A] px-3 py-1.5 text-[13px] text-[#8B9EC4] transition hover:text-[#F0F4FF]">
+                  Sources ▾
+                </button>
+                {srcOpen && (
+                  <div className="absolute right-0 z-20 mt-1 w-52 rounded-xl border border-[#1E2D4A] bg-[#0D1526] p-1.5 shadow-[0_10px_40px_rgba(0,0,0,0.5)]">
+                    {["LinkedIn", "Google Maps", "Reddit"].map((s) => (
+                      <button key={s} onClick={() => setSources((o) => ({ ...o, [s]: !o[s] }))} className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-[13px] text-[#F0F4FF] hover:bg-[#162035]">
+                        <span className={sources[s] ? "text-[#22C55E]" : "text-[#4A5980]"}>{sources[s] ? "✅" : "☐"}</span> {s}
+                      </button>
+                    ))}
+                    {["Instagram", "TikTok", "Facebook"].map((s) => (
+                      <div key={s} className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[13px] text-[#4A5980]">☐ {s} <span className="ml-auto rounded bg-[#162035] px-1.5 py-0.5 text-[10px]">V1.2</span></div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={find}
+                disabled={!query.trim()}
+                className="rounded-lg bg-gradient-to-br from-[#0051FF] to-[#0085FF] px-5 py-2 text-[14px] font-semibold text-white shadow-[0_0_16px_#0051FF40] transition hover:-translate-y-0.5 hover:shadow-[0_0_28px_#0051FF70] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
+              >
+                Find them →
+              </button>
+            </div>
           </div>
         </Reveal>
 
-        {/* Hero dashboard */}
-        <Reveal delay={200} className="relative mt-16">
-          <HeroDashboard />
+        {/* Social proof */}
+        <Reveal delay={320}>
+          <div className="mt-8 flex flex-col items-center gap-2">
+            <div className="flex items-center gap-3">
+              <div className="flex -space-x-2">
+                {["#0051FF", "#00A3FF", "#4F8BFF", "#00D4FF", "#1A6BFF"].map((c, i) => <span key={i} className="h-7 w-7 rounded-full border-2 border-[#050A14]" style={{ background: c }} />)}
+              </div>
+              <span className="text-[13px] text-[#8B9EC4]">500+ B2B sales teams trust LogLead</span>
+            </div>
+            <p className="text-[13px] text-[#4A5980]"><span className="text-[#F59E0B]">★★★★★</span> &ldquo;Like having a full-time SDR for €59/month&rdquo;</p>
+          </div>
         </Reveal>
       </div>
     </section>
-  );
-}
-
-function HeroDashboard() {
-  const convos = [
-    { name: "Thomas Robert", role: "CEO · OrbitSoft", score: 94, hot: true, msg: "Oui c'est intéressant, tu as du temps cette semaine ?", cta: "Reply now →" },
-    { name: "Camille Vernet", role: "CMO · Nexio", score: 88, hot: false, msg: "Pourrais-tu m'envoyer plus d'infos ?", cta: "Reply now →" },
-    { name: "Marc Lambert", role: "Founder · Hrflow", score: 82, hot: false, msg: "On peut se faire un call vendredi ?", cta: "Book meeting →" },
-  ];
-  return (
-    <div className="relative mx-auto max-w-3xl">
-      {/* floating cards */}
-      <div className="v5-float absolute -left-4 top-16 z-10 hidden rounded-xl border border-[#E2E8F0] bg-[#F1F5F9] px-3.5 py-2.5 text-left text-[12px] text-[#475569] shadow-[0_10px_30px_#00000060] lg:block">
-        <span className="text-[#0F172A]">47 prospects found</span><br />LinkedIn + Google Maps
-      </div>
-      <div className="v5-float absolute -right-4 top-40 z-10 hidden rounded-xl border border-[#E2E8F0] bg-[#F1F5F9] px-3.5 py-2.5 text-left text-[12px] text-[#0F172A] shadow-[0_10px_30px_#00000060] lg:block" style={{ animationDelay: "1.5s" }}>
-        3 replies this morning 🔥
-      </div>
-
-      <div className="overflow-hidden rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] text-left shadow-[0_40px_80px_#0051FF20]">
-        <div className="flex items-center justify-between border-b border-[#E2E8F0] px-5 py-3">
-          <span className="flex items-center gap-2 text-[14px] font-semibold text-[#0F172A]">🤖 LogLead Agent</span>
-          <span className="text-[12px] text-[#94A3B8]">Last 8 hours</span>
-        </div>
-        <div className="px-5 py-5">
-          <p className="text-[13px] text-[#475569]">While you were sleeping, your agent:</p>
-          <ul className="mt-3 space-y-2 text-[14px] text-[#0F172A]">
-            <li>✅ Found <b>47 new prospects</b> matching your ICP</li>
-            <li>✅ Sent <b>23 personalized first messages</b></li>
-            <li>✅ Sent <b>8 follow-ups</b> to prospects who didn&apos;t reply</li>
-            <li>🔥 Got <b>3 positive replies</b> — ready for you</li>
-          </ul>
-        </div>
-        <div className="border-t border-[#E2E8F0] px-5 py-4">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">Hot conversations — Action needed</p>
-          <div className="mt-3 space-y-3">
-            {convos.map((c) => (
-              <div key={c.name} className="flex items-start gap-3 rounded-xl border border-[#E2E8F0] bg-[#F1F5F9] p-3">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#0051FF]/20 text-[13px] font-bold text-[#0051FF]">{c.name.charAt(0)}</span>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[13px] font-semibold text-[#0F172A]">{c.name}</span>
-                    <span className="text-[11px] text-[#94A3B8]">{c.role}</span>
-                    <span className="ml-auto flex items-center gap-1 text-[12px] font-semibold text-[#22C55E]">● {c.score}{c.hot ? " 🔥" : ""}</span>
-                  </div>
-                  <p className="mt-1 text-[13px] italic text-[#475569]">&ldquo;{c.msg}&rdquo;</p>
-                  <button className="mt-1.5 text-[12px] font-medium text-[#0051FF]">{c.cta}</button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
   );
 }
 

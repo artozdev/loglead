@@ -607,3 +607,15 @@ body {
 @keyframes v5-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 .v5-marquee { animation: v5-marquee 22s linear infinite; }
 .v5-gradient-text { background: linear-gradient(135deg, #0051FF, #0085FF); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+/* ---- Landing v5 Bolt-style hero (animated glows) ----------------------- */
+.v5-blob { position: absolute; border-radius: 9999px; filter: blur(90px); pointer-events: none; }
+@keyframes v5-drift-a { 0%,100%{transform:translate(0,0)} 33%{transform:translate(7%,-5%)} 66%{transform:translate(-5%,6%)} }
+@keyframes v5-drift-b { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-7%,7%)} }
+@keyframes v5-drift-c { 0%,100%{transform:translate(0,0)} 50%{transform:translate(6%,-7%)} }
+.v5-blob-a { animation: v5-drift-a 14s ease-in-out infinite; }
+.v5-blob-b { animation: v5-drift-b 16s ease-in-out infinite; }
+.v5-blob-c { animation: v5-drift-c 18s ease-in-out infinite; }
+.v5-chat:focus-within { border-color: #0051FF60 !important; box-shadow: 0 8px 40px rgba(0,0,0,0.4), 0 0 0 1px #0051FF30, 0 0 40px #0051FF15 !important; }
+.v5-chips::-webkit-scrollbar { display: none; }
+.v5-chips { scrollbar-width: none; }
