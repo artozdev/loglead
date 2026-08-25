@@ -37,9 +37,9 @@ const SOURCE_LABEL: Record<string, string> = {
   twitter: "X",
 };
 
-export default function LogAgent() {
+export default function LogAgent({ initialQuery = "" }: { initialQuery?: string }) {
   const [messages, setMessages] = useState<Msg[]>([]);
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState(initialQuery);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<SearchRow | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
