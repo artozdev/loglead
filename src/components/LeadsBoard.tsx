@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Download, Search, Sparkles, Upload, Zap } from "lucide-react";
 import { useMemo, useState } from "react";
+import ProspectDrawer from "./ProspectDrawer";
 import type { Prospect } from "@/lib/types";
 
 // Leads module — the intelligent prospect database. All prospects found by
@@ -54,17 +55,19 @@ function relative(iso: string): string {
 export default function LeadsBoard({ prospects }: { prospects: Prospect[] }) {
   const [tab, setTab] = useState<string>("all");
   const [q, setQ] = useState("");
+  const [items, setItems] = useState<Prospect[]>(prospects);
+  const [selected, setSelected] = useState<Prospect | null>(null);
 
   const metrics = useMemo(() => {
-    const total = prospects.length;
-    const hot = prospects.filter((p) => p.fitScore > 80).length;
-    const week = prospects.filter((p) => (Date.now() - new Date(p.createdAt).getTime()) / 86400000 < 7).length;
-    const enriched = prospects.filter((p) => p.enrichedAt).length;
+    const total = items.length;
+    const hot = items.filter((p) => p.fitScore > 80).length;
+    const week = items.filter((p) => (Date.now() - new Date(p.createdAt).getTime()) / 86400000 < 7).length;
+    const enriched = items.filter((p) => p.enrichedAt).length;
     return { total, hot, week, enriched };
-  }, [prospects]);
+  }, [items]);
 
   const rows = useMemo(() => {
-    let list = prospects;
+    let list = items;
     if (tab === "hot") list = list.filter((p) => p.fitScore > 80);
     else if (tab === "new") list = list.filter((p) => (Date.now() - new Date(p.createdAt).getTime()) / 86400000 < 7);
     else if (tab === "enriched") list = list.filter((p) => p.enrichedAt);
@@ -74,7 +77,12 @@ export default function LeadsBoard({ prospects }: { prospects: Prospect[] }) {
       list = list.filter((p) => (p.contactName ?? "").toLowerCase().includes(s) || (p.companyName ?? "").toLowerCase().includes(s));
     }
     return list;
-  }, [prospects, tab, q]);
+  }, [items, tab, q]);
+
+  function onUpdated(u: Prospect) {
+    setItems((list) => list.map((x) => (x.id === u.id ? u : x)));
+    setSelected(u);
+  }
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-6 sm:px-6">
@@ -149,7 +157,7 @@ export default function LeadsBoard({ prospects }: { prospects: Prospect[] }) {
               {rows.map((p) => {
                 const src = SOURCE_BADGE[p.source] ?? SOURCE_BADGE.manual;
                 return (
-                  <tr key={p.id} className="hover:bg-surface-hover/40">
+                  <tr key={p.id} onClick={() => setSelected(p)} className="cursor-pointer hover:bg-surface-hover/40">
                     <td className="px-4 py-3"><FitBars score={p.fitScore} /></td>
                     <td className="px-4 py-3">
                       <div className="font-medium text-ink">{p.contactName ?? "—"}</div>
@@ -167,6 +175,8 @@ export default function LeadsBoard({ prospects }: { prospects: Prospect[] }) {
           </table>
         </div>
       )}
+
+      {selected && <ProspectDrawer prospect={selected} onClose={() => setSelected(null)} onUpdated={onUpdated} />}
     </div>
   );
 }
