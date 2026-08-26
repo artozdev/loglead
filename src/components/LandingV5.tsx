@@ -15,8 +15,7 @@ type Tr = ReturnType<typeof useTr>;
 
 const SIGNUP = "/signup";
 const BTN = "inline-flex items-center justify-center gap-2 rounded-[10px] bg-gradient-to-br from-[#0051FF] to-[#0085FF] px-7 py-3.5 text-[15px] font-semibold text-white shadow-[0_0_20px_#0051FF40] transition hover:-translate-y-0.5 hover:shadow-[0_0_36px_#0051FF70]";
-const BTN_SEC = "inline-flex items-center justify-center gap-2 rounded-[10px] border border-[#E2E8F0] px-7 py-3.5 text-[15px] text-[#475569] transition hover:border-[#0051FF60] hover:text-[#0F172A]";
-const EY = "inline-flex items-center gap-2 rounded-full border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-1 text-[12px] font-medium text-[#475569]";
+const EY ="inline-flex items-center gap-2 rounded-full border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-1 text-[12px] font-medium text-[#475569]";
 
 // A hover dropdown nav menu. Trigger inherits the nav text color; the panel is
 // always a white card with dark links.
@@ -517,53 +516,61 @@ function Faq() {
   );
 }
 
-function FinalCta() {
-  const t = useTr();
-  return (
-    <section className="px-5 py-28 sm:px-6" style={{ background: "linear-gradient(180deg, #0051FF08, #FFFFFF)" }}>
-      <div className="mx-auto max-w-2xl text-center">
-        <h2 className="text-[40px] font-bold leading-[1.05] tracking-[-0.03em] text-[#0F172A] sm:text-[56px]">{t("Your AI Sales Agent", "Votre agent commercial IA")}<br /><span className="v5-gradient-text">{t("starts tonight.", "démarre ce soir.")}</span></h2>
-        <p className="mx-auto mt-5 max-w-lg text-[17px] text-[#475569]">{t("While you sleep, your agent prospects, messages and follows up. You wake up to hot conversations ready to close.", "Pendant que vous dormez, votre agent prospecte, contacte et relance. Vous vous réveillez avec des conversations chaudes prêtes à closer.")}</p>
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <Link href={SIGNUP} className={BTN}>{t("→ Hire your agent — Free for 7 days", "→ Recruter votre agent — 7 jours gratuits")}</Link>
-          <a href="#" className={BTN_SEC}>{t("Book a demo", "Réserver une démo")}</a>
-        </div>
-        <p className="mt-4 text-[12px] text-[#94A3B8]">{t("No credit card · Ready in 60 seconds · Cancel anytime", "Sans carte bancaire · Prêt en 60 secondes · Annulable à tout moment")}</p>
-        <div className="mt-6 flex items-center justify-center gap-3">
-          <div className="flex -space-x-2">{["#0051FF", "#00A3FF", "#0051FF", "#0085FF", "#1A6BFF"].map((c, i) => <span key={i} className="h-7 w-7 rounded-full border-2 border-[#FFFFFF]" style={{ background: c }} />)}</div>
-          <span className="text-[13px] text-[#475569]">{t("500+ B2B sales teams", "500+ équipes commerciales B2B")}</span>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-export function Footer() {
+// Post-FAQ region: a large CTA with a prompt bubble over the footer-bg.svg
+// gradient, then a cream footer card with link columns (Lovable-style).
+export function Footer({ showCta = true }: { showCta?: boolean }) {
   const t = useTr();
   const cols = [
+    { t: t("Company", "Entreprise"), links: [[t("About", "À propos"), "#"], ["Blog", "#"], [t("Careers", "Carrières"), "#"], ["Contact", "mailto:loglead@gmail.com"]] as [string, string][] },
     { t: t("Product", "Produit"), links: [["LogAgent", "/logagent"], [t("Leads Pipeline", "Pipeline Leads"), "/leads"], [t("Pricing", "Tarifs"), "/pricing"], [t("Changelog", "Nouveautés"), "#"]] as [string, string][] },
-    { t: t("Company", "Entreprise"), links: [[t("About", "À propos"), "#"], ["Blog", "#"], [t("Affiliate", "Affiliation"), "/affiliate"], ["Contact", "mailto:loglead@gmail.com"]] as [string, string][] },
-    { t: t("Resources", "Ressources"), links: [[t("Help Center", "Centre d'aide"), "#"], ["Documentation", "#"], [t("Privacy", "Confidentialité"), "/privacy"], [t("Terms", "CGU"), "/terms"]] as [string, string][] },
+    { t: t("Resources", "Ressources"), links: [[t("Help Center", "Centre d'aide"), "#"], ["Documentation", "#"], [t("Templates", "Modèles"), "#"], [t("Guides", "Guides"), "#"]] as [string, string][] },
+    { t: t("Legal", "Légal"), links: [[t("Privacy", "Confidentialité"), "/privacy"], [t("Terms", "CGU"), "/terms"], [t("Cookie settings", "Cookies"), "#"], [t("Legal notice", "Mentions légales"), "#"]] as [string, string][] },
+    { t: t("Community", "Communauté"), links: [[t("Affiliate", "Affiliation"), "/affiliate"], [t("Become a partner", "Devenir partenaire"), "#"], [t("Hire an expert", "Recruter un expert"), "#"]] as [string, string][] },
   ];
   return (
-    <footer className="border-t border-[#E2E8F0] px-5 py-14 sm:px-6">
-      <div className="mx-auto grid max-w-6xl gap-8 md:grid-cols-4">
-        <div>
-          <div className="flex items-center gap-2 text-[16px] font-bold text-[#0F172A]"><span className="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-[#0051FF] to-[#0085FF] text-[12px] text-white">L</span> LogLead</div>
-          <p className="mt-3 text-[13px] text-[#94A3B8]">{t("Your AI Sales Agent for B2B.", "Votre agent commercial IA pour le B2B.")}</p>
-        </div>
-        {cols.map((c) => (
-          <div key={c.t}>
-            <p className="text-[13px] font-bold text-[#0F172A]">{c.t}</p>
-            <ul className="mt-4 space-y-2.5">
-              {c.links.map(([l, h]) => <li key={l}><Link href={h} className="text-[13px] text-[#475569] transition hover:text-[#0F172A]">{l}</Link></li>)}
-            </ul>
+    <footer className="relative overflow-hidden">
+      {/* Gradient background image (white → blue/purple) */}
+      <div aria-hidden className="pointer-events-none absolute inset-0" style={{ backgroundImage: "url(/footer-bg.svg)", backgroundSize: "100% 100%", backgroundRepeat: "no-repeat" }} />
+
+      <div className="relative">
+        {showCta && (
+          <div className="mx-auto max-w-3xl px-5 pt-24 pb-20 text-center sm:px-6">
+            <p className="text-[15px] font-medium text-[#64748B]">{t("AI Sales Agent", "Agent commercial IA")}</p>
+            <h2 className="mt-3 text-[36px] font-bold leading-[1.05] tracking-[-0.03em] text-[#0F172A] sm:text-[52px]">{t("Ready to meet your next clients?", "Prêt à trouver vos prochains clients ?")}</h2>
+            <Link href={SIGNUP} className="mx-auto mt-9 block w-full max-w-[620px] rounded-[20px] border border-[#E2E8F0] bg-white px-5 pb-3 pt-4 text-left shadow-[0_16px_44px_-14px_rgba(15,23,42,0.15)] transition hover:shadow-[0_22px_54px_-14px_rgba(15,23,42,0.22)]">
+              <span className="block min-h-[44px] text-[15px] text-[#94A3B8]">{t("Ask LogLead to find your ideal clients…", "Demandez à LogLead de trouver vos clients idéaux…")}</span>
+              <span className="mt-2 flex items-center gap-2">
+                <span className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E2E8F0] text-[18px] leading-none text-[#475569]">+</span>
+                <span className="ml-auto inline-flex items-center gap-2 rounded-full bg-gradient-to-br from-[#0051FF] to-[#0085FF] px-5 py-2.5 text-[14px] font-semibold text-white shadow-[0_0_16px_#0051FF40]">{t("Get started", "Commencer")} <span aria-hidden>➤</span></span>
+              </span>
+            </Link>
           </div>
-        ))}
-      </div>
-      <div className="mx-auto mt-10 flex max-w-6xl flex-col items-center justify-between gap-2 border-t border-[#E2E8F0] pt-6 text-[12px] text-[#94A3B8] sm:flex-row">
-        <p>{t("© 2026 LogLead · Your AI Sales Agent for B2B", "© 2026 LogLead · Votre agent commercial IA pour le B2B")}</p>
-        <p>{t("Not affiliated with LinkedIn Corporation. · SIRET 104 040 456 00014", "Non affilié à LinkedIn Corporation. · SIRET 104 040 456 00014")}</p>
+        )}
+
+        {/* Cream footer card */}
+        <div className={`px-4 pb-6 sm:px-6 ${showCta ? "" : "pt-16"}`}>
+          <div className="mx-auto max-w-6xl rounded-[28px] bg-[#F3EEE6] px-7 pb-8 pt-12 sm:px-12">
+            <div className="grid gap-8 sm:grid-cols-3 lg:grid-cols-6">
+              <div className="lg:col-span-1">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/loglead-logo.svg" alt="LogLead" className="h-7 w-auto" />
+                <p className="mt-3 text-[12px] leading-relaxed text-[#8A8172]">{t("Your AI Sales Agent for B2B.", "Votre agent commercial IA pour le B2B.")}</p>
+              </div>
+              {cols.map((c) => (
+                <div key={c.t}>
+                  <p className="text-[14px] font-bold text-[#0F172A]">{c.t}</p>
+                  <ul className="mt-4 space-y-2.5">
+                    {c.links.map(([l, h]) => <li key={l}><Link href={h} className="text-[13px] text-[#6B7280] transition hover:text-[#0F172A]">{l}</Link></li>)}
+                  </ul>
+                </div>
+              ))}
+            </div>
+            <div className="mt-12 flex flex-col items-center justify-between gap-2 border-t border-[#E4DBCC] pt-6 text-[12px] text-[#8A8172] sm:flex-row">
+              <p>{t("© 2026 LogLead · Your AI Sales Agent for B2B", "© 2026 LogLead · Votre agent commercial IA pour le B2B")}</p>
+              <p>{t("Not affiliated with LinkedIn Corporation. · SIRET 104 040 456 00014", "Non affilié à LinkedIn Corporation. · SIRET 104 040 456 00014")}</p>
+            </div>
+          </div>
+        </div>
       </div>
     </footer>
   );
@@ -579,7 +586,6 @@ export default function LandingV5() {
         <Sources />
         <BeforeAfter />
         <Faq />
-        <FinalCta />
         <Footer />
       </div>
     </LangProvider>

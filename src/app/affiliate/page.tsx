@@ -38,7 +38,7 @@ export default function AffiliatePage() {
           <Link href="/signup" className={`${BTN_P} mt-6`}><Roll>→ Become an affiliate — It&apos;s free</Roll></Link>
           <p className="mt-4 text-[12px] text-[#94A3B8]">Validation in a few days. No technical setup required.</p>
         </section>
-        <Footer />
+        <Footer showCta={false} />
       </div>
     </LangProvider>
   );

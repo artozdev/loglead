@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="2560" height="1440" viewBox="0 0 2560 1440"
+     preserveAspectRatio="none">
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#FEFDFE"/>
+      <stop offset="7%"   stop-color="#FEFDFE"/>
+      <stop offset="14%"  stop-color="#FDFDFE"/>
+      <stop offset="21%"  stop-color="#EEF6FD"/>
+      <stop offset="28%"  stop-color="#DBEBFD"/>
+      <stop offset="35%"  stop-color="#BDDCFC"/>
+      <stop offset="42%"  stop-color="#9ACBFC"/>
+      <stop offset="50%"  stop-color="#77BAFE"/>
+      <stop offset="57%"  stop-color="#51A9FC"/>
+      <stop offset="64%"  stop-color="#3091F9"/>
+      <stop offset="71%"  stop-color="#1673E2"/>
+      <stop offset="78%"  stop-color="#0752B1"/>
+      <stop offset="85%"  stop-color="#023171"/>
+      <stop offset="92%"  stop-color="#011432"/>
+      <stop offset="97%"  stop-color="#010918"/>
+      <stop offset="100%" stop-color="#010307"/>
+    </linearGradient>
+
+    <!-- Extremely subtle vertical smoothing layer to avoid visible gradient banding -->
+    <linearGradient id="softness" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.025"/>
+      <stop offset="45%" stop-color="#FFFFFF" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.018"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="2560" height="1440" fill="url(#background)"/>
+  <rect width="2560" height="1440" fill="url(#softness)"/>
+</svg>

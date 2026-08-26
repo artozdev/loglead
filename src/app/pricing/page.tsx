@@ -37,7 +37,7 @@ export default function PricingPage() {
           <Link href="/signup" className={`${BTN_P} mt-6`}><Roll>→ Start for free</Roll></Link>
           <p className="mt-4 text-[12px] text-[#94A3B8]">7-day free trial · No credit card · Cancel anytime</p>
         </section>
-        <Footer />
+        <Footer showCta={false} />
       </div>
     </LangProvider>
   );
