@@ -18,6 +18,30 @@ const BTN = "inline-flex items-center justify-center gap-2 rounded-[10px] bg-gra
 const BTN_SEC = "inline-flex items-center justify-center gap-2 rounded-[10px] border border-[#E2E8F0] px-7 py-3.5 text-[15px] text-[#475569] transition hover:border-[#0051FF60] hover:text-[#0F172A]";
 const EY = "inline-flex items-center gap-2 rounded-full border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-1 text-[12px] font-medium text-[#475569]";
 
+// A hover dropdown nav menu. Trigger inherits the nav text color; the panel is
+// always a white card with dark links.
+function NavMenu({ label, items, cls }: { label: string; items: [string, string][]; cls: string }) {
+  return (
+    <div className="group relative">
+      <button className={`inline-flex items-center gap-1 ${cls}`}>
+        {label}
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="transition group-hover:rotate-180"><path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+      </button>
+      <div className="invisible absolute left-1/2 top-full z-50 -translate-x-1/2 pt-3 opacity-0 transition duration-150 group-hover:visible group-hover:opacity-100">
+        <div className="min-w-[230px] rounded-2xl border border-[#E2E8F0] bg-white p-2 shadow-[0_16px_44px_-14px_rgba(15,23,42,0.25)]">
+          {items.map(([l, h]) =>
+            h.startsWith("#") ? (
+              <a key={l} href={h} className="block rounded-xl px-3 py-2 text-[13px] text-[#475569] transition hover:bg-[#F1F5F9] hover:text-[#0F172A]">{l}</a>
+            ) : (
+              <Link key={l} href={h} className="block rounded-xl px-3 py-2 text-[13px] text-[#475569] transition hover:bg-[#F1F5F9] hover:text-[#0F172A]">{l}</Link>
+            ),
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Nav() {
   const t = useTr();
   const { lang, setLang } = useLang();
@@ -29,6 +53,31 @@ function Nav() {
     return () => window.removeEventListener("scroll", on);
   }, []);
   const linkCls = `transition ${scrolled ? "hover:text-[#0F172A]" : "hover:text-white"}`;
+
+  const produit: [string, string][] = [
+    [t("How it works", "Comment ça marche"), "#how"],
+    [t("Data sources", "Sources de données"), "#sources"],
+    [t("Before / after", "Avant / après"), "#before"],
+    ["FAQ", "#faq"],
+  ];
+  const solution: [string, string][] = [
+    [t("SaaS founders", "Fondateurs SaaS"), "/for/saas-founders"],
+    [t("Agencies", "Agences"), "/for/agencies"],
+    [t("Consultants", "Consultants"), "/for/consultants"],
+    [t("Sales teams", "Équipes commerciales"), "/for/sales-teams"],
+    [t("Startups", "Startups"), "/for/startups"],
+    [t("B2B companies", "Entreprises B2B"), "/for/b2b-companies"],
+  ];
+  const ressources: [string, string][] = [
+    ["LogLead vs Lemlist", "/vs/loglead-vs-lemlist"],
+    ["LogLead vs Apollo", "/vs/loglead-vs-apollo"],
+    ["LogLead vs Taplio", "/vs/loglead-vs-taplio"],
+    ["LogLead vs Clay", "/vs/loglead-vs-clay"],
+    [t("Affiliate program", "Programme d'affiliation"), "/affiliate"],
+    [t("Privacy", "Confidentialité"), "/privacy"],
+    [t("Terms", "CGU"), "/terms"],
+  ];
+
   return (
     <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${scrolled ? "border-b border-[#E2E8F0] bg-[#FFFFFFEE] backdrop-blur-xl" : "border-b border-transparent"}`}>
       <nav className="mx-auto flex h-[72px] max-w-6xl items-center justify-between px-5 sm:px-6">
@@ -37,9 +86,10 @@ function Nav() {
           <img src={scrolled ? "/loglead-logo.svg" : "/loglead-logo-dark.svg"} alt="LogLead" className="h-7 w-auto" />
         </Link>
         <div className={`hidden items-center gap-7 text-[14px] lg:flex ${scrolled ? "text-[#475569]" : "text-white/85"}`}>
-          <a href="#how" className={linkCls}>{t("How it works", "Comment ça marche")}</a>
+          <NavMenu label={t("Product", "Produit")} items={produit} cls={linkCls} />
+          <NavMenu label={t("Solution", "Solution")} items={solution} cls={linkCls} />
           <Link href="/pricing" className={linkCls}>{t("Pricing", "Tarifs")}</Link>
-          <Link href="/affiliate" className={linkCls}>{t("Affiliate", "Affiliation")}</Link>
+          <NavMenu label={t("Resources", "Ressources")} items={ressources} cls={linkCls} />
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -374,7 +424,7 @@ function Sources() {
     { i: "🌐", n: t("Web & directories", "Web & annuaires"), d: t("Specialized sources", "Sources spécialisées"), soon: false },
   ];
   return (
-    <section className="px-5 py-20 sm:px-6">
+    <section id="sources" className="scroll-mt-24 px-5 py-20 sm:px-6">
       <div className="mx-auto max-w-4xl">
         <div className="text-center">
           <span className={EY}><span className="text-[#0085FF]">✦</span> {t("Where your agent searches", "Où votre agent cherche")}</span>
@@ -416,7 +466,7 @@ function BeforeAfter() {
     t("Your pipeline runs while you sleep", "Votre pipeline tourne pendant que vous dormez"),
   ];
   return (
-    <section className="bg-[#F8FAFC] px-5 py-24 sm:px-6">
+    <section id="before" className="scroll-mt-24 bg-[#F8FAFC] px-5 py-24 sm:px-6">
       <div className="mx-auto max-w-4xl">
         <div className="text-center">
           <h2 className="text-[36px] font-bold tracking-[-0.02em] text-[#0F172A] sm:text-[48px]">{t("Replace your SDR.", "Remplacez votre SDR.")}<br />{t("Or supercharge them.", "Ou boostez-le.")}</h2>
@@ -446,7 +496,7 @@ function Faq() {
     [t("Can I cancel anytime?", "Puis-je annuler à tout moment ?"), t("Yes. Cancel in one click from Settings → Subscription. No commitment, no penalties. Your data is kept for 30 days after cancellation.", "Oui. Annulez en un clic depuis Paramètres → Abonnement. Sans engagement, sans pénalité. Vos données sont conservées 30 jours après l'annulation.")],
   ];
   return (
-    <section className="px-5 py-20 sm:px-6">
+    <section id="faq" className="scroll-mt-24 px-5 py-20 sm:px-6">
       <div className="mx-auto max-w-2xl">
         <h2 className="text-center text-[32px] font-bold tracking-[-0.02em] text-[#0F172A] sm:text-[40px]">{t("Questions about your agent.", "Questions sur votre agent.")}</h2>
         <div className="mt-8 divide-y divide-[#E2E8F0] rounded-2xl border border-[#E2E8F0]">
