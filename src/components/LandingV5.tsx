@@ -31,7 +31,6 @@ function Nav() {
         </Link>
         <div className="hidden items-center gap-7 text-[14px] text-[#475569] lg:flex">
           <a href="#how" className="transition hover:text-[#0F172A]">How it works</a>
-          <a href="#features" className="transition hover:text-[#0F172A]">Features</a>
           <a href="#pricing" className="transition hover:text-[#0F172A]">Pricing</a>
           <Link href="/affiliate" className="transition hover:text-[#0F172A]">Affiliate</Link>
         </div>
@@ -356,37 +355,6 @@ function StepArt({ step }: { step: number }) {
   );
 }
 
-const CAPS = [
-  { icon: "🔍", t: "Prospect Discovery", d: "Searches 6+ sources simultaneously. LinkedIn, Google Maps, Reddit, Instagram and more." },
-  { icon: "🧠", t: "AI Qualification", d: "Every prospect scored 0-100 with AI. Knows why each one is relevant to your specific offer." },
-  { icon: "💎", t: "Data Enrichment", d: "Email, phone and company data found automatically for every qualified prospect." },
-  { icon: "✉️", t: "Personalized Outreach", d: "Writes messages based on each prospect's signals, recent activity and your offer. Never robotic." },
-  { icon: "🔄", t: "Automatic Follow-ups", d: "Your agent follows up on your behalf. Sequences configured once, run automatically forever." },
-  { icon: "🔥", t: "Hot Reply Detection", d: "Reads every reply and surfaces only the hot ones. You never miss a real opportunity." },
-];
-
-function Capabilities() {
-  return (
-    <section id="features" className="px-5 py-24 sm:px-6">
-      <div className="mx-auto max-w-5xl">
-        <div className="text-center">
-          <span className={EY}><span className="text-[#0085FF]">✦</span> Your agent&apos;s capabilities</span>
-          <h2 className="mt-5 text-[36px] font-bold tracking-[-0.02em] text-[#0F172A] sm:text-[48px]">More than prospecting.<br />A full sales workflow.</h2>
-        </div>
-        <div className="mt-12 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {CAPS.map((c) => (
-            <Reveal key={c.t} className="group rounded-2xl border border-[#E2E8F0] bg-[#F1F5F9] p-6 transition hover:border-[#0051FF60] hover:shadow-[0_0_40px_#0051FF12]">
-              <div className="text-[28px]">{c.icon}</div>
-              <h3 className="mt-3 text-[17px] font-semibold text-[#0F172A]">{c.t}</h3>
-              <p className="mt-2 text-[14px] leading-relaxed text-[#475569]">{c.d}</p>
-            </Reveal>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 const SOURCES = [
   { i: "🔵", n: "LinkedIn", d: "Profiles & jobs", soon: false },
   { i: "🟢", n: "Google Maps", d: "Local businesses", soon: false },
@@ -604,7 +572,6 @@ export default function LandingV5() {
       <Nav />
       <Hero />
       <HowItWorks />
-      <Capabilities />
       <Sources />
       <BeforeAfter />
       <Testimonials />
