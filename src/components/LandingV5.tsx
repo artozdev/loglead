@@ -38,7 +38,7 @@ function Nav() {
         </Link>
         <div className={`hidden items-center gap-7 text-[14px] lg:flex ${scrolled ? "text-[#475569]" : "text-white/85"}`}>
           <a href="#how" className={linkCls}>{t("How it works", "Comment ça marche")}</a>
-          <a href="#pricing" className={linkCls}>{t("Pricing", "Tarifs")}</a>
+          <Link href="/pricing" className={linkCls}>{t("Pricing", "Tarifs")}</Link>
           <Link href="/affiliate" className={linkCls}>{t("Affiliate", "Affiliation")}</Link>
         </div>
         <div className="flex items-center gap-3">
@@ -442,7 +442,6 @@ function Testimonials() {
     { q: t("We replaced our junior SDR with LogLead. Not because we wanted to cut costs — because LogLead finds better prospects, writes better messages and never forgets to follow up.", "On a remplacé notre SDR junior par LogLead. Pas pour réduire les coûts — parce que LogLead trouve de meilleurs prospects, écrit de meilleurs messages et n'oublie jamais de relancer."), n: "Camille V.", r: "Head of Sales · Nexio", mid: true },
     { q: t("The 'while you were sleeping' dashboard is what sold me. I wake up, I see 3 hot replies from my agent, I reply and I close. That's literally my morning routine now.", "Le tableau de bord « pendant que vous dormiez » m'a convaincu. Je me réveille, je vois 3 réponses chaudes de mon agent, je réponds et je close. C'est littéralement ma routine du matin maintenant."), n: "Marc L.", r: t("Founder · Hrflow", "Fondateur · Hrflow") },
   ];
-  const marquee = t("500+ sales teams · 68% qualify rate · 3 replies/day avg · €59/month · Works 24/7", "500+ équipes commerciales · 68% de taux de qualification · 3 réponses/jour en moyenne · 59 €/mois · Actif 24h/24");
   return (
     <section className="px-5 py-24 sm:px-6">
       <div className="mx-auto max-w-5xl">
@@ -459,51 +458,6 @@ function Testimonials() {
               <p className="text-[12px] text-[#94A3B8]">{ti.r}</p>
             </Reveal>
           ))}
-        </div>
-        <div className="mt-12 overflow-hidden">
-          <div className="v5-marquee flex w-max gap-8 text-[13px] text-[#94A3B8]">
-            {[0, 1].map((k) => <span key={k} className="whitespace-nowrap">{marquee} · {marquee}</span>)}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function Pricing() {
-  const t = useTr();
-  const plans = [
-    { name: "Free", price: "€0", tag: t("Discover what your agent can do.", "Découvrez ce que votre agent sait faire."), feats: [t("200 one-time credits", "200 crédits, une seule fois"), t("Prospect search (LinkedIn + Google Maps)", "Recherche de prospects (LinkedIn + Google Maps)"), t("AI qualification scoring", "Scoring de qualification IA"), t("View leads (read-only)", "Voir les leads (lecture seule)"), t("5 AI agent messages", "5 messages de l'agent IA")], cta: t("Start free →", "Commencer gratuitement →"), note: t("200 credits. Enough to see the value.", "200 crédits. De quoi voir la valeur.") },
-    { name: "Starter", price: "€29", per: t("/month", "/mois"), tag: t("Your agent finds. You message.", "Votre agent trouve. Vous contactez."), feats: [t("2,000 credits/month", "2 000 crédits/mois"), t("LinkedIn + Google Maps search", "Recherche LinkedIn + Google Maps"), t("500 prospects/month", "500 prospects/mois"), t("Email enrichment", "Enrichissement email"), t("Manual outreach with AI messages", "Prospection manuelle avec messages IA")], cta: t("Start 7-day trial", "Essai 7 jours gratuit") },
-    { name: "Growth", price: "€59", per: t("/month", "/mois"), tag: t("Your agent finds and messages.", "Votre agent trouve et contacte."), popular: true, feats: [t("5,000 credits/month", "5 000 crédits/mois"), t("All 6 sources · 2,000 prospects/month", "Les 6 sources · 2 000 prospects/mois"), t("Email + Phone enrichment", "Enrichissement email + téléphone"), t("AI-generated personalized outreach", "Prospection personnalisée générée par IA"), t("Basic follow-up sequences", "Séquences de relance simples")], cta: t("Start 7-day trial", "Essai 7 jours gratuit") },
-    { name: "Pro", price: "€99", per: t("/month", "/mois"), tag: t("Full autonomous sales agent.", "Agent commercial 100% autonome."), feats: [t("10,000 credits/month", "10 000 crédits/mois"), t("Unlimited prospects · All sources", "Prospects illimités · Toutes les sources"), t("Automatic sending (email + LinkedIn)", "Envoi automatique (email + LinkedIn)"), t("Multi-step sequences", "Séquences multi-étapes"), t("Hot reply detection", "Détection des réponses chaudes"), t("Dedicated support", "Support dédié")], cta: t("Start 7-day trial", "Essai 7 jours gratuit") },
-  ];
-  return (
-    <section id="pricing" className="bg-[#F8FAFC] px-5 py-24 sm:px-6">
-      <div className="mx-auto max-w-6xl">
-        <div className="text-center">
-          <span className={EY}><span className="text-[#0085FF]">✦</span> {t("Pricing", "Tarifs")}</span>
-          <h2 className="mt-5 text-[36px] font-bold tracking-[-0.02em] text-[#0F172A] sm:text-[48px]">{t("One agent.", "Un agent.")}<br />{t("Three levels of autonomy.", "Trois niveaux d'autonomie.")}</h2>
-          <p className="mx-auto mt-4 max-w-md text-[16px] text-[#475569]">{t("Start free. Upgrade when your pipeline grows.", "Commencez gratuitement. Montez en gamme quand votre pipeline grandit.")}</p>
-        </div>
-        <div className="mt-12 grid gap-4 lg:grid-cols-4">
-          {plans.map((p) => (
-            <Reveal key={p.name} className={`relative flex flex-col rounded-2xl border p-6 ${p.popular ? "border-2 border-[#0051FF] shadow-[0_0_60px_#0051FF20]" : "border-[#E2E8F0] bg-[#F8FAFC]"}`} style={p.popular ? { background: "linear-gradient(180deg,#EAF1FF,#F8FAFC)" } : undefined}>
-              {p.popular && <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-br from-[#0051FF] to-[#0085FF] px-3 py-1 text-[11px] font-semibold text-white">{t("Most popular", "Le plus populaire")}</span>}
-              <p className="text-[15px] font-bold text-[#0F172A]">{p.name}</p>
-              <p className="mt-1 text-[12px] text-[#475569]">{p.tag}</p>
-              <p className="mt-4 text-[30px] font-bold text-[#0F172A]">{p.price}<span className="text-[13px] font-normal text-[#94A3B8]">{p.per ?? ""}</span></p>
-              <ul className="mt-4 flex-1 space-y-2 text-[13px] text-[#475569]">
-                {p.feats.map((f, i) => <li key={i} className="flex items-start gap-2"><span className="text-[#0051FF]">✓</span>{f}</li>)}
-              </ul>
-              <Link href={SIGNUP} className={`${BTN} mt-6 w-full !py-2.5 !text-[14px]`}>{p.cta}</Link>
-              {p.note && <p className="mt-2 text-center text-[11px] text-[#94A3B8]">{p.note}</p>}
-            </Reveal>
-          ))}
-        </div>
-        <div className="mt-8 text-center text-[13px] text-[#475569]">
-          {t("✓ 7-day free trial on all plans · ✓ No credit card to start · ✓ Cancel anytime", "✓ 7 jours d'essai gratuit sur tous les plans · ✓ Sans carte bancaire · ✓ Annulable à tout moment")}<br />
-          <span className="text-[#94A3B8]">{t("1 credit = 1 action · Buy extra from €5/500 credits", "1 crédit = 1 action · Recharge dès 5 €/500 crédits")}</span>
         </div>
       </div>
     </section>
@@ -563,7 +517,7 @@ function FinalCta() {
 function Footer() {
   const t = useTr();
   const cols = [
-    { t: t("Product", "Produit"), links: [["LogAgent", "/logagent"], [t("Leads Pipeline", "Pipeline Leads"), "/leads"], [t("Pricing", "Tarifs"), "#pricing"], [t("Changelog", "Nouveautés"), "#"]] as [string, string][] },
+    { t: t("Product", "Produit"), links: [["LogAgent", "/logagent"], [t("Leads Pipeline", "Pipeline Leads"), "/leads"], [t("Pricing", "Tarifs"), "/pricing"], [t("Changelog", "Nouveautés"), "#"]] as [string, string][] },
     { t: t("Company", "Entreprise"), links: [[t("About", "À propos"), "#"], ["Blog", "#"], [t("Affiliate", "Affiliation"), "/affiliate"], ["Contact", "mailto:loglead@gmail.com"]] as [string, string][] },
     { t: t("Resources", "Ressources"), links: [[t("Help Center", "Centre d'aide"), "#"], ["Documentation", "#"], [t("Privacy", "Confidentialité"), "/privacy"], [t("Terms", "CGU"), "/terms"]] as [string, string][] },
   ];
@@ -601,7 +555,6 @@ export default function LandingV5() {
         <Sources />
         <BeforeAfter />
         <Testimonials />
-        <Pricing />
         <Faq />
         <FinalCta />
         <Footer />
