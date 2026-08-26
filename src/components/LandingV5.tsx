@@ -27,16 +27,16 @@ function Nav() {
       <nav className="mx-auto flex h-[72px] max-w-6xl items-center justify-between px-5 sm:px-6">
         <Link href="/" aria-label="LogLead">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={scrolled ? "/loglead-logo.svg" : "/loglead-logo-appicon.svg"} alt="LogLead" className="h-7 w-auto" />
+          <img src="/loglead-logo.svg" alt="LogLead" className="h-7 w-auto" />
         </Link>
-        <div className={`hidden items-center gap-7 text-[14px] lg:flex ${scrolled ? "text-[#475569]" : "text-[#8B9EC4]"}`}>
-          <a href="#how" className="transition hover:opacity-70">How it works</a>
-          <a href="#features" className="transition hover:opacity-70">Features</a>
-          <a href="#pricing" className="transition hover:opacity-70">Pricing</a>
-          <Link href="/affiliate" className="transition hover:opacity-70">Affiliate</Link>
+        <div className="hidden items-center gap-7 text-[14px] text-[#475569] lg:flex">
+          <a href="#how" className="transition hover:text-[#0F172A]">How it works</a>
+          <a href="#features" className="transition hover:text-[#0F172A]">Features</a>
+          <a href="#pricing" className="transition hover:text-[#0F172A]">Pricing</a>
+          <Link href="/affiliate" className="transition hover:text-[#0F172A]">Affiliate</Link>
         </div>
         <div className="flex items-center gap-3">
-          <Link href="/login" className={`hidden text-[14px] transition sm:block ${scrolled ? "text-[#475569] hover:text-[#0F172A]" : "text-[#8B9EC4] hover:text-white"}`}>Log in</Link>
+          <Link href="/login" className="hidden text-[14px] text-[#475569] transition hover:text-[#0F172A] sm:block">Log in</Link>
           <Link href={SIGNUP} className={`${BTN} !px-5 !py-2.5 !text-[14px]`}>Hire your agent →</Link>
         </div>
       </nav>
@@ -61,8 +61,6 @@ const CHIPS = [
 function Hero() {
   const [query, setQuery] = useState("");
   const [typed, setTyped] = useState("");
-  const [srcOpen, setSrcOpen] = useState(false);
-  const [sources, setSources] = useState<Record<string, boolean>>({ LinkedIn: true, "Google Maps": true, Reddit: true });
   const taRef = useRef<HTMLTextAreaElement>(null);
   const typing = useRef(true);
 
@@ -90,7 +88,7 @@ function Hero() {
   // Auto-resize the textarea.
   useEffect(() => {
     const ta = taRef.current;
-    if (ta) { ta.style.height = "auto"; ta.style.height = `${Math.max(80, ta.scrollHeight)}px`; }
+    if (ta) { ta.style.height = "auto"; ta.style.height = `${Math.max(52, ta.scrollHeight)}px`; }
   }, [query]);
 
   function onType(v: string) {
@@ -103,68 +101,51 @@ function Hero() {
   }
 
   return (
-    <section className="relative overflow-hidden bg-[#050A14] px-5 pb-28 pt-28 sm:px-6">
+    <section className="relative overflow-hidden bg-white px-5 pb-28 pt-28 sm:px-6">
       {/* Animated glow blobs */}
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="v5-blob v5-blob-a" style={{ left: "8%", top: "28%", width: 420, height: 340, background: "#0051FF", opacity: 0.22 }} />
-        <div className="v5-blob v5-blob-b" style={{ right: "6%", top: "8%", width: 360, height: 300, background: "#6E56FF", opacity: 0.18 }} />
-        <div className="v5-blob v5-blob-c" style={{ left: "42%", bottom: "6%", width: 380, height: 300, background: "#00D4FF", opacity: 0.12 }} />
+        <div className="v5-blob v5-blob-a" style={{ left: "8%", top: "26%", width: 420, height: 340, background: "#0051FF", opacity: 0.1 }} />
+        <div className="v5-blob v5-blob-b" style={{ right: "6%", top: "6%", width: 360, height: 300, background: "#6E56FF", opacity: 0.08 }} />
+        <div className="v5-blob v5-blob-c" style={{ left: "42%", bottom: "4%", width: 380, height: 300, background: "#00D4FF", opacity: 0.07 }} />
       </div>
 
       <div className="relative mx-auto max-w-3xl text-center">
         <Reveal>
-          <h1 className="mx-auto max-w-2xl text-[40px] font-bold leading-[1.05] tracking-[-0.03em] text-white sm:text-[64px] lg:text-[68px]">
+          <h1 className="mx-auto max-w-2xl text-[40px] font-bold leading-[1.05] tracking-[-0.03em] text-[#0F172A] sm:text-[64px] lg:text-[68px]">
             Find your ideal clients<br /><span className="v5-gradient-text">before your competitors do.</span>
           </h1>
         </Reveal>
         <Reveal delay={120}>
-          <p className="mx-auto mt-6 max-w-[500px] text-[17px] leading-[1.7] text-[#8B9EC4]">
+          <p className="mx-auto mt-6 max-w-[500px] text-[17px] leading-[1.7] text-[#475569]">
             Describe who you&apos;re looking for. Your AI Sales Agent finds them, messages them and sends you only the hot replies.
           </p>
         </Reveal>
 
         {/* Chat bubble */}
         <Reveal delay={200}>
-          <div className="v5-chat mx-auto mt-10 w-full max-w-[720px] rounded-2xl border border-[#1E2D4A] bg-[#0D1526] p-5 text-left shadow-[0_8px_40px_rgba(0,0,0,0.4)]">
+          <div className="v5-chat mx-auto mt-10 w-full max-w-[680px] rounded-2xl border border-[#E2E8F0] bg-white p-4 text-left shadow-[0_12px_40px_-12px_rgba(15,23,42,0.15)]">
             <textarea
               ref={taRef}
               value={query}
               onChange={(e) => onType(e.target.value)}
               placeholder={typed || "Describe your ideal prospect…"}
-              className="min-h-[80px] w-full resize-none bg-transparent text-[15px] leading-relaxed text-[#F0F4FF] outline-none placeholder:text-[#8B9EC4]"
+              className="min-h-[52px] w-full resize-none bg-transparent text-[15px] leading-relaxed text-[#0F172A] outline-none placeholder:text-[#94A3B8]"
             />
             {/* Suggestion chips */}
             <div className="v5-chips mt-2 flex gap-2 overflow-x-auto pb-1">
               {CHIPS.map((c) => (
-                <button key={c} onClick={() => onType(c.replace(/^\S+\s/, ""))} className="shrink-0 whitespace-nowrap rounded-full border border-[#1E2D4A] bg-[#162035] px-3 py-1.5 text-[13px] text-[#8B9EC4] transition hover:border-[#0051FF60] hover:text-[#F0F4FF]">
+                <button key={c} onClick={() => onType(c.replace(/^\S+\s/, ""))} className="shrink-0 whitespace-nowrap rounded-full border border-[#E2E8F0] bg-[#F1F5F9] px-3 py-1.5 text-[13px] text-[#475569] transition hover:border-[#0051FF60] hover:text-[#0F172A]">
                   {c}
                 </button>
               ))}
             </div>
             {/* Bottom bar */}
-            <div className="mt-3 flex items-center gap-2 border-t border-[#1E2D4A] pt-3">
-              <button title="Add context" className="flex h-8 w-8 items-center justify-center rounded-lg text-[#8B9EC4] transition hover:bg-[#162035] hover:text-[#F0F4FF]">+</button>
-              <div className="relative ml-auto">
-                <button onClick={() => setSrcOpen((v) => !v)} className="rounded-lg border border-[#1E2D4A] px-3 py-1.5 text-[13px] text-[#8B9EC4] transition hover:text-[#F0F4FF]">
-                  Sources ▾
-                </button>
-                {srcOpen && (
-                  <div className="absolute right-0 z-20 mt-1 w-52 rounded-xl border border-[#1E2D4A] bg-[#0D1526] p-1.5 shadow-[0_10px_40px_rgba(0,0,0,0.5)]">
-                    {["LinkedIn", "Google Maps", "Reddit"].map((s) => (
-                      <button key={s} onClick={() => setSources((o) => ({ ...o, [s]: !o[s] }))} className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-[13px] text-[#F0F4FF] hover:bg-[#162035]">
-                        <span className={sources[s] ? "text-[#22C55E]" : "text-[#4A5980]"}>{sources[s] ? "✅" : "☐"}</span> {s}
-                      </button>
-                    ))}
-                    {["Instagram", "TikTok", "Facebook"].map((s) => (
-                      <div key={s} className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[13px] text-[#4A5980]">☐ {s} <span className="ml-auto rounded bg-[#162035] px-1.5 py-0.5 text-[10px]">V1.2</span></div>
-                    ))}
-                  </div>
-                )}
-              </div>
+            <div className="mt-3 flex items-center gap-2 border-t border-[#E2E8F0] pt-3">
+              <button title="Add context" className="flex h-8 w-8 items-center justify-center rounded-lg text-[#475569] transition hover:bg-[#F1F5F9] hover:text-[#0F172A]">+</button>
               <button
                 onClick={find}
                 disabled={!query.trim()}
-                className="rounded-lg bg-gradient-to-br from-[#0051FF] to-[#0085FF] px-5 py-2 text-[14px] font-semibold text-white shadow-[0_0_16px_#0051FF40] transition hover:-translate-y-0.5 hover:shadow-[0_0_28px_#0051FF70] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
+                className="ml-auto rounded-lg bg-gradient-to-br from-[#0051FF] to-[#0085FF] px-5 py-2 text-[14px] font-semibold text-white shadow-[0_0_16px_#0051FF40] transition hover:-translate-y-0.5 hover:shadow-[0_0_28px_#0051FF70] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
               >
                 Find them →
               </button>
@@ -177,11 +158,11 @@ function Hero() {
           <div className="mt-8 flex flex-col items-center gap-2">
             <div className="flex items-center gap-3">
               <div className="flex -space-x-2">
-                {["#0051FF", "#00A3FF", "#4F8BFF", "#00D4FF", "#1A6BFF"].map((c, i) => <span key={i} className="h-7 w-7 rounded-full border-2 border-[#050A14]" style={{ background: c }} />)}
+                {["#0051FF", "#00A3FF", "#4F8BFF", "#00D4FF", "#1A6BFF"].map((c, i) => <span key={i} className="h-7 w-7 rounded-full border-2 border-white" style={{ background: c }} />)}
               </div>
-              <span className="text-[13px] text-[#8B9EC4]">500+ B2B sales teams trust LogLead</span>
+              <span className="text-[13px] text-[#475569]">500+ B2B sales teams trust LogLead</span>
             </div>
-            <p className="text-[13px] text-[#4A5980]"><span className="text-[#F59E0B]">★★★★★</span> &ldquo;Like having a full-time SDR for €59/month&rdquo;</p>
+            <p className="text-[13px] text-[#94A3B8]"><span className="text-[#F59E0B]">★★★★★</span> &ldquo;Like having a full-time SDR for €59/month&rdquo;</p>
           </div>
         </Reveal>
       </div>
@@ -200,25 +181,178 @@ const STEPS = [
 function HowItWorks() {
   return (
     <section id="how" className="bg-[#F8FAFC] px-5 py-24 sm:px-6">
-      <div className="mx-auto max-w-3xl">
+      <div className="mx-auto max-w-6xl">
         <div className="text-center">
           <span className={EY}><span className="text-[#0085FF]">✦</span> How your agent works</span>
           <h2 className="mt-5 text-[36px] font-bold leading-[1.05] tracking-[-0.02em] text-[#0F172A] sm:text-[48px]">Set it up once.<br /><span className="v5-gradient-text">Let it run forever.</span></h2>
           <p className="mx-auto mt-4 max-w-lg text-[16px] text-[#475569]">Your AI Sales Agent works around the clock. You review and close.</p>
         </div>
-        <div className="relative mt-14 pl-8">
-          <div aria-hidden className="absolute bottom-2 left-[7px] top-2 w-px bg-[#0051FF30]" />
-          {STEPS.map((s) => (
-            <Reveal key={s.n} className="relative mb-10 last:mb-0">
-              <span className="absolute -left-8 top-1 h-3.5 w-3.5 rounded-full border-2 border-[#FFFFFF] bg-[#0051FF]" />
-              <div className="text-[13px] font-bold text-[#0051FF]">{s.n}</div>
-              <h3 className="mt-1 text-[19px] font-semibold text-[#0F172A]">{s.h}</h3>
-              <p className="mt-1.5 text-[15px] leading-relaxed text-[#475569]">{s.d}</p>
+        <div className="mt-16 space-y-16 sm:space-y-24">
+          {STEPS.map((s, i) => (
+            <Reveal key={s.n}>
+              <div className={`grid items-center gap-8 sm:gap-12 lg:grid-cols-2 ${i % 2 === 1 ? "lg:[&>*:first-child]:order-2" : ""}`}>
+                {/* Text */}
+                <div className={i % 2 === 1 ? "lg:pl-4" : "lg:pr-4"}>
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#0051FF] to-[#0085FF] text-[13px] font-bold text-white shadow-[0_6px_16px_-4px_rgba(0,81,255,0.5)]">{s.n}</span>
+                    <span className="h-px flex-1 bg-gradient-to-r from-[#0051FF40] to-transparent" />
+                  </div>
+                  <h3 className="mt-4 text-[24px] font-bold leading-tight tracking-[-0.01em] text-[#0F172A] sm:text-[28px]">{s.h}</h3>
+                  <p className="mt-3 text-[16px] leading-relaxed text-[#475569]">{s.d}</p>
+                </div>
+                {/* Illustration */}
+                <StepArt step={i} />
+              </div>
             </Reveal>
           ))}
         </div>
       </div>
     </section>
+  );
+}
+
+// Browser-chrome frame wrapping each step's animated mini-mockup.
+function Frame({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="v5-float overflow-hidden rounded-2xl border border-[#E2E8F0] bg-white shadow-[0_24px_60px_-24px_rgba(15,23,42,0.22)]">
+      <div className="flex items-center gap-1.5 border-b border-[#F1F5F9] bg-[#F8FAFC] px-4 py-2.5">
+        <span className="h-2.5 w-2.5 rounded-full bg-[#FF5F57]" />
+        <span className="h-2.5 w-2.5 rounded-full bg-[#FEBC2E]" />
+        <span className="h-2.5 w-2.5 rounded-full bg-[#28C840]" />
+        <span className="ml-3 h-4 flex-1 rounded-md bg-[#EEF2F7]" />
+      </div>
+      <div className="p-5">{children}</div>
+    </div>
+  );
+}
+
+function StepArt({ step }: { step: number }) {
+  if (step === 0) {
+    // Describe your prospect — prompt input with typewriter cursor
+    return (
+      <Frame>
+        <div className="rounded-xl border border-[#E2E8F0] bg-[#FBFCFE] p-4">
+          <div className="text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">Your request</div>
+          <div className="mt-2 text-[15px] font-medium text-[#0F172A]">
+            Web agencies in France hiring a sales rep<span className="v5-blink ml-0.5 inline-block h-4 w-[2px] translate-y-0.5 bg-[#0051FF]" />
+          </div>
+        </div>
+        <div className="mt-3 flex items-center justify-between">
+          <div className="flex gap-1.5">
+            {["LinkedIn", "Google Maps", "Web"].map((s) => (
+              <span key={s} className="rounded-md bg-[#EFF4FF] px-2 py-1 text-[11px] font-medium text-[#0051FF]">{s}</span>
+            ))}
+          </div>
+          <span className="rounded-lg bg-gradient-to-br from-[#0051FF] to-[#0085FF] px-3 py-1.5 text-[12px] font-semibold text-white">Find them →</span>
+        </div>
+      </Frame>
+    );
+  }
+  if (step === 1) {
+    // Finds them — prospect list with FIT scores rising in
+    const rows = [
+      { c: "Pixelis Studio", s: 94, g: "#10B981" },
+      { c: "Nord Digital", s: 88, g: "#10B981" },
+      { c: "Atelier Web", s: 72, g: "#F59E0B" },
+      { c: "Studio Meraki", s: 61, g: "#F59E0B" },
+    ];
+    return (
+      <Frame>
+        <div className="mb-2 flex items-center justify-between text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">
+          <span>Prospect</span><span>Fit</span>
+        </div>
+        <div className="space-y-2">
+          {rows.map((r, i) => (
+            <div key={r.c} className="v5-rise flex items-center justify-between rounded-lg border border-[#EEF2F7] bg-white px-3 py-2.5" style={{ animationDelay: `${i * 0.15}s` }}>
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#EFF4FF] text-[11px] font-bold text-[#0051FF]">{r.c[0]}</span>
+                <span className="text-[13px] font-medium text-[#0F172A]">{r.c}</span>
+              </div>
+              <span className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full" style={{ background: r.g }} />
+                <span className="num text-[13px] font-bold text-[#0F172A]">{r.s}</span>
+              </span>
+            </div>
+          ))}
+        </div>
+      </Frame>
+    );
+  }
+  if (step === 2) {
+    // Writes personalized messages — chat composer with typing dots
+    return (
+      <Frame>
+        <div className="flex items-center gap-2.5 border-b border-[#F1F5F9] pb-3">
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#EFF4FF] text-[12px] font-bold text-[#0051FF]">P</span>
+          <div>
+            <div className="text-[13px] font-semibold text-[#0F172A]">Pixelis Studio</div>
+            <div className="text-[11px] text-[#94A3B8]">Founder · Paris</div>
+          </div>
+        </div>
+        <div className="mt-3 space-y-2">
+          <div className="max-w-[85%] rounded-[12px_12px_12px_4px] bg-[#F1F5F9] px-3 py-2 text-[12.5px] leading-relaxed text-[#334155]">
+            Hi — saw you&apos;re hiring a sales rep. Growing the team is exactly when outbound gets messy…
+          </div>
+          <div className="flex items-center gap-1.5 pl-1">
+            <span className="h-2 w-2 animate-bounce rounded-full bg-[#0051FF] [animation-delay:0s]" />
+            <span className="h-2 w-2 animate-bounce rounded-full bg-[#0051FF] [animation-delay:0.15s]" />
+            <span className="h-2 w-2 animate-bounce rounded-full bg-[#0051FF] [animation-delay:0.3s]" />
+            <span className="ml-1.5 text-[11px] text-[#94A3B8]">writing follow-up…</span>
+          </div>
+        </div>
+      </Frame>
+    );
+  }
+  if (step === 3) {
+    // Sends and follows up — sequence timeline
+    const seq = [
+      { t: "First message", d: "Sent", done: true },
+      { t: "Wait 3 days", d: "Auto", done: true },
+      { t: "Follow-up", d: "Sent", done: true },
+      { t: "Wait 5 days", d: "Scheduled", done: false },
+      { t: "Last message", d: "Queued", done: false },
+    ];
+    return (
+      <Frame>
+        <div className="text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">Sequence · on autopilot</div>
+        <div className="relative mt-3 space-y-3 pl-6">
+          <span aria-hidden className="absolute bottom-2 left-[9px] top-2 w-px bg-[#E2E8F0]" />
+          {seq.map((x, i) => (
+            <div key={x.t} className="v5-rise relative flex items-center justify-between" style={{ animationDelay: `${i * 0.12}s` }}>
+              <span className={`absolute -left-6 top-1 flex h-[18px] w-[18px] items-center justify-center rounded-full text-[10px] font-bold ${x.done ? "bg-[#0051FF] text-white" : "border-2 border-[#CBD5E1] bg-white text-transparent"}`}>✓</span>
+              <span className="text-[13px] font-medium text-[#0F172A]">{x.t}</span>
+              <span className={`text-[11px] font-medium ${x.done ? "text-[#10B981]" : "text-[#94A3B8]"}`}>{x.d}</span>
+            </div>
+          ))}
+        </div>
+      </Frame>
+    );
+  }
+  // step 4 — hot conversations surfaced
+  const hot = [
+    { c: "Nord Digital", m: "Yes, let's talk — how does Tuesday look?" },
+    { c: "Pixelis Studio", m: "Interested. Can you send pricing?" },
+  ];
+  return (
+    <Frame>
+      <div className="mb-3 flex items-center gap-2">
+        <span className="text-[15px]">🔥</span>
+        <span className="text-[13px] font-semibold text-[#0F172A]">Hot conversations</span>
+        <span className="ml-auto rounded-full bg-[#FEF2F2] px-2 py-0.5 text-[11px] font-bold text-[#EF4444]">2 new</span>
+      </div>
+      <div className="space-y-2.5">
+        {hot.map((h, i) => (
+          <div key={h.c} className="v5-rise rounded-xl border border-[#E2E8F0] bg-[#FBFCFE] p-3" style={{ animationDelay: `${i * 0.2}s` }}>
+            <div className="flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#EFF4FF] text-[10px] font-bold text-[#0051FF]">{h.c[0]}</span>
+              <span className="text-[12.5px] font-semibold text-[#0F172A]">{h.c}</span>
+              <span className="ml-auto h-2 w-2 rounded-full bg-[#10B981]" />
+            </div>
+            <div className="mt-1.5 text-[12.5px] leading-relaxed text-[#475569]">“{h.m}”</div>
+          </div>
+        ))}
+      </div>
+    </Frame>
   );
 }
 

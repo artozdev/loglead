@@ -619,3 +619,7 @@ body {
 .v5-chat:focus-within { border-color: #0051FF60 !important; box-shadow: 0 8px 40px rgba(0,0,0,0.4), 0 0 0 1px #0051FF30, 0 0 40px #0051FF15 !important; }
 .v5-chips::-webkit-scrollbar { display: none; }
 .v5-chips { scrollbar-width: none; }
+@keyframes v5-blink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+.v5-blink { animation: v5-blink 1s step-end infinite; }
+@keyframes v5-rise { 0%{opacity:0;transform:translateY(6px)} 100%{opacity:1;transform:translateY(0)} }
+.v5-rise { animation: v5-rise 0.5s ease both; }
