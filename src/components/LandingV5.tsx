@@ -49,13 +49,6 @@ const DEMO_QUERIES = [
   "B2B SaaS between 20 and 200 employees in Paris",
   "E-commerce brands with low engagement on Instagram",
 ];
-const CHIPS = [
-  "🏪 Local businesses without website",
-  "💼 B2B SaaS hiring a sales rep",
-  "⭐ Restaurants with low Google rating",
-  "🏗️ Construction companies in France",
-  "📱 E-commerce brands on TikTok",
-];
 
 function Hero() {
   const [query, setQuery] = useState("");
@@ -112,7 +105,7 @@ function Hero() {
 
       <div className="relative mx-auto max-w-3xl text-center">
         <Reveal>
-          <h1 className="mx-auto max-w-2xl text-[40px] font-bold leading-[1.05] tracking-[-0.03em] text-white drop-shadow-[0_2px_20px_rgba(0,0,0,0.25)] sm:text-[64px] lg:text-[68px]">
+          <h1 className="mx-auto max-w-2xl text-[32px] font-bold leading-[1.06] tracking-[-0.03em] text-white drop-shadow-[0_2px_20px_rgba(0,0,0,0.25)] sm:text-[48px] lg:text-[54px]">
             Find your ideal clients<br /><span className="v5-gradient-text-light">before your competitors do.</span>
           </h1>
         </Reveal>
@@ -124,31 +117,24 @@ function Hero() {
 
         {/* Chat bubble */}
         <Reveal delay={200}>
-          <div className="v5-chat mx-auto mt-10 w-full max-w-[680px] rounded-2xl border border-[#E2E8F0] bg-white p-4 text-left shadow-[0_12px_40px_-12px_rgba(15,23,42,0.15)]">
+          <div className="v5-chat mx-auto mt-9 w-full max-w-[620px] rounded-[20px] border border-[#E2E8F0] bg-white px-5 pb-3 pt-4 text-left shadow-[0_16px_44px_-14px_rgba(15,23,42,0.2)]">
             <textarea
               ref={taRef}
               value={query}
               onChange={(e) => onType(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); find(); } }}
               placeholder={typed || "Describe your ideal prospect…"}
-              className="min-h-[52px] w-full resize-none bg-transparent text-[15px] leading-relaxed text-[#0F172A] outline-none placeholder:text-[#94A3B8]"
+              className="min-h-[44px] w-full resize-none bg-transparent text-[15px] leading-relaxed text-[#0F172A] outline-none placeholder:text-[#94A3B8]"
             />
-            {/* Suggestion chips */}
-            <div className="v5-chips mt-2 flex gap-2 overflow-x-auto pb-1">
-              {CHIPS.map((c) => (
-                <button key={c} onClick={() => onType(c.replace(/^\S+\s/, ""))} className="shrink-0 whitespace-nowrap rounded-full border border-[#E2E8F0] bg-[#F1F5F9] px-3 py-1.5 text-[13px] text-[#475569] transition hover:border-[#0051FF60] hover:text-[#0F172A]">
-                  {c}
-                </button>
-              ))}
-            </div>
             {/* Bottom bar */}
-            <div className="mt-3 flex items-center gap-2 border-t border-[#E2E8F0] pt-3">
-              <button title="Add context" className="flex h-8 w-8 items-center justify-center rounded-lg text-[#475569] transition hover:bg-[#F1F5F9] hover:text-[#0F172A]">+</button>
+            <div className="mt-2 flex items-center gap-2">
+              <button title="Add context" aria-label="Add context" className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E2E8F0] text-[18px] leading-none text-[#475569] transition hover:border-[#0051FF60] hover:text-[#0F172A]">+</button>
               <button
                 onClick={find}
                 disabled={!query.trim()}
-                className="ml-auto rounded-lg bg-gradient-to-br from-[#0051FF] to-[#0085FF] px-5 py-2 text-[14px] font-semibold text-white shadow-[0_0_16px_#0051FF40] transition hover:-translate-y-0.5 hover:shadow-[0_0_28px_#0051FF70] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
+                className="ml-auto inline-flex items-center gap-2 rounded-full bg-gradient-to-br from-[#0051FF] to-[#0085FF] px-5 py-2.5 text-[14px] font-semibold text-white shadow-[0_0_16px_#0051FF40] transition hover:-translate-y-0.5 hover:shadow-[0_0_28px_#0051FF70] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
               >
-                Find them →
+                Find them <span aria-hidden>➤</span>
               </button>
             </div>
           </div>
