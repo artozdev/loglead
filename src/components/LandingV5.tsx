@@ -435,35 +435,6 @@ function BeforeAfter() {
   );
 }
 
-function Testimonials() {
-  const t = useTr();
-  const testis = [
-    { q: t("I set up LogLead on a Monday. By Wednesday my agent had found 34 qualified restaurants in Lyon without websites and sent them all a personalized first message. I got 7 replies. Closed 3 that week.", "J'ai configuré LogLead un lundi. Le mercredi, mon agent avait trouvé 34 restaurants qualifiés à Lyon sans site web et leur avait envoyé un premier message personnalisé. J'ai eu 7 réponses. J'en ai closé 3 dans la semaine."), n: "Thomas R.", r: t("Web agency founder · Paris", "Fondateur agence web · Paris") },
-    { q: t("We replaced our junior SDR with LogLead. Not because we wanted to cut costs — because LogLead finds better prospects, writes better messages and never forgets to follow up.", "On a remplacé notre SDR junior par LogLead. Pas pour réduire les coûts — parce que LogLead trouve de meilleurs prospects, écrit de meilleurs messages et n'oublie jamais de relancer."), n: "Camille V.", r: "Head of Sales · Nexio", mid: true },
-    { q: t("The 'while you were sleeping' dashboard is what sold me. I wake up, I see 3 hot replies from my agent, I reply and I close. That's literally my morning routine now.", "Le tableau de bord « pendant que vous dormiez » m'a convaincu. Je me réveille, je vois 3 réponses chaudes de mon agent, je réponds et je close. C'est littéralement ma routine du matin maintenant."), n: "Marc L.", r: t("Founder · Hrflow", "Fondateur · Hrflow") },
-  ];
-  return (
-    <section className="px-5 py-24 sm:px-6">
-      <div className="mx-auto max-w-5xl">
-        <div className="text-center">
-          <span className={EY}><span className="text-[#0085FF]">✦</span> {t("What sales teams say", "Ce que disent les équipes commerciales")}</span>
-          <h2 className="mt-5 text-[36px] font-bold tracking-[-0.02em] text-[#0F172A] sm:text-[48px]">{t("They let the agent work.", "Ils laissent l'agent bosser.")}<br />{t("They just closed.", "Ils n'ont plus qu'à closer.")}</h2>
-        </div>
-        <div className="mt-12 grid items-center gap-4 md:grid-cols-3">
-          {testis.map((ti) => (
-            <Reveal key={ti.n} className={`rounded-2xl border bg-[#F8FAFC] p-6 ${ti.mid ? "border-[#0051FF40] md:scale-105" : "border-[#E2E8F0]"}`}>
-              <p className="text-[#F59E0B]">★★★★★</p>
-              <p className="mt-3 text-[14px] leading-relaxed text-[#0F172A]">&ldquo;{ti.q}&rdquo;</p>
-              <p className="mt-4 text-[13px] font-semibold text-[#0F172A]">{ti.n}</p>
-              <p className="text-[12px] text-[#94A3B8]">{ti.r}</p>
-            </Reveal>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function Faq() {
   const t = useTr();
   const faqs: [string, string][] = [
@@ -554,7 +525,6 @@ export default function LandingV5() {
         <HowItWorks />
         <Sources />
         <BeforeAfter />
-        <Testimonials />
         <Faq />
         <FinalCta />
         <Footer />
