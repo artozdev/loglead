@@ -692,7 +692,8 @@ export function AffiliateSection({ tone = "dark" }: { tone?: "light" | "dark" })
 
 // ----- Pricing (dark marketing page) ---------------------------------------
 
-export function PricingLanding() {
+export function PricingLanding({ tone = "dark" }: { tone?: "light" | "dark" }) {
+  const dark = tone === "dark";
   const [annual, setAnnual] = useState(false);
   const price = (p: number) => (p === 0 ? 0 : annual ? Math.round(p * 12 * 0.83) / 12 : p);
   const plans = [
@@ -715,7 +716,7 @@ export function PricingLanding() {
     },
   ];
   return (
-    <section className="lp-dark px-5 pt-20 pb-8 sm:px-6">
+    <section className={`${dark ? "lp-dark" : "lp-light"} px-5 pt-20 pb-8 sm:px-6`}>
       <div className="mx-auto max-w-6xl">
         <SectionTitle badge="Pricing" title={<>Choose your plan.<br /><span className="text-[#0051FF]">Start for free.</span></>} sub="Stop letting opportunities slip by. Turn your LinkedIn visibility into growth." />
 
@@ -730,7 +731,7 @@ export function PricingLanding() {
         {/* 3 plans */}
         <div className="mt-10 grid gap-4 lg:grid-cols-3">
           {plans.map((p, i) => (
-            <Reveal key={p.name} delay={i * 80} className={`relative flex flex-col rounded-[20px] border p-6 ${p.popular ? "border-2 border-[#0051FF]" : `${BORDER} ${CARD}`}`} style={p.popular ? { background: "linear-gradient(180deg,#0D2060,#0A0A0A)", boxShadow: "0 0 60px #0051FF20" } : undefined}>
+            <Reveal key={p.name} delay={i * 80} className={`relative flex flex-col rounded-[20px] border p-6 ${p.popular ? "border-2 border-[#0051FF]" : `${BORDER} ${CARD}`}`} style={p.popular ? { background: dark ? "linear-gradient(180deg,#0D2060,#0A0A0A)" : "linear-gradient(180deg,#EAF1FF,#FFFFFF)", boxShadow: "0 0 60px #0051FF20" } : undefined}>
               {p.popular && <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-[#0051FF] px-3 py-1 text-[11px] font-semibold text-white">Recommended</span>}
               <p className={`text-[15px] font-bold ${FG}`}>{p.name}</p>
               <p className={`mt-1 text-[13px] leading-relaxed ${MUTED}`}>{p.desc}</p>
@@ -765,7 +766,7 @@ export function PricingLanding() {
               <div className={`flex h-full flex-col items-center rounded-2xl border ${BORDER} ${CARD} px-6 pb-7 pt-8 text-center transition duration-300 hover:-translate-y-1 hover:border-[#0051FF60] hover:shadow-[0_24px_60px_-30px_rgba(0,81,255,0.7)]`}>
                 <span className="relative flex h-[72px] w-[72px] items-center justify-center rounded-2xl text-white shadow-[0_14px_36px_-10px_rgba(0,81,255,0.7)]" style={{ background: "linear-gradient(135deg,#0051FF,#00A3FF)" }}>
                   <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{s.icon}</svg>
-                  <span className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full border border-[#0051FF40] bg-[#0A0A0A] text-[11px] font-bold text-[#0051FF]">{s.n}</span>
+                  <span className={`absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full border border-[#0051FF40] text-[11px] font-bold text-[#0051FF] ${dark ? "bg-[#0A0A0A]" : "bg-white"}`}>{s.n}</span>
                 </span>
                 <p className={`mt-5 text-[17px] font-bold ${FG}`}>{s.title}</p>
                 <p className={`mt-2 text-[13px] leading-relaxed ${MUTED}`}>{s.desc}</p>

@@ -42,7 +42,9 @@ function NavMenu({ label, items, cls }: { label: string; items: [string, string]
   );
 }
 
-function Nav() {
+// `solid` forces the light (scrolled) styling for pages that have no dark hero
+// behind the nav (e.g. /pricing, /affiliate).
+export function Nav({ solid = false }: { solid?: boolean }) {
   const t = useTr();
   const { lang, setLang } = useLang();
   const [scrolled, setScrolled] = useState(false);
@@ -52,13 +54,14 @@ function Nav() {
     window.addEventListener("scroll", on, { passive: true });
     return () => window.removeEventListener("scroll", on);
   }, []);
-  const linkCls = `transition ${scrolled ? "hover:text-[#0F172A]" : "hover:text-white"}`;
+  const light = solid || scrolled;
+  const linkCls = `transition ${light ? "hover:text-[#0F172A]" : "hover:text-white"}`;
 
   const produit: [string, string][] = [
-    [t("How it works", "Comment ça marche"), "#how"],
-    [t("Data sources", "Sources de données"), "#sources"],
-    [t("Before / after", "Avant / après"), "#before"],
-    ["FAQ", "#faq"],
+    [t("How it works", "Comment ça marche"), "/#how"],
+    [t("Data sources", "Sources de données"), "/#sources"],
+    [t("Before / after", "Avant / après"), "/#before"],
+    ["FAQ", "/#faq"],
   ];
   const solution: [string, string][] = [
     [t("SaaS founders", "Fondateurs SaaS"), "/for/saas-founders"],
@@ -79,13 +82,13 @@ function Nav() {
   ];
 
   return (
-    <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${scrolled ? "border-b border-[#E2E8F0] bg-[#FFFFFFEE] backdrop-blur-xl" : "border-b border-transparent"}`}>
+    <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${light ? "border-b border-[#E2E8F0] bg-[#FFFFFFEE] backdrop-blur-xl" : "border-b border-transparent"}`}>
       <nav className="mx-auto flex h-[72px] max-w-6xl items-center justify-between px-5 sm:px-6">
         <Link href="/" aria-label="LogLead">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={scrolled ? "/loglead-logo.svg" : "/loglead-logo-dark.svg"} alt="LogLead" className="h-7 w-auto" />
+          <img src={light ? "/loglead-logo.svg" : "/loglead-logo-dark.svg"} alt="LogLead" className="h-7 w-auto" />
         </Link>
-        <div className={`hidden items-center gap-7 text-[14px] lg:flex ${scrolled ? "text-[#475569]" : "text-white/85"}`}>
+        <div className={`hidden items-center gap-7 text-[14px] lg:flex ${light ? "text-[#475569]" : "text-white/85"}`}>
           <NavMenu label={t("Product", "Produit")} items={produit} cls={linkCls} />
           <NavMenu label={t("Solution", "Solution")} items={solution} cls={linkCls} />
           <Link href="/pricing" className={linkCls}>{t("Pricing", "Tarifs")}</Link>
@@ -95,11 +98,11 @@ function Nav() {
           <button
             onClick={() => setLang(lang === "fr" ? "en" : "fr")}
             aria-label={t("Switch to French", "Passer en anglais")}
-            className={`rounded-lg border px-2.5 py-1.5 text-[12px] font-semibold transition ${scrolled ? "border-[#E2E8F0] text-[#475569] hover:border-[#0051FF60] hover:text-[#0F172A]" : "border-white/30 text-white/85 hover:border-white hover:text-white"}`}
+            className={`rounded-lg border px-2.5 py-1.5 text-[12px] font-semibold transition ${light ? "border-[#E2E8F0] text-[#475569] hover:border-[#0051FF60] hover:text-[#0F172A]" : "border-white/30 text-white/85 hover:border-white hover:text-white"}`}
           >
             {lang === "fr" ? "FR" : "EN"}
           </button>
-          <Link href="/login" className={`hidden text-[14px] transition sm:block ${scrolled ? "text-[#475569] hover:text-[#0F172A]" : "text-white/85 hover:text-white"}`}>{t("Log in", "Connexion")}</Link>
+          <Link href="/login" className={`hidden text-[14px] transition sm:block ${light ? "text-[#475569] hover:text-[#0F172A]" : "text-white/85 hover:text-white"}`}>{t("Log in", "Connexion")}</Link>
           <Link href={SIGNUP} className={`${BTN} !px-5 !py-2.5 !text-[14px]`}>{t("Get started", "Commencer")}</Link>
         </div>
       </nav>
@@ -535,7 +538,7 @@ function FinalCta() {
   );
 }
 
-function Footer() {
+export function Footer() {
   const t = useTr();
   const cols = [
     { t: t("Product", "Produit"), links: [["LogAgent", "/logagent"], [t("Leads Pipeline", "Pipeline Leads"), "/leads"], [t("Pricing", "Tarifs"), "/pricing"], [t("Changelog", "Nouveautés"), "#"]] as [string, string][] },

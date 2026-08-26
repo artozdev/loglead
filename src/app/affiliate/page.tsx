@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Footer, Nav } from "@/components/LandingV5";
+import { AffiliateSection, BTN_P, FAQ, Roll } from "@/components/LandingPage";
 import { LangProvider } from "@/components/lpLang";
-import { AffiliateSection, BTN_P, FAQ, LandingFooter, LandingNavbar, Roll } from "@/components/LandingPage";
 
 export const metadata: Metadata = {
   title: "Affiliate Program — Earn 40% recurring commission",
@@ -27,18 +28,18 @@ const AFFILIATE_FAQ: [string, string][] = [
 export default function AffiliatePage() {
   return (
     <LangProvider>
-    <div className="min-h-screen bg-[#0A0A0A] font-sans antialiased">
-      <LandingNavbar />
-      <AffiliateSection tone="dark" />
-      <FAQ items={AFFILIATE_FAQ} badge="FAQ" title="The most asked questions" tone="dark" />
-      <section className="lp-dark px-5 py-24 text-center sm:px-6">
-        <p className="mx-auto max-w-xl text-[24px] font-bold text-white">Join the LogLead affiliate program.</p>
-        <p className="mx-auto mt-3 max-w-xl text-[15px] text-[#8B9EC4]">Earn 40% of each subscription you generate, every month, for life.</p>
-        <Link href="/signup" className={`${BTN_P} mt-6`}><Roll>→ Become an affiliate — It&apos;s free</Roll></Link>
-        <p className="mt-4 text-[12px] text-[#6A7690]">Validation in a few days. No technical setup required.</p>
-      </section>
-      <LandingFooter tone="dark" />
-    </div>
+      <div className="min-h-screen bg-white font-sans antialiased">
+        <Nav solid />
+        <AffiliateSection tone="light" />
+        <FAQ items={AFFILIATE_FAQ} badge="FAQ" title="The most asked questions" tone="light" />
+        <section className="lp-light px-5 py-24 text-center sm:px-6">
+          <p className="mx-auto max-w-xl text-[24px] font-bold text-[#0F172A]">Join the LogLead affiliate program.</p>
+          <p className="mx-auto mt-3 max-w-xl text-[15px] text-[#475569]">Earn 40% of each subscription you generate, every month, for life.</p>
+          <Link href="/signup" className={`${BTN_P} mt-6`}><Roll>→ Become an affiliate — It&apos;s free</Roll></Link>
+          <p className="mt-4 text-[12px] text-[#94A3B8]">Validation in a few days. No technical setup required.</p>
+        </section>
+        <Footer />
+      </div>
     </LangProvider>
   );
 }

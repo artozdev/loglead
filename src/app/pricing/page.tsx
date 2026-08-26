@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Footer, Nav } from "@/components/LandingV5";
+import { BTN_P, FAQ, PricingLanding, Roll } from "@/components/LandingPage";
 import { LangProvider } from "@/components/lpLang";
-import { BTN_P, FAQ, LandingFooter, LandingNavbar, PricingLanding, Roll } from "@/components/LandingPage";
 
 export const metadata: Metadata = {
   title: "Pricing — Start free with 100 credits",
@@ -27,17 +28,17 @@ const PRICING_FAQ: [string, string][] = [
 export default function PricingPage() {
   return (
     <LangProvider>
-    <div className="min-h-screen bg-[#0A0A0A] font-sans antialiased">
-      <LandingNavbar />
-      <PricingLanding />
-      <FAQ items={PRICING_FAQ} badge="FAQ" title="The most asked questions" tone="dark" />
-      <section className="lp-dark px-5 py-24 text-center sm:px-6">
-        <p className="mx-auto max-w-xl text-[22px] font-bold text-white">Try 7 days on the plan you want — no credit card required.</p>
-        <Link href="/signup" className={`${BTN_P} mt-6`}><Roll>→ Start for free</Roll></Link>
-        <p className="mt-4 text-[12px] text-[#6A7690]">7-day free trial · No credit card · Cancel anytime</p>
-      </section>
-      <LandingFooter tone="dark" />
-    </div>
+      <div className="min-h-screen bg-white font-sans antialiased">
+        <Nav solid />
+        <PricingLanding tone="light" />
+        <FAQ items={PRICING_FAQ} badge="FAQ" title="The most asked questions" tone="light" />
+        <section className="lp-light px-5 py-24 text-center sm:px-6">
+          <p className="mx-auto max-w-xl text-[22px] font-bold text-[#0F172A]">Try 7 days on the plan you want — no credit card required.</p>
+          <Link href="/signup" className={`${BTN_P} mt-6`}><Roll>→ Start for free</Roll></Link>
+          <p className="mt-4 text-[12px] text-[#94A3B8]">7-day free trial · No credit card · Cancel anytime</p>
+        </section>
+        <Footer />
+      </div>
     </LangProvider>
   );
 }
