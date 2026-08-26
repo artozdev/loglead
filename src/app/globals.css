@@ -623,3 +623,10 @@ body {
 .v5-blink { animation: v5-blink 1s step-end infinite; }
 @keyframes v5-rise { 0%{opacity:0;transform:translateY(6px)} 100%{opacity:1;transform:translateY(0)} }
 .v5-rise { animation: v5-rise 0.5s ease both; }
+.v5-gradient-text-light {
+  background: linear-gradient(135deg, #8FC2FF, #E6F3FF);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}

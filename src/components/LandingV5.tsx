@@ -27,15 +27,15 @@ function Nav() {
       <nav className="mx-auto flex h-[72px] max-w-6xl items-center justify-between px-5 sm:px-6">
         <Link href="/" aria-label="LogLead">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/loglead-logo.svg" alt="LogLead" className="h-7 w-auto" />
+          <img src={scrolled ? "/loglead-logo.svg" : "/loglead-logo-dark.svg"} alt="LogLead" className="h-7 w-auto" />
         </Link>
-        <div className="hidden items-center gap-7 text-[14px] text-[#475569] lg:flex">
-          <a href="#how" className="transition hover:text-[#0F172A]">How it works</a>
-          <a href="#pricing" className="transition hover:text-[#0F172A]">Pricing</a>
-          <Link href="/affiliate" className="transition hover:text-[#0F172A]">Affiliate</Link>
+        <div className={`hidden items-center gap-7 text-[14px] lg:flex ${scrolled ? "text-[#475569]" : "text-white/85"}`}>
+          <a href="#how" className={`transition ${scrolled ? "hover:text-[#0F172A]" : "hover:text-white"}`}>How it works</a>
+          <a href="#pricing" className={`transition ${scrolled ? "hover:text-[#0F172A]" : "hover:text-white"}`}>Pricing</a>
+          <Link href="/affiliate" className={`transition ${scrolled ? "hover:text-[#0F172A]" : "hover:text-white"}`}>Affiliate</Link>
         </div>
         <div className="flex items-center gap-3">
-          <Link href="/login" className="hidden text-[14px] text-[#475569] transition hover:text-[#0F172A] sm:block">Log in</Link>
+          <Link href="/login" className={`hidden text-[14px] transition sm:block ${scrolled ? "text-[#475569] hover:text-[#0F172A]" : "text-white/85 hover:text-white"}`}>Log in</Link>
           <Link href={SIGNUP} className={`${BTN} !px-5 !py-2.5 !text-[14px]`}>Hire your agent →</Link>
         </div>
       </nav>
@@ -100,22 +100,24 @@ function Hero() {
   }
 
   return (
-    <section className="relative overflow-hidden bg-white px-5 pb-28 pt-28 sm:px-6">
-      {/* Animated glow blobs */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="v5-blob v5-blob-a" style={{ left: "8%", top: "26%", width: 420, height: 340, background: "#0051FF", opacity: 0.1 }} />
-        <div className="v5-blob v5-blob-b" style={{ right: "6%", top: "6%", width: 360, height: 300, background: "#6E56FF", opacity: 0.08 }} />
-        <div className="v5-blob v5-blob-c" style={{ left: "42%", bottom: "4%", width: 380, height: 300, background: "#00D4FF", opacity: 0.07 }} />
-      </div>
+    <section className="relative -mt-[72px] overflow-hidden px-5 pb-28 pt-[184px] sm:px-6">
+      {/* Hero background image (dark navy → blue → white gradient) */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-cover bg-top bg-no-repeat"
+        style={{ backgroundImage: "url(/hero-bg.svg)" }}
+      />
+      {/* Bottom fade into the light sections below */}
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent to-[#F8FAFC]" />
 
       <div className="relative mx-auto max-w-3xl text-center">
         <Reveal>
-          <h1 className="mx-auto max-w-2xl text-[40px] font-bold leading-[1.05] tracking-[-0.03em] text-[#0F172A] sm:text-[64px] lg:text-[68px]">
-            Find your ideal clients<br /><span className="v5-gradient-text">before your competitors do.</span>
+          <h1 className="mx-auto max-w-2xl text-[40px] font-bold leading-[1.05] tracking-[-0.03em] text-white drop-shadow-[0_2px_20px_rgba(0,0,0,0.25)] sm:text-[64px] lg:text-[68px]">
+            Find your ideal clients<br /><span className="v5-gradient-text-light">before your competitors do.</span>
           </h1>
         </Reveal>
         <Reveal delay={120}>
-          <p className="mx-auto mt-6 max-w-[500px] text-[17px] leading-[1.7] text-[#475569]">
+          <p className="mx-auto mt-6 max-w-[500px] text-[17px] leading-[1.7] text-white/85">
             Describe who you&apos;re looking for. Your AI Sales Agent finds them, messages them and sends you only the hot replies.
           </p>
         </Reveal>
