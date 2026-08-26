@@ -50,7 +50,7 @@ function Nav() {
             {lang === "fr" ? "FR" : "EN"}
           </button>
           <Link href="/login" className={`hidden text-[14px] transition sm:block ${scrolled ? "text-[#475569] hover:text-[#0F172A]" : "text-white/85 hover:text-white"}`}>{t("Log in", "Connexion")}</Link>
-          <Link href={SIGNUP} className={`${BTN} !px-5 !py-2.5 !text-[14px]`}>{t("Hire your agent →", "Recruter votre agent →")}</Link>
+          <Link href={SIGNUP} className={`${BTN} !px-5 !py-2.5 !text-[14px]`}>{t("Get started", "Commencer")}</Link>
         </div>
       </nav>
     </header>
