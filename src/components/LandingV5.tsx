@@ -547,10 +547,10 @@ export function Footer({ showCta = true }: { showCta?: boolean }) {
           </div>
         )}
 
-        {/* White footer sheet — full width, only top corners rounded, flush to bottom */}
-        <div className={showCta ? "" : "pt-24"}>
-          <div className="rounded-t-[36px] bg-white pb-14 pt-14">
-            <div className="mx-auto max-w-6xl px-6 sm:px-10">
+        {/* White footer sheet — centered panel, only top corners rounded, flush to bottom */}
+        <div className={`px-4 sm:px-6 ${showCta ? "" : "pt-24"}`}>
+          <div className="mx-auto max-w-6xl rounded-t-[36px] bg-white px-8 pb-14 pt-14 sm:px-12">
+            <div>
               <div className="grid gap-8 sm:grid-cols-3 lg:grid-cols-6">
                 <div className="lg:col-span-1">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
