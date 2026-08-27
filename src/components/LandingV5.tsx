@@ -175,14 +175,15 @@ function WebSpyArt() {
   );
 }
 
-// Solution mega-menu — "who is it for?" audiences (no use-case column).
+// Solution menu — "by profile" audiences, one icon per target (Andoxa-style).
 function SolutionMenu({ cls }: { cls: string }) {
   const t = useTr();
-  const audiences: { name: string; href: string; d: string }[] = [
-    { name: t("Web agencies", "Agences Web"), href: "/for/agencies", d: t("Find companies that need your services, fast.", "Trouvez rapidement des entreprises qui ont besoin de vos services.") },
-    { name: t("Sales reps", "Commerciaux"), href: "/for/sales-teams", d: t("Spot the best prospects and focus on those with the most potential.", "Identifiez les meilleurs prospects et concentrez-vous sur ceux qui ont le plus de potentiel.") },
-    { name: t("Freelancers & consultants", "Freelances & Consultants"), href: "/for/consultants", d: t("Find new qualified clients without hours of prospecting.", "Trouvez de nouveaux clients qualifiés sans passer des heures à prospecter.") },
-    { name: t("Founders", "Fondateurs"), href: "/for/saas-founders", d: t("Discover the companies and opportunities that can accelerate your growth.", "Découvrez les entreprises et opportunités qui peuvent accélérer votre croissance.") },
+  const audiences: { name: string; href: string; icon: React.ReactNode }[] = [
+    { name: t("Web & SEO agencies", "Agences web & SEO"), href: "/for/agencies", icon: <><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></> },
+    { name: t("Freelancers & consultants", "Freelances & consultants"), href: "/for/consultants", icon: <><rect x="3" y="8" width="18" height="12" rx="2" /><path d="M8 8V6a2 2 0 012-2h4a2 2 0 012 2v2" /></> },
+    { name: t("Local marketing agencies", "Agences marketing local"), href: "/for/startups", icon: <><path d="M12 21s7-6.3 7-11a7 7 0 10-14 0c0 4.7 7 11 7 11z" /><circle cx="12" cy="10" r="2.5" /></> },
+    { name: t("Sales & business developers", "Commerciaux & business developers"), href: "/for/sales-teams", icon: <><path d="M17 21v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87" /><path d="M16 3.13a4 4 0 010 7.75" /></> },
+    { name: t("SMB founders", "Fondateurs de TPE/PME"), href: "/for/b2b-companies", icon: <><rect x="4" y="3" width="16" height="18" rx="1.5" /><path d="M9 8h1M14 8h1M9 12h1M14 12h1M9 16h1M14 16h1" /></> },
   ];
   return (
     <div className="group relative">
@@ -190,17 +191,17 @@ function SolutionMenu({ cls }: { cls: string }) {
         {t("Solution", "Solution")}
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="transition group-hover:rotate-180"><path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
       </button>
-      <div className="invisible absolute -left-40 top-full z-50 pt-3 opacity-0 transition duration-150 group-hover:visible group-hover:opacity-100">
-        <div className="w-[640px] max-w-[calc(100vw-2rem)] rounded-2xl border border-[#E2E8F0] bg-white p-6 shadow-[0_16px_44px_-14px_rgba(15,23,42,0.25)]">
-          <p className="mb-4 text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">{t("Who is it for?", "À qui est-ce destiné ?")}</p>
-          <div className="grid grid-cols-2 gap-x-8 gap-y-5">
-            {audiences.map((a) => (
-              <Link key={a.href} href={a.href} className="-m-2 block rounded-lg p-2 transition hover:bg-[#F8FAFC]">
-                <p className="text-[15px] font-semibold text-[#0F172A]">{a.name}</p>
-                <p className="mt-1 text-[13px] leading-relaxed text-[#64748B]">{a.d}</p>
-              </Link>
-            ))}
-          </div>
+      <div className="invisible absolute left-0 top-full z-50 pt-3 opacity-0 transition duration-150 group-hover:visible group-hover:opacity-100">
+        <div className="w-[300px] max-w-[calc(100vw-2rem)] rounded-2xl border border-[#E2E8F0] bg-white p-2 shadow-[0_16px_44px_-14px_rgba(15,23,42,0.25)]">
+          <p className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">{t("By profile", "Par profil")}</p>
+          {audiences.map((a) => (
+            <Link key={a.href} href={a.href} className="flex items-center gap-3 rounded-xl px-3 py-2.5 transition hover:bg-[#F8FAFC]">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#FFF1E8] text-[#F97316]">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">{a.icon}</svg>
+              </span>
+              <span className="text-[14px] font-medium leading-snug text-[#0F172A]">{a.name}</span>
+            </Link>
+          ))}
         </div>
       </div>
     </div>
