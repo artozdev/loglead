@@ -534,7 +534,7 @@ export function Footer({ showCta = true }: { showCta?: boolean }) {
 
       <div className="relative">
         {showCta && (
-          <div className="mx-auto max-w-3xl px-5 pt-24 pb-20 text-center sm:px-6">
+          <div className="mx-auto max-w-3xl px-5 pt-32 pb-32 text-center sm:px-6">
             <p className="text-[15px] font-medium text-[#64748B]">{t("AI Sales Agent", "Agent commercial IA")}</p>
             <h2 className="mt-3 text-[36px] font-bold leading-[1.05] tracking-[-0.03em] text-[#0F172A] sm:text-[52px]">{t("Ready to meet your next clients?", "Prêt à trouver vos prochains clients ?")}</h2>
             <Link href={SIGNUP} className="mx-auto mt-9 block w-full max-w-[620px] rounded-[20px] border border-[#E2E8F0] bg-white px-5 pb-3 pt-4 text-left shadow-[0_16px_44px_-14px_rgba(15,23,42,0.15)] transition hover:shadow-[0_22px_54px_-14px_rgba(15,23,42,0.22)]">
@@ -547,27 +547,29 @@ export function Footer({ showCta = true }: { showCta?: boolean }) {
           </div>
         )}
 
-        {/* Cream footer card */}
-        <div className={`px-4 pb-6 sm:px-6 ${showCta ? "" : "pt-16"}`}>
-          <div className="mx-auto max-w-6xl rounded-[28px] bg-[#F3EEE6] px-7 pb-8 pt-12 sm:px-12">
-            <div className="grid gap-8 sm:grid-cols-3 lg:grid-cols-6">
-              <div className="lg:col-span-1">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/loglead-logo.svg" alt="LogLead" className="h-7 w-auto" />
-                <p className="mt-3 text-[12px] leading-relaxed text-[#8A8172]">{t("Your AI Sales Agent for B2B.", "Votre agent commercial IA pour le B2B.")}</p>
-              </div>
-              {cols.map((c) => (
-                <div key={c.t}>
-                  <p className="text-[14px] font-bold text-[#0F172A]">{c.t}</p>
-                  <ul className="mt-4 space-y-2.5">
-                    {c.links.map(([l, h]) => <li key={l}><Link href={h} className="text-[13px] text-[#6B7280] transition hover:text-[#0F172A]">{l}</Link></li>)}
-                  </ul>
+        {/* White footer sheet — full width, only top corners rounded, flush to bottom */}
+        <div className={showCta ? "" : "pt-24"}>
+          <div className="rounded-t-[36px] bg-white pb-14 pt-14">
+            <div className="mx-auto max-w-6xl px-6 sm:px-10">
+              <div className="grid gap-8 sm:grid-cols-3 lg:grid-cols-6">
+                <div className="lg:col-span-1">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/loglead-logo.svg" alt="LogLead" className="h-7 w-auto" />
+                  <p className="mt-3 text-[12px] leading-relaxed text-[#94A3B8]">{t("Your AI Sales Agent for B2B.", "Votre agent commercial IA pour le B2B.")}</p>
                 </div>
-              ))}
-            </div>
-            <div className="mt-12 flex flex-col items-center justify-between gap-2 border-t border-[#E4DBCC] pt-6 text-[12px] text-[#8A8172] sm:flex-row">
-              <p>{t("© 2026 LogLead · Your AI Sales Agent for B2B", "© 2026 LogLead · Votre agent commercial IA pour le B2B")}</p>
-              <p>{t("Not affiliated with LinkedIn Corporation. · SIRET 104 040 456 00014", "Non affilié à LinkedIn Corporation. · SIRET 104 040 456 00014")}</p>
+                {cols.map((c) => (
+                  <div key={c.t}>
+                    <p className="text-[14px] font-bold text-[#0F172A]">{c.t}</p>
+                    <ul className="mt-4 space-y-2.5">
+                      {c.links.map(([l, h]) => <li key={l}><Link href={h} className="text-[13px] text-[#6B7280] transition hover:text-[#0F172A]">{l}</Link></li>)}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-12 flex flex-col items-center justify-between gap-2 border-t border-[#E2E8F0] pt-6 text-[12px] text-[#94A3B8] sm:flex-row">
+                <p>{t("© 2026 LogLead · Your AI Sales Agent for B2B", "© 2026 LogLead · Votre agent commercial IA pour le B2B")}</p>
+                <p>{t("Not affiliated with LinkedIn Corporation. · SIRET 104 040 456 00014", "Non affilié à LinkedIn Corporation. · SIRET 104 040 456 00014")}</p>
+              </div>
             </div>
           </div>
         </div>
