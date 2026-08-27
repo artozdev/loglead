@@ -41,6 +41,118 @@ function NavMenu({ label, items, cls }: { label: string; items: [string, string]
   );
 }
 
+// Product mega-menu — 3 feature cards, each with a modern mini-mockup.
+function ProductMenu({ cls }: { cls: string }) {
+  const t = useTr();
+  const products = [
+    {
+      name: "Scout",
+      href: "/#how",
+      tag: t("Describe. LogLead finds.", "Décrivez. LogLead trouve."),
+      icon: <><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></>,
+      art: <ScoutArt t={t} />,
+    },
+    {
+      name: "Lead Intelligence",
+      href: "/#sources",
+      tag: t("Qualified, scored, enriched automatically.", "Qualifiés, scorés, enrichis automatiquement."),
+      icon: <><path d="M3 3v18h18" /><path d="M7 13l3-3 3 2 5-6" /></>,
+      art: <LeadIntelArt />,
+    },
+    {
+      name: "Web Spy",
+      href: "/#before",
+      tag: t("Find who uses your competitors.", "Trouvez qui utilise vos concurrents."),
+      icon: <><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" /><circle cx="12" cy="12" r="3" /></>,
+      art: <WebSpyArt t={t} />,
+    },
+  ];
+  return (
+    <div className="group relative">
+      <button className={`inline-flex items-center gap-1 ${cls}`}>
+        {t("Product", "Produit")}
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="transition group-hover:rotate-180"><path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+      </button>
+      <div className="invisible absolute left-0 top-full z-50 pt-3 opacity-0 transition duration-150 group-hover:visible group-hover:opacity-100">
+        <div className="w-[720px] max-w-[calc(100vw-2rem)] rounded-2xl border border-[#E2E8F0] bg-white p-3 shadow-[0_16px_44px_-14px_rgba(15,23,42,0.25)]">
+          <div className="grid grid-cols-3 gap-3">
+            {products.map((p) => (
+              <Link key={p.name} href={p.href} className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 transition hover:border-[#0051FF60] hover:bg-white hover:shadow-[0_12px_32px_-14px_rgba(15,23,42,0.2)]">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E2E8F0] bg-white text-[#0051FF]">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">{p.icon}</svg>
+                  </span>
+                  <span className="text-[14px] font-semibold text-[#0F172A]">{p.name}</span>
+                </div>
+                <p className="mt-2 text-[12px] leading-relaxed text-[#64748B]">{p.tag}</p>
+                <div className="mt-3">{p.art}</div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Scout — a compact search-prompt mockup with a blinking cursor.
+function ScoutArt({ t }: { t: Tr }) {
+  return (
+    <div className="rounded-lg border border-[#E2E8F0] bg-white p-2.5 shadow-[0_6px_18px_-10px_rgba(15,23,42,0.25)]">
+      <div className="flex items-center gap-1.5 rounded-md border border-[#E2E8F0] bg-[#F8FAFC] px-2 py-1.5">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2.2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
+        <span className="text-[10px] font-medium leading-none text-[#0F172A]">{t("Web agencies hiring", "Agences web qui recrutent")}<span className="v5-blink ml-px inline-block h-2.5 w-[1.5px] translate-y-[1px] bg-[#0051FF]" /></span>
+      </div>
+      <div className="mt-1.5 flex gap-1">
+        {["LinkedIn", "Maps", "Web"].map((s) => (
+          <span key={s} className="rounded bg-[#EFF4FF] px-1.5 py-0.5 text-[8px] font-semibold text-[#0051FF]">{s}</span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Lead Intelligence — a compact list with scores + enrichment badges.
+function LeadIntelArt() {
+  const rows = [
+    { n: "Pixelis", s: 94, g: "#10B981" },
+    { n: "Nord Digital", s: 88, g: "#10B981" },
+    { n: "Atelier Web", s: 72, g: "#F59E0B" },
+  ];
+  return (
+    <div className="space-y-1 rounded-lg border border-[#E2E8F0] bg-white p-2 shadow-[0_6px_18px_-10px_rgba(15,23,42,0.25)]">
+      {rows.map((r) => (
+        <div key={r.n} className="flex items-center justify-between rounded-md bg-[#F8FAFC] px-2 py-1.5">
+          <div className="flex items-center gap-1.5">
+            <span className="flex h-4 w-4 items-center justify-center rounded bg-[#EFF4FF] text-[8px] font-bold text-[#0051FF]">{r.n[0]}</span>
+            <span className="text-[10px] font-medium text-[#0F172A]">{r.n}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="text-[8px]">✉</span>
+            <span className="text-[8px]">📞</span>
+            <span className="flex items-center gap-0.5"><span className="h-1.5 w-1.5 rounded-full" style={{ background: r.g }} /><span className="num text-[10px] font-bold text-[#0F172A]">{r.s}</span></span>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Web Spy — a "detected tech stack" card.
+function WebSpyArt({ t }: { t: Tr }) {
+  return (
+    <div className="rounded-lg border border-[#E2E8F0] bg-white p-2.5 shadow-[0_6px_18px_-10px_rgba(15,23,42,0.25)]">
+      <div className="text-[8px] font-semibold uppercase tracking-wide text-[#94A3B8]">{t("Detected on acme.com", "Détecté sur acme.com")}</div>
+      <div className="mt-1.5 flex flex-wrap gap-1">
+        {["HubSpot", "Shopify", "Intercom"].map((s) => (
+          <span key={s} className="rounded border border-[#E2E8F0] bg-[#F8FAFC] px-1.5 py-0.5 text-[8px] font-semibold text-[#334155]">{s}</span>
+        ))}
+      </div>
+      <div className="mt-2 flex items-center gap-1 text-[9px] font-medium text-[#10B981]"><span className="h-1.5 w-1.5 rounded-full bg-[#10B981]" />{t("3 competitor tools found", "3 outils concurrents trouvés")}</div>
+    </div>
+  );
+}
+
 // `solid` forces the light (scrolled) styling for pages that have no dark hero
 // behind the nav (e.g. /pricing, /affiliate).
 export function Nav({ solid = false }: { solid?: boolean }) {
@@ -56,12 +168,6 @@ export function Nav({ solid = false }: { solid?: boolean }) {
   const light = solid || scrolled;
   const linkCls = `transition ${light ? "hover:text-[#0F172A]" : "hover:text-white"}`;
 
-  const produit: [string, string][] = [
-    [t("How it works", "Comment ça marche"), "/#how"],
-    [t("Data sources", "Sources de données"), "/#sources"],
-    [t("Before / after", "Avant / après"), "/#before"],
-    ["FAQ", "/#faq"],
-  ];
   const solution: [string, string][] = [
     [t("SaaS founders", "Fondateurs SaaS"), "/for/saas-founders"],
     [t("Agencies", "Agences"), "/for/agencies"],
@@ -88,7 +194,7 @@ export function Nav({ solid = false }: { solid?: boolean }) {
           <img src={light ? "/loglead-logo.svg" : "/loglead-logo-dark.svg"} alt="LogLead" className="h-7 w-auto" />
         </Link>
         <div className={`hidden items-center gap-7 text-[14px] lg:flex ${light ? "text-[#475569]" : "text-white/85"}`}>
-          <NavMenu label={t("Product", "Produit")} items={produit} cls={linkCls} />
+          <ProductMenu cls={linkCls} />
           <NavMenu label={t("Solution", "Solution")} items={solution} cls={linkCls} />
           <Link href="/pricing" className={linkCls}>{t("Pricing", "Tarifs")}</Link>
           <NavMenu label={t("Resources", "Ressources")} items={ressources} cls={linkCls} />
