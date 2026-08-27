@@ -73,7 +73,7 @@ function ProductMenu({ cls }: { cls: string }) {
         {t("Product", "Produit")}
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="transition group-hover:rotate-180"><path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
       </button>
-      <div className="invisible absolute left-0 top-full z-50 pt-3 opacity-0 transition duration-150 group-hover:visible group-hover:opacity-100">
+      <div className="invisible absolute -left-44 top-full z-50 pt-3 opacity-0 transition duration-150 group-hover:visible group-hover:opacity-100">
         <div className="w-[860px] max-w-[calc(100vw-2rem)] rounded-2xl border border-[#E2E8F0] bg-white p-3 shadow-[0_16px_44px_-14px_rgba(15,23,42,0.25)]">
           <div className="grid grid-cols-3 gap-3">
             {products.map((p) => (
@@ -175,6 +175,38 @@ function WebSpyArt() {
   );
 }
 
+// Solution mega-menu — "who is it for?" audiences (no use-case column).
+function SolutionMenu({ cls }: { cls: string }) {
+  const t = useTr();
+  const audiences: { name: string; href: string; d: string }[] = [
+    { name: t("Web agencies", "Agences Web"), href: "/for/agencies", d: t("Find companies that need your services, fast.", "Trouvez rapidement des entreprises qui ont besoin de vos services.") },
+    { name: t("Sales reps", "Commerciaux"), href: "/for/sales-teams", d: t("Spot the best prospects and focus on those with the most potential.", "Identifiez les meilleurs prospects et concentrez-vous sur ceux qui ont le plus de potentiel.") },
+    { name: t("Freelancers & consultants", "Freelances & Consultants"), href: "/for/consultants", d: t("Find new qualified clients without hours of prospecting.", "Trouvez de nouveaux clients qualifiés sans passer des heures à prospecter.") },
+    { name: t("Founders", "Fondateurs"), href: "/for/saas-founders", d: t("Discover the companies and opportunities that can accelerate your growth.", "Découvrez les entreprises et opportunités qui peuvent accélérer votre croissance.") },
+  ];
+  return (
+    <div className="group relative">
+      <button className={`inline-flex items-center gap-1 ${cls}`}>
+        {t("Solution", "Solution")}
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="transition group-hover:rotate-180"><path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+      </button>
+      <div className="invisible absolute -left-40 top-full z-50 pt-3 opacity-0 transition duration-150 group-hover:visible group-hover:opacity-100">
+        <div className="w-[640px] max-w-[calc(100vw-2rem)] rounded-2xl border border-[#E2E8F0] bg-white p-6 shadow-[0_16px_44px_-14px_rgba(15,23,42,0.25)]">
+          <p className="mb-4 text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">{t("Who is it for?", "À qui est-ce destiné ?")}</p>
+          <div className="grid grid-cols-2 gap-x-8 gap-y-5">
+            {audiences.map((a) => (
+              <Link key={a.href} href={a.href} className="-m-2 block rounded-lg p-2 transition hover:bg-[#F8FAFC]">
+                <p className="text-[15px] font-semibold text-[#0F172A]">{a.name}</p>
+                <p className="mt-1 text-[13px] leading-relaxed text-[#64748B]">{a.d}</p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // `solid` forces the light (scrolled) styling for pages that have no dark hero
 // behind the nav (e.g. /pricing, /affiliate).
 export function Nav({ solid = false }: { solid?: boolean }) {
@@ -190,14 +222,6 @@ export function Nav({ solid = false }: { solid?: boolean }) {
   const light = solid || scrolled;
   const linkCls = `transition ${light ? "hover:text-[#0F172A]" : "hover:text-white"}`;
 
-  const solution: [string, string][] = [
-    [t("SaaS founders", "Fondateurs SaaS"), "/for/saas-founders"],
-    [t("Agencies", "Agences"), "/for/agencies"],
-    [t("Consultants", "Consultants"), "/for/consultants"],
-    [t("Sales teams", "Équipes commerciales"), "/for/sales-teams"],
-    [t("Startups", "Startups"), "/for/startups"],
-    [t("B2B companies", "Entreprises B2B"), "/for/b2b-companies"],
-  ];
   const ressources: [string, string][] = [
     ["LogLead vs Lemlist", "/vs/loglead-vs-lemlist"],
     ["LogLead vs Apollo", "/vs/loglead-vs-apollo"],
@@ -217,7 +241,7 @@ export function Nav({ solid = false }: { solid?: boolean }) {
         </Link>
         <div className={`hidden items-center gap-7 text-[14px] lg:flex ${light ? "text-[#475569]" : "text-white/85"}`}>
           <ProductMenu cls={linkCls} />
-          <NavMenu label={t("Solution", "Solution")} items={solution} cls={linkCls} />
+          <SolutionMenu cls={linkCls} />
           <Link href="/pricing" className={linkCls}>{t("Pricing", "Tarifs")}</Link>
           <NavMenu label={t("Resources", "Ressources")} items={ressources} cls={linkCls} />
         </div>
