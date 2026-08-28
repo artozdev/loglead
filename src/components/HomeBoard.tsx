@@ -244,9 +244,10 @@ export default function HomeBoard({
         </div>
       </div>
 
-      {/* Row 1 — metrics + À faire */}
+      {/* Row 1 — left column (metrics + activity chart) + À faire */}
       <div className="mt-6 grid gap-3 lg:grid-cols-4 lg:items-start">
-        <div className="grid gap-3 sm:grid-cols-3 lg:col-span-3">
+        <div className="space-y-3 lg:col-span-3">
+          <div className="grid gap-3 sm:grid-cols-3">
           {metrics.map((m) => (
             <div key={m.label} className="relative overflow-hidden rounded-xl border border-line bg-surface px-5 py-4">
               <div className="flex items-center justify-between">
@@ -258,6 +259,30 @@ export default function HomeBoard({
               <div className="absolute bottom-3 right-3">{!empty && <Sparkline data={m.spark} color={m.color} />}</div>
             </div>
           ))}
+          </div>
+
+          {/* Activity chart — sits in the gap under the metric cards */}
+          {!empty && (
+            <div className="rounded-xl border border-line bg-surface p-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <p className="flex items-center gap-1.5 text-[13px] font-semibold text-ink"><span>🔭</span> Activité de prospection</p>
+                <select value={days} onChange={(e) => setDays(Number(e.target.value))} className="cursor-pointer rounded-lg border border-line bg-canvas px-2.5 py-1.5 text-[12px] font-medium text-ink outline-none">
+                  <option value={7}>7 derniers jours</option>
+                  <option value={30}>30 derniers jours</option>
+                  <option value={90}>3 mois</option>
+                  <option value={365}>Cette année</option>
+                </select>
+              </div>
+              <div className="mt-2 flex items-start justify-between">
+                <p className="num text-[32px] font-bold leading-none text-ink">{rangeFound}</p>
+                <div className="flex flex-col gap-1 text-[12px] text-muted">
+                  <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full" style={{ background: BLUE }} /> Prospects trouvés</span>
+                  <span className="flex items-center gap-1.5"><span className="inline-block h-0 w-4 border-t-2 border-dashed" style={{ borderColor: GREEN }} /> Prospects qualifiés</span>
+                </div>
+              </div>
+              <div className="mt-3"><ActivityChart buckets={buckets} /></div>
+            </div>
+          )}
         </div>
 
         {/* À faire */}
@@ -274,7 +299,7 @@ export default function HomeBoard({
                 const a = todoAction(p);
                 const name = p.contactName ?? p.companyName;
                 return (
-                  <Link key={p.id} href={`/leads/${p.id}`} className="group flex items-center gap-2.5 border-b border-line py-2.5 last:border-b-0 hover:opacity-90">
+                  <Link key={p.id} href={`/leads?p=${p.id}`} className="group flex items-center gap-2.5 border-b border-line py-2.5 last:border-b-0 hover:opacity-90">
                     <Avatar name={name} dot={a.dot} />
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-[13px] font-medium text-ink">{name}</div>
@@ -298,29 +323,7 @@ export default function HomeBoard({
           <Link href="/logagent" className="btn-primary mx-auto mt-6 !py-2 text-[13px]">→ Start your first search</Link>
         </div>
       ) : (
-        <>
-          {/* Row 2 — activity chart */}
-          <div className="mt-4 rounded-xl border border-line bg-surface p-5">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="flex items-center gap-1.5 text-[13px] font-semibold text-ink"><span>🔭</span> Activité de prospection</p>
-              <select value={days} onChange={(e) => setDays(Number(e.target.value))} className="cursor-pointer rounded-lg border border-line bg-canvas px-2.5 py-1.5 text-[12px] font-medium text-ink outline-none">
-                <option value={7}>7 derniers jours</option>
-                <option value={30}>30 derniers jours</option>
-                <option value={90}>3 mois</option>
-                <option value={365}>Cette année</option>
-              </select>
-            </div>
-            <div className="mt-2 flex items-start justify-between">
-              <p className="num text-[32px] font-bold leading-none text-ink">{rangeFound}</p>
-              <div className="flex flex-col gap-1 text-[12px] text-muted">
-                <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full" style={{ background: BLUE }} /> Prospects trouvés</span>
-                <span className="flex items-center gap-1.5"><span className="inline-block h-0 w-4 border-t-2 border-dashed" style={{ borderColor: GREEN }} /> Prospects qualifiés</span>
-              </div>
-            </div>
-            <div className="mt-3"><ActivityChart buckets={buckets} /></div>
-          </div>
-
-          {/* Row 3 — recent searches + hot prospects */}
+          /* Row 3 — recent searches + hot prospects */
           <div className="mt-4 grid gap-4 lg:grid-cols-5">
             {/* Recent searches */}
             <div className="rounded-xl border border-line bg-surface p-5 lg:col-span-3">
@@ -362,7 +365,7 @@ export default function HomeBoard({
                     const name = p.contactName ?? p.companyName;
                     const role = p.contactName ? p.companyName : (p.companySector ?? p.companyLocation ?? "");
                     return (
-                      <Link key={p.id} href={`/leads/${p.id}`} className="group flex items-start gap-2.5 border-b border-line py-3 last:border-b-0">
+                      <Link key={p.id} href={`/leads?p=${p.id}`} className="group flex items-start gap-2.5 border-b border-line py-3 last:border-b-0">
                         <Avatar name={name} />
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
@@ -380,7 +383,6 @@ export default function HomeBoard({
               )}
             </div>
           </div>
-        </>
       )}
     </div>
   );

@@ -52,11 +52,11 @@ function relative(iso: string): string {
   return `il y a ${Math.floor(d / 7)} sem`;
 }
 
-export default function LeadsBoard({ prospects }: { prospects: Prospect[] }) {
+export default function LeadsBoard({ prospects, openId }: { prospects: Prospect[]; openId?: string }) {
   const [tab, setTab] = useState<string>("all");
   const [q, setQ] = useState("");
   const [items, setItems] = useState<Prospect[]>(prospects);
-  const [selected, setSelected] = useState<Prospect | null>(null);
+  const [selected, setSelected] = useState<Prospect | null>(() => (openId ? prospects.find((p) => p.id === openId) ?? null : null));
 
   const metrics = useMemo(() => {
     const total = items.length;
