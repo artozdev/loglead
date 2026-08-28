@@ -245,7 +245,7 @@ export default function HomeBoard({
       </div>
 
       {/* Row 1 — left column (metrics + activity chart) + À faire */}
-      <div className="mt-6 grid gap-3 lg:grid-cols-4 lg:items-start">
+      <div className="mt-6 grid gap-3 lg:grid-cols-4 lg:items-stretch">
         <div className="space-y-3 lg:col-span-3">
           <div className="grid gap-3 sm:grid-cols-3">
           {metrics.map((m) => (
@@ -286,7 +286,7 @@ export default function HomeBoard({
         </div>
 
         {/* À faire */}
-        <div className="rounded-xl border border-line bg-surface p-4 lg:col-span-1">
+        <div className="flex flex-col rounded-xl border border-line bg-surface p-4 lg:col-span-1">
           <div className="flex items-center justify-between">
             <p className="flex items-center gap-1.5 text-[13px] font-semibold text-ink"><span>✦</span> À faire</p>
             <span className="rounded-full bg-ink px-2 py-0.5 text-[11px] font-semibold text-canvas">{todoAll.length}</span>
@@ -294,7 +294,7 @@ export default function HomeBoard({
           {todo.length === 0 ? (
             <p className="mt-4 text-[12px] text-muted">Rien à traiter pour le moment.</p>
           ) : (
-            <div className="mt-2">
+            <div className="mt-2 flex flex-1 flex-col">
               {todo.map((p) => {
                 const a = todoAction(p);
                 const name = p.contactName ?? p.companyName;
@@ -309,7 +309,7 @@ export default function HomeBoard({
                   </Link>
                 );
               })}
-              {todoAll.length > todo.length && <p className="pt-3 text-[12px] text-faint">··· + {todoAll.length - todo.length} autres</p>}
+              {todoAll.length > todo.length && <p className="mt-auto pt-3 text-[12px] text-faint">··· + {todoAll.length - todo.length} autres</p>}
             </div>
           )}
         </div>
