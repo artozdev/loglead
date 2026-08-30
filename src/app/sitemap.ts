@@ -23,6 +23,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...ALTERNATIVE_SLUGS.map((s) => ({ path: `/alternative/${s}-alternative`, priority: 0.8, changeFreq: "monthly" as const })),
     // Vertical solution pages.
     ...VERTICAL_SLUGS.map((s) => ({ path: `/for/${s}`, priority: 0.8, changeFreq: "monthly" as const })),
+    // Dedicated audience pages (agencies already covered by VERTICAL_SLUGS).
+    ...["sales", "freelancers", "founders"].map((s) => ({ path: `/for/${s}`, priority: 0.8, changeFreq: "monthly" as const })),
   ];
 
   return routes.map((r) => ({

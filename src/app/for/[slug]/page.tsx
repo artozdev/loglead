@@ -5,8 +5,10 @@ import { getVertical, VERTICAL_SLUGS } from "@/lib/verticals";
 
 export const dynamicParams = false;
 
+// `agencies` has a dedicated static page (src/app/for/agencies) — exclude it
+// here so the two routes don't both try to prerender /for/agencies.
 export function generateStaticParams() {
-  return VERTICAL_SLUGS.map((slug) => ({ slug }));
+  return VERTICAL_SLUGS.filter((slug) => slug !== "agencies").map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({

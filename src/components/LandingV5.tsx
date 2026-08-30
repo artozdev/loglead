@@ -179,11 +179,10 @@ function WebSpyArt() {
 function SolutionMenu({ cls }: { cls: string }) {
   const t = useTr();
   const audiences: { name: string; href: string; icon: React.ReactNode }[] = [
-    { name: t("Web & SEO agencies", "Agences web & SEO"), href: "/for/agencies", icon: <><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></> },
-    { name: t("Freelancers & consultants", "Freelances & consultants"), href: "/for/consultants", icon: <><rect x="3" y="8" width="18" height="12" rx="2" /><path d="M8 8V6a2 2 0 012-2h4a2 2 0 012 2v2" /></> },
-    { name: t("Local marketing agencies", "Agences marketing local"), href: "/for/startups", icon: <><path d="M12 21s7-6.3 7-11a7 7 0 10-14 0c0 4.7 7 11 7 11z" /><circle cx="12" cy="10" r="2.5" /></> },
-    { name: t("Sales & business developers", "Commerciaux & business developers"), href: "/for/sales-teams", icon: <><path d="M17 21v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87" /><path d="M16 3.13a4 4 0 010 7.75" /></> },
-    { name: t("SMB founders", "Fondateurs de TPE/PME"), href: "/for/b2b-companies", icon: <><rect x="4" y="3" width="16" height="18" rx="1.5" /><path d="M9 8h1M14 8h1M9 12h1M14 12h1M9 16h1M14 16h1" /></> },
+    { name: t("Web agencies", "Agences web"), href: "/for/agencies", icon: <><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></> },
+    { name: t("Sales teams", "Commerciaux"), href: "/for/sales", icon: <><path d="M17 21v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87" /><path d="M16 3.13a4 4 0 010 7.75" /></> },
+    { name: t("Freelancers & consultants", "Freelances & consultants"), href: "/for/freelancers", icon: <><rect x="3" y="8" width="18" height="12" rx="2" /><path d="M8 8V6a2 2 0 012-2h4a2 2 0 012 2v2" /></> },
+    { name: t("Founders", "Fondateurs"), href: "/for/founders", icon: <><rect x="4" y="3" width="16" height="18" rx="1.5" /><path d="M9 8h1M14 8h1M9 12h1M14 12h1M9 16h1M14 16h1" /></> },
   ];
   return (
     <div className="group relative">
@@ -196,7 +195,7 @@ function SolutionMenu({ cls }: { cls: string }) {
           <p className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">{t("By profile", "Par profil")}</p>
           {audiences.map((a) => (
             <Link key={a.href} href={a.href} className="flex items-center gap-3 rounded-xl px-3 py-2.5 transition hover:bg-[#F8FAFC]">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#FFF1E8] text-[#F97316]">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#EFF4FF] text-[#0051FF]">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">{a.icon}</svg>
               </span>
               <span className="text-[14px] font-medium leading-snug text-[#0F172A]">{a.name}</span>
@@ -676,6 +675,7 @@ export function Footer({ showCta = true }: { showCta?: boolean }) {
   const cols = [
     { t: t("Company", "Entreprise"), links: [[t("About", "À propos"), "#"], ["Blog", "#"], [t("Careers", "Carrières"), "#"], ["Contact", "mailto:loglead@gmail.com"]] as [string, string][] },
     { t: t("Product", "Produit"), links: [["LogAgent", "/logagent"], [t("Leads Pipeline", "Pipeline Leads"), "/leads"], [t("Pricing", "Tarifs"), "/pricing"], [t("Changelog", "Nouveautés"), "#"]] as [string, string][] },
+    { t: t("Solutions", "Solutions"), links: [[t("Web agencies", "Agences web"), "/for/agencies"], [t("Sales teams", "Commerciaux"), "/for/sales"], [t("Freelancers", "Freelances"), "/for/freelancers"], [t("Founders", "Fondateurs"), "/for/founders"]] as [string, string][] },
     { t: t("Resources", "Ressources"), links: [[t("Help Center", "Centre d'aide"), "#"], ["Documentation", "#"], [t("Templates", "Modèles"), "#"], [t("Guides", "Guides"), "#"]] as [string, string][] },
     { t: t("Legal", "Légal"), links: [[t("Privacy", "Confidentialité"), "/privacy"], [t("Terms", "CGU"), "/terms"], [t("Cookie settings", "Cookies"), "#"], [t("Legal notice", "Mentions légales"), "#"]] as [string, string][] },
     { t: t("Community", "Communauté"), links: [[t("Affiliate", "Affiliation"), "/affiliate"], [t("Become a partner", "Devenir partenaire"), "#"], [t("Hire an expert", "Recruter un expert"), "#"]] as [string, string][] },
@@ -704,7 +704,7 @@ export function Footer({ showCta = true }: { showCta?: boolean }) {
         <div className={`px-4 sm:px-6 ${showCta ? "" : "pt-24"}`}>
           <div className="mx-auto max-w-6xl rounded-t-[36px] bg-white px-8 pb-14 pt-14 sm:px-12">
             <div>
-              <div className="grid gap-8 sm:grid-cols-3 lg:grid-cols-6">
+              <div className="grid gap-8 sm:grid-cols-3 lg:grid-cols-7">
                 <div className="lg:col-span-1">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src="/loglead-logo.svg" alt="LogLead" className="h-7 w-auto" />
