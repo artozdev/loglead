@@ -235,19 +235,10 @@ export function Nav({ solid = false }: { solid?: boolean }) {
   return (
     <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${light ? "border-b border-[#E2E8F0] bg-[#FFFFFFEE] backdrop-blur-xl" : "border-b border-transparent"}`}>
       <nav className="mx-auto flex h-[72px] max-w-6xl items-center justify-between px-5 sm:px-6">
-        <div className="flex items-center gap-3">
-          <Link href="/" aria-label="LogLead">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={light ? "/loglead-logo.svg" : "/loglead-logo-dark.svg"} alt="LogLead" className="h-7 w-auto" />
-          </Link>
-          <button
-            onClick={() => setLang(lang === "fr" ? "en" : "fr")}
-            aria-label={t("Switch to French", "Passer en anglais")}
-            className={`rounded-lg border px-2.5 py-1.5 text-[12px] font-semibold transition ${light ? "border-[#E2E8F0] text-[#475569] hover:border-[#0051FF60] hover:text-[#0F172A]" : "border-white/30 text-white/85 hover:border-white hover:text-white"}`}
-          >
-            {lang === "fr" ? "FR" : "EN"}
-          </button>
-        </div>
+        <Link href="/" aria-label="LogLead">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={light ? "/loglead-logo.svg" : "/loglead-logo-dark.svg"} alt="LogLead" className="h-7 w-auto" />
+        </Link>
         <div className={`hidden items-center gap-7 text-[14px] lg:flex ${light ? "text-[#475569]" : "text-white/85"}`}>
           <ProductMenu cls={linkCls} />
           <SolutionMenu cls={linkCls} />
@@ -255,6 +246,13 @@ export function Nav({ solid = false }: { solid?: boolean }) {
           <NavMenu label={t("Resources", "Ressources")} items={ressources} cls={linkCls} />
         </div>
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => setLang(lang === "fr" ? "en" : "fr")}
+            aria-label={t("Switch to French", "Passer en anglais")}
+            className={`rounded-lg border px-2.5 py-1.5 text-[12px] font-semibold transition ${light ? "border-[#E2E8F0] text-[#475569] hover:border-[#0051FF60] hover:text-[#0F172A]" : "border-white/30 text-white/85 hover:border-white hover:text-white"}`}
+          >
+            {lang === "fr" ? "FR" : "EN"}
+          </button>
           <Link href="/login" className={`hidden text-[14px] transition sm:block ${light ? "text-[#475569] hover:text-[#0F172A]" : "text-white/85 hover:text-white"}`}>{t("Log in", "Connexion")}</Link>
           <Link href={SIGNUP} className={`${BTN} !px-5 !py-2.5 !text-[14px]`}>{t("Get started", "Commencer")}</Link>
         </div>
