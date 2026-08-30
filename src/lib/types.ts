@@ -608,6 +608,9 @@ export type Profile = {
   problem?: string;
   competitorDiffs?: string[]; // aligned by index with `competitors`
   frequency?: Frequency;
+  // ----- Prospecting onboarding (v2) -----
+  profileType?: string; // agency | sales | freelance | founder | local | other
+  preferredSources?: ProspectSource[]; // sources chosen at onboarding
   // Onboarding checklist (dashboard getting-started block). Only steps that
   // can't be derived from data are persisted here (e.g. "algo_insider" visit,
   // "connections"); the rest is computed live from content/analyses.
@@ -1201,6 +1204,7 @@ export type Search = {
   qualifiedResults: number;
   creditsUsed: number;
   status: "pending" | "running" | "done" | "error";
+  isFirstSearch?: boolean; // created by the onboarding flow
   createdAt: string;
 };
 

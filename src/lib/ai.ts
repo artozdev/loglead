@@ -329,6 +329,36 @@ N'invente rien : si un critère est absent, omets-le.`;
   });
 }
 
+// ----- Onboarding: turn offer + target into a first Scout search query ------
+
+export async function generateFirstSearchQuery(input: {
+  offer: string;
+  target?: string;
+  profileType?: string;
+}): Promise<string> {
+  const fallback = (input.target?.trim() || `Businesses that need ${input.offer}`).slice(0, 150);
+  if (isDemoMode()) return fallback;
+  try {
+    const res = await callJSON<{ query: string }>({
+      system:
+        "You turn a seller's offer and their ideal target into ONE concrete natural-language prospect search query for a B2B prospecting tool. Output in English, under 150 characters, specific and actionable (include a place or buying signal when implied). No surrounding quotes.",
+      user: `Offer: ${input.offer}\nIdeal target: ${input.target || "(not specified)"}\nProfile: ${input.profileType || "(unknown)"}\n\nReturn the single best first search query.`,
+      schema: {
+        type: "object",
+        additionalProperties: false,
+        properties: { query: { type: "string" } },
+        required: ["query"],
+      },
+      temperature: 0.4,
+      maxTokens: 300,
+    });
+    const q = (res.query || "").trim().replace(/^["']|["']$/g, "");
+    return q ? q.slice(0, 150) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 // ----- LogAgent: score prospect candidates against the ICP + criteria -------
 
 export type ScoredProspect = { fitScore: number; fitReasoning: string };
