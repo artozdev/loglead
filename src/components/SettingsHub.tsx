@@ -18,14 +18,13 @@ import { useTheme, type Theme } from "./ThemeProvider";
 
 type TabId =
   | "compte" | "apparence" | "notifications"
-  | "saas" | "connexions" | "team" | "facturation";
+  | "saas" | "team" | "facturation";
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "compte", label: "Compte" },
   { id: "apparence", label: "Apparence" },
   { id: "notifications", label: "Notifications" },
-  { id: "saas", label: "Mon SaaS" },
-  { id: "connexions", label: "Connexions" },
+  { id: "saas", label: "Mon Entreprise" },
   { id: "team", label: "Équipe" },
   { id: "facturation", label: "Facturation" },
 ];
@@ -156,14 +155,13 @@ export default function SettingsHub(props: SettingsHubProps) {
         {tab === "notifications" && <NotificationsTab prefs={props.emailPrefs} />}
         {tab === "saas" && (
           <div>
-            <SectionHeader title="Profil de votre SaaS" />
+            <SectionHeader title="Profil de votre entreprise" />
             <p className="-mt-3 mb-6 text-[13px] text-muted">
               Ces informations personnalisent toutes vos recommandations et contenus générés.
             </p>
             <ProfileForm initial={props.profile} onDirtyChange={setDirty} />
           </div>
         )}
-        {tab === "connexions" && <ConnexionsTab linkedin={props.linkedin} profileUrl={props.linkedinProfileUrl} autoDetect={props.linkedinAutoDetect} />}
         {tab === "team" && <TeamTab plan={props.plan} email={props.email} firstName={props.firstName} />}
         {tab === "facturation" && <FacturationTab plan={props.plan} renewalDate={props.renewalDate} />}
       </div>
@@ -628,155 +626,6 @@ function NotificationsTab({ prefs }: { prefs: EmailPrefs }) {
       <SectionHeader title="Notifications in-app" className="mt-12" />
       <ToggleSettingRow label="Alertes tendances" desc="Opportunités détectées dans ta niche en temps réel." defaultOn />
       <ToggleSettingRow label="Rappels de publication" desc="Rappel avant chaque contenu planifié." defaultOn />
-    </div>
-  );
-}
-
-// ---------- Connexions ------------------------------------------------------------
-
-function ConnexionsTab({ linkedin, profileUrl, autoDetect }: { linkedin: { connected: boolean; name?: string }; profileUrl?: string; autoDetect?: boolean }) {
-  const [state, setState] = useState<Record<string, string | null>>({
-    LinkedIn: linkedin.connected ? linkedin.name ?? "Compte LinkedIn" : null,
-    Gmail: null,
-    WhatsApp: null,
-  });
-  // V1 channels : LinkedIn (OAuth officiel) actif ; Gmail & WhatsApp à venir.
-  const rows: { name: string; dot: string; comingSoon?: boolean }[] = [
-    { name: "LinkedIn", dot: "var(--color-linkedin)" },
-    { name: "Gmail", dot: "#EA4335", comingSoon: true },
-    { name: "WhatsApp", dot: "#25D366", comingSoon: true },
-  ];
-
-  return (
-    <div>
-      <SectionHeader title="Comptes connectés" />
-      <p className="-mt-3 mb-4 text-[13px] text-muted">Connectez vos canaux pour publier et contacter vos leads depuis LogLead.</p>
-      <div className="divide-y divide-line">
-        {rows.map(({ name, dot, comingSoon }) => {
-          const handle = state[name];
-          return (
-            <div key={name} className={`flex items-center justify-between gap-4 py-3.5 ${comingSoon ? "opacity-50" : ""}`}>
-              <div className="flex items-center gap-3">
-                <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: dot }} />
-                <div>
-                  <div className="text-[14px] font-medium text-ink">{name}</div>
-                  <div className={`mt-0.5 text-[13px] ${handle ? "text-success" : "text-muted"}`}>
-                    {comingSoon ? "Bientôt disponible" : handle ? `${handle} · Connecté` : "Non connecté"}
-                  </div>
-                </div>
-              </div>
-              {comingSoon ? (
-                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
-                  Bientôt
-                </span>
-              ) : handle ? (
-                <BtnGrey
-                  onClick={async () => {
-                    // LinkedIn: real disconnect (clears the stored OAuth token).
-                    if (name === "LinkedIn") {
-                      await fetch("/api/auth/linkedin/disconnect", { method: "POST" });
-                      window.location.reload();
-                      return;
-                    }
-                    setState((s) => ({ ...s, [name]: null }));
-                  }}
-                >
-                  Déconnecter
-                </BtnGrey>
-              ) : (
-                <BtnGrey
-                  onClick={() => {
-                    // LinkedIn: real OAuth flow (full-page redirect to consent).
-                    if (name === "LinkedIn") {
-                      window.location.href = "/api/auth/linkedin";
-                      return;
-                    }
-                    setState((s) => ({ ...s, [name]: "Compte (démo)" }));
-                    // Onboarding checklist trigger: first social network connected.
-                    void fetch("/api/checklist", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ step: "connections" }),
-                    });
-                  }}
-                >
-                  Connecter
-                </BtnGrey>
-              )}
-            </div>
-          );
-        })}
-      </div>
-      <p className="mt-3 text-[12px] text-muted">
-        LinkedIn se connecte via OAuth officiel. LogLead agit en votre nom —
-        déconnectable à tout moment.
-      </p>
-
-      <LinkedInLeadSource initialUrl={profileUrl} initialAuto={autoDetect} />
-    </div>
-  );
-}
-
-// Public LinkedIn profile URL — powers "détecter mes leads depuis LinkedIn"
-// (scrapes who reacts/comments on your posts) + optional daily automation.
-function LinkedInLeadSource({ initialUrl, initialAuto }: { initialUrl?: string; initialAuto?: boolean }) {
-  const [url, setUrl] = useState(initialUrl ?? "");
-  const [auto, setAuto] = useState(Boolean(initialAuto));
-  const [saving, setSaving] = useState(false);
-  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
-
-  async function save() {
-    if (saving) return;
-    setSaving(true);
-    setMsg(null);
-    try {
-      const res = await fetch("/api/workspaces/linkedin-url", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: url.trim(), autoDetect: auto }),
-      });
-      const data = await res.json();
-      setMsg(res.ok ? { ok: true, text: "Enregistré ✓" } : { ok: false, text: data.error ?? "Erreur" });
-    } catch {
-      setMsg({ ok: false, text: "Connexion impossible." });
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  return (
-    <div className="mt-8 rounded-xl border border-line bg-surface p-4">
-      <div className="text-[14px] font-semibold text-ink">Détection automatique de leads</div>
-      <p className="mt-1 text-[13px] text-muted">
-        Renseigne l&apos;URL de ton profil LinkedIn : LogLead détecte les personnes qui
-        réagissent et commentent tes posts, et les importe comme leads.
-      </p>
-      <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-        <input
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          placeholder="https://www.linkedin.com/in/ton-profil"
-          className="input flex-1"
-        />
-        <button onClick={save} disabled={saving} className="btn-primary shrink-0 disabled:opacity-60">
-          {saving ? "…" : "Enregistrer"}
-        </button>
-      </div>
-      <label className="mt-3 flex items-start gap-2 text-[13px] text-muted">
-        <input
-          type="checkbox"
-          checked={auto}
-          onChange={(e) => setAuto(e.target.checked)}
-          className="mt-0.5 h-4 w-4 accent-[var(--color-primary,#0051FF)]"
-        />
-        <span>
-          Détecter automatiquement — tous les jours (Growth/Pro), tous les 3 jours (Starter), une seule fois (Gratuit).{" "}
-          <span className="text-faint">5 crédits par nouveau lead uniquement — 0 crédit s&apos;il n&apos;y a rien de neuf.</span>
-        </span>
-      </label>
-      {msg && (
-        <p className={`mt-2 text-[12px] ${msg.ok ? "text-success" : "text-danger"}`}>{msg.text}</p>
-      )}
     </div>
   );
 }
