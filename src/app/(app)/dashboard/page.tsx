@@ -16,6 +16,7 @@ export default async function DashboardPage() {
       credits={workspace.credits ?? 0}
       prospects={allProspects}
       searches={recentSearches}
+      avatarUrl={user.avatarUrl ?? null}
     />
   );
 }

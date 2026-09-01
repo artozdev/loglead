@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronRight, Plus } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Camera, ChevronRight, Loader2, Plus } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
 import type { Prospect, Search as SearchType } from "@/lib/types";
 
 // ---------------------------------------------------------------------------
@@ -38,6 +38,28 @@ function avatarColor(seed: string) {
 
 function scoreColor(n: number) {
   return n > 80 ? GREEN : n >= 60 ? AMBER : RED;
+}
+
+// Downscale + center-crop an image file to a square JPEG data URL (keeps the
+// JSON store lean; the API caps the stored size too).
+function resizeToDataUrl(file: File, size: number): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const canvas = document.createElement("canvas");
+      canvas.width = size; canvas.height = size;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return reject(new Error("no ctx"));
+      const s = Math.min(img.width, img.height);
+      const sx = (img.width - s) / 2, sy = (img.height - s) / 2;
+      ctx.drawImage(img, sx, sy, s, s, 0, 0, size, size);
+      resolve(canvas.toDataURL("image/jpeg", 0.85));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("load error")); };
+    img.src = url;
+  });
 }
 
 // ----- Daily buckets for the activity chart -------------------------------
@@ -169,13 +191,33 @@ export default function HomeBoard({
   firstName,
   prospects,
   searches,
+  avatarUrl = null,
 }: {
   firstName: string;
   credits: number;
   prospects: Prospect[];
   searches: SearchType[];
+  avatarUrl?: string | null;
 }) {
   const [days, setDays] = useState(7);
+  const [avatar, setAvatar] = useState<string | null>(avatarUrl);
+  const [avatarBusy, setAvatarBusy] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  async function onPickAvatar(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || !file.type.startsWith("image/")) return;
+    setAvatarBusy(true);
+    try {
+      const dataUrl = await resizeToDataUrl(file, 256);
+      const res = await fetch("/api/profile/avatar", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dataUrl }),
+      });
+      if (res.ok) setAvatar(dataUrl);
+    } catch { /* ignore */ } finally { setAvatarBusy(false); }
+  }
   const hour = new Date().getHours();
   const greet = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
   const date = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
@@ -234,9 +276,28 @@ export default function HomeBoard({
     <div className="mx-auto max-w-[1280px] px-6 py-6">
       {/* Header */}
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="font-display text-[20px] font-medium tracking-tight text-ink">{greet}, {firstName}. 👋</h1>
-          <p className="mt-0.5 text-[13px] text-muted">{date} · loglead.io</p>
+        <div className="flex items-center gap-3.5">
+          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onPickAvatar} />
+          <button
+            onClick={() => fileRef.current?.click()}
+            title="Changer la photo de profil"
+            aria-label="Changer la photo de profil"
+            className="group relative h-12 w-12 shrink-0 overflow-hidden rounded-full border border-line bg-surface-hover transition hover:opacity-90"
+          >
+            {avatar ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={avatar} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <span className="flex h-full w-full items-center justify-center bg-primary/10 text-[17px] font-bold text-primary">{firstName.charAt(0).toUpperCase()}</span>
+            )}
+            <span className="absolute inset-0 flex items-center justify-center bg-black/45 opacity-0 transition group-hover:opacity-100">
+              {avatarBusy ? <Loader2 size={16} className="animate-spin text-white" /> : <Camera size={16} className="text-white" />}
+            </span>
+          </button>
+          <div>
+            <h1 className="font-display text-[20px] font-medium tracking-tight text-ink">{greet}, {firstName}. 👋</h1>
+            <p className="mt-0.5 text-[13px] text-muted">{date} · loglead.io</p>
+          </div>
         </div>
         <div className="flex flex-wrap gap-2">
           <Link href="/logagent" className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-2 text-[13px] font-medium text-ink transition hover:bg-surface-hover"><span>🔭</span> New Scout search</Link>

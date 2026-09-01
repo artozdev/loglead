@@ -109,6 +109,7 @@ export type User = {
   createdAt: string;
   emailVerifiedAt?: string | null;
   emailPrefs?: EmailPrefs;
+  avatarUrl?: string | null; // profile photo (data URL, downscaled)
 };
 
 // One-time password-reset token (only the SHA-256 hash is stored).

@@ -202,6 +202,12 @@ export const users = {
     db.users = db.users.map((u) => (u.id === id ? { ...u, passwordHash } : u));
     await write(db);
   },
+  async updateAvatar(id: string, avatarUrl: string | null) {
+    const db = (await read());
+    db.users = db.users.map((u) => (u.id === id ? { ...u, avatarUrl } : u));
+    await write(db);
+    return db.users.find((u) => u.id === id);
+  },
   async updateEmailPrefs(id: string, prefs: User["emailPrefs"]) {
     const db = (await read());
     db.users = db.users.map((u) =>
