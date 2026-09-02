@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { Reveal } from "./LandingPage";
+import { CountUp, Reveal } from "./LandingPage";
 import { LangProvider, useLang, useTr } from "./lpLang";
 
 // ---------------------------------------------------------------------------
@@ -731,13 +731,205 @@ export function Footer({ showCta = true }: { showCta?: boolean }) {
   );
 }
 
+// ---------------------------------------------------------------------------
+// Interactive demo — pick a query, watch the agent "search" and stream scored
+// prospects. Fully client-side (mock data), no API. Auto-plays when in view.
+// ---------------------------------------------------------------------------
+function InteractiveDemo() {
+  const t = useTr();
+  const demos = [
+    {
+      chip: t("🍽️ Restaurants", "🍽️ Restaurants"),
+      q: t("Restaurants in Lyon under 4★ with no website", "Restaurants à Lyon sous 4★ sans site web"),
+      sources: ["Google Maps", "Web"],
+      rows: [
+        { n: "Le Bistrot du Port", m: ["3.6★", t("No website", "Sans site")], s: 93 },
+        { n: "Chez Antoine", m: ["3.8★", t("No website", "Sans site")], s: 88 },
+        { n: "La Table de Marie", m: ["3.4★", t("No website", "Sans site")], s: 85 },
+        { n: "Le Petit Jardin", m: ["3.9★", t("Old site", "Site daté")], s: 71 },
+      ],
+      found: 34, rate: 71,
+    },
+    {
+      chip: t("💼 Web agencies", "💼 Agences web"),
+      q: t("Web agencies in France hiring a sales rep", "Agences web en France qui recrutent un commercial"),
+      sources: ["LinkedIn", "Web"],
+      rows: [
+        { n: "Pixelis Studio", m: ["Sales rep", "Paris"], s: 94 },
+        { n: "Nord Digital", m: ["Business Dev", "Lille"], s: 89 },
+        { n: "Atelier Web", m: ["Account exec", "Lyon"], s: 82 },
+        { n: "Studio Meraki", m: ["SDR", "Nantes"], s: 76 },
+      ],
+      found: 22, rate: 68,
+    },
+    {
+      chip: t("🚀 B2B SaaS", "🚀 SaaS B2B"),
+      q: t("B2B SaaS between 20 and 200 employees in Paris", "SaaS B2B de 20 à 200 employés à Paris"),
+      sources: ["LinkedIn", "Web"],
+      rows: [
+        { n: "Notion FR", m: ["120 emp.", "Paris"], s: 91 },
+        { n: "Figma EU", m: ["80 emp.", "Paris"], s: 87 },
+        { n: "Linear", m: ["45 emp.", "Paris"], s: 83 },
+        { n: "Hrflow", m: ["30 emp.", "Paris"], s: 74 },
+      ],
+      found: 18, rate: 82,
+    },
+    {
+      chip: t("📱 E-commerce", "📱 E-commerce"),
+      q: t("E-commerce brands with low engagement on Instagram", "Marques e-commerce avec peu d'engagement sur Instagram"),
+      sources: ["Instagram", "Web"],
+      rows: [
+        { n: "Maison Bloom", m: ["Low IG", "No SEO"], s: 90 },
+        { n: "Atelier Nova", m: ["Low IG", "No blog"], s: 84 },
+        { n: "Studio Léa", m: ["Low IG", "No SEO"], s: 79 },
+        { n: "Brand Kioko", m: ["Low IG", "Old site"], s: 68 },
+      ],
+      found: 27, rate: 76,
+    },
+  ];
+
+  const [active, setActive] = useState(0);
+  const [typed, setTyped] = useState("");
+  const [phase, setPhase] = useState<"typing" | "scanning" | "results">("typing");
+  const [rows, setRows] = useState(0);
+  const [started, setStarted] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  // Start when scrolled into view.
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setStarted(true); io.disconnect(); } }, { threshold: 0.3 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  // Play the sequence for the active demo.
+  useEffect(() => {
+    if (!started) return;
+    const d = demos[active];
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    setTyped(""); setPhase("typing"); setRows(0);
+    let i = 0;
+    const type = () => {
+      i++;
+      setTyped(d.q.slice(0, i));
+      if (i < d.q.length) { timers.push(setTimeout(type, 26)); return; }
+      timers.push(setTimeout(() => {
+        setPhase("scanning");
+        timers.push(setTimeout(() => {
+          setPhase("results");
+          d.rows.forEach((_, idx) => timers.push(setTimeout(() => setRows(idx + 1), idx * 260)));
+        }, 750));
+      }, 350));
+    };
+    timers.push(setTimeout(type, 300));
+    return () => timers.forEach(clearTimeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, started]);
+
+  const d = demos[active];
+  const scoreColor = (n: number) => (n > 80 ? "#10B981" : n >= 60 ? "#F59E0B" : "#EF4444");
+
+  return (
+    <section className="px-5 py-24 sm:px-6">
+      <div ref={rootRef} className="mx-auto max-w-4xl">
+        <div className="text-center">
+          <span className={EY}><span className="text-[#0085FF]">✦</span> {t("Live demo", "Démo en direct")}</span>
+          <h2 className="mt-5 text-[32px] font-bold tracking-[-0.02em] text-[#0F172A] sm:text-[44px]">{t("Watch your agent work.", "Regardez votre agent travailler.")}</h2>
+          <p className="mx-auto mt-3 max-w-md text-[16px] text-[#475569]">{t("Pick a request — see how LogLead finds and scores prospects in seconds.", "Choisissez une demande — voyez LogLead trouver et scorer des prospects en quelques secondes.")}</p>
+        </div>
+
+        {/* Query chips */}
+        <div className="mt-8 flex flex-wrap justify-center gap-2">
+          {demos.map((x, i) => (
+            <button key={i} onClick={() => setActive(i)} className={`rounded-full border px-4 py-2 text-[13px] font-medium transition ${i === active ? "border-[#0051FF] bg-[#0051FF] text-white shadow-[0_8px_20px_-8px_rgba(0,81,255,0.6)]" : "border-[#E2E8F0] bg-white text-[#475569] hover:border-[#0051FF60] hover:text-[#0F172A]"}`}>{x.chip}</button>
+          ))}
+        </div>
+
+        {/* Browser-chrome demo panel */}
+        <div className="mx-auto mt-6 max-w-2xl overflow-hidden rounded-2xl border border-[#E2E8F0] bg-white shadow-[0_30px_80px_-30px_rgba(15,23,42,0.28)]">
+          <div className="flex items-center gap-1.5 border-b border-[#F1F5F9] bg-[#F8FAFC] px-4 py-3">
+            <span className="h-2.5 w-2.5 rounded-full bg-[#FF5F57]" /><span className="h-2.5 w-2.5 rounded-full bg-[#FEBC2E]" /><span className="h-2.5 w-2.5 rounded-full bg-[#28C840]" />
+            <div className="ml-3 flex flex-1 items-center gap-2 rounded-lg bg-white px-3 py-1.5 text-[12px] text-[#0F172A] shadow-[inset_0_0_0_1px_#E9EEF5]">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2.2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
+              <span className="truncate">{typed || d.q}</span>
+              {phase === "typing" && <span className="v5-blink h-3 w-[2px] bg-[#0051FF]" />}
+            </div>
+          </div>
+          <div className="min-h-[292px] p-5">
+            {phase === "typing" ? (
+              <div className="flex h-[252px] items-center justify-center text-[13px] text-[#94A3B8]">{t("Describe your ideal prospect…", "Décrivez votre prospect idéal…")}</div>
+            ) : phase === "scanning" ? (
+              <div className="flex h-[252px] flex-col items-center justify-center gap-3 text-center">
+                <div className="flex gap-1.5">
+                  {[0, 1, 2].map((k) => <span key={k} className="h-2.5 w-2.5 animate-bounce rounded-full bg-[#0051FF]" style={{ animationDelay: `${k * 0.15}s` }} />)}
+                </div>
+                <p className="text-[13px] font-medium text-[#475569]">{t("Scanning", "Analyse")} {d.sources.join(" · ")}…</p>
+              </div>
+            ) : (
+              <div>
+                <div className="mb-3 flex items-center justify-between text-[12px]">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[#EFF4FF] px-2.5 py-1 font-semibold text-[#0051FF]"><span className="h-1.5 w-1.5 rounded-full bg-[#0051FF]" /> {d.found} {t("found", "trouvés")} · {d.rate}% {t("qualified", "qualifiés")}</span>
+                  <span className="text-[#94A3B8]">{d.sources.join(" · ")}</span>
+                </div>
+                <div className="space-y-2">
+                  {d.rows.map((r, i) => (
+                    <div key={i} className={`flex items-center gap-3 rounded-xl border border-[#EEF2F7] bg-[#FBFCFE] px-3 py-2.5 transition-all duration-300 ${i < rows ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"}`}>
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#EFF4FF] text-[12px] font-bold text-[#0051FF]">{r.n[0]}</span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-[13.5px] font-medium text-[#0F172A]">{r.n}</span>
+                        <span className="mt-0.5 flex gap-1">{r.m.map((m, j) => <span key={j} className="rounded bg-[#F1F5F9] px-1.5 py-0.5 text-[10px] font-medium text-[#64748B]">{m}</span>)}</span>
+                      </span>
+                      <span className="flex shrink-0 items-center gap-1.5 text-[13px] font-bold text-[#0F172A]"><span className="h-2 w-2 rounded-full" style={{ background: scoreColor(r.s) }} />{r.s}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="mt-6 text-center">
+          <Link href={SIGNUP} className={`${BTN} !px-6 !py-3`}>{t("Run your own search →", "Lancer votre propre recherche →")}</Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// Animated stats strip (counts up on scroll).
+function StatsStrip() {
+  const t = useTr();
+  const stats = [
+    { v: <CountUp to={6} />, l: t("data sources", "sources de données") },
+    { v: <><CountUp to={68} />%</>, l: t("avg qualify rate", "taux de qualification moyen") },
+    { v: <><CountUp to={50} />+</>, l: t("prospects / night", "prospects / nuit") },
+    { v: <>€<CountUp to={59} /></>, l: t("per month", "par mois") },
+  ];
+  return (
+    <section className="border-y border-[#E2E8F0] bg-[#F8FAFC] px-5 py-12 sm:px-6">
+      <div className="mx-auto grid max-w-4xl grid-cols-2 gap-6 text-center sm:grid-cols-4">
+        {stats.map((s, i) => (
+          <div key={i}>
+            <div className="num text-[32px] font-bold text-[#0F172A] sm:text-[38px]">{s.v}</div>
+            <div className="mt-1 text-[13px] text-[#64748B]">{s.l}</div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export default function LandingV5() {
   return (
     <LangProvider>
       <div className="min-h-screen bg-[#FFFFFF] font-sans antialiased">
         <Nav />
         <Hero />
+        <StatsStrip />
         <HowItWorks />
+        <InteractiveDemo />
         <Sources />
         <BeforeAfter />
         <Faq />
