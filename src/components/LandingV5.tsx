@@ -54,7 +54,7 @@ function ProductMenu({ cls }: { cls: string }) {
     },
     {
       name: "Lead Intelligence",
-      href: "/#sources",
+      href: "/#how",
       tag: t("Qualified, scored, enriched automatically.", "Qualifiés, scorés, enrichis automatiquement."),
       icon: <><path d="M3 3v18h18" /><path d="M7 13l3-3 3 2 5-6" /></>,
       art: <LeadIntelArt />,
@@ -531,40 +531,6 @@ function StepArt({ step, t }: { step: number; t: Tr }) {
   );
 }
 
-function Sources() {
-  const t = useTr();
-  const sources = [
-    { i: "🔵", n: "LinkedIn", d: t("Profiles & jobs", "Profils & offres"), soon: false },
-    { i: "🟢", n: "Google Maps", d: t("Local businesses", "Commerces locaux"), soon: false },
-    { i: "🟠", n: "Reddit", d: t("Community signals", "Signaux communautaires"), soon: true },
-    { i: "📸", n: "Instagram", d: t("Social presence", "Présence sociale"), soon: true },
-    { i: "🎵", n: "TikTok", d: t("Brand activity", "Activité de marque"), soon: true },
-    { i: "📘", n: "Facebook", d: t("Company pages", "Pages entreprises"), soon: true },
-    { i: "⬛", n: "X / Twitter", d: t("Real-time mentions", "Mentions en temps réel"), soon: true },
-    { i: "🌐", n: t("Web & directories", "Web & annuaires"), d: t("Specialized sources", "Sources spécialisées"), soon: false },
-  ];
-  return (
-    <section id="sources" className="scroll-mt-24 px-5 py-20 sm:px-6">
-      <div className="mx-auto max-w-4xl">
-        <div className="text-center">
-          <span className={EY}><span className="text-[#0085FF]">✦</span> {t("Where your agent searches", "Où votre agent cherche")}</span>
-          <h2 className="mt-5 text-[32px] font-bold tracking-[-0.02em] text-[#0F172A] sm:text-[40px]">{t("Your agent searches", "Votre agent cherche")}<br />{t("everywhere they are.", "partout où ils sont.")}</h2>
-        </div>
-        <div className="mt-10 grid grid-cols-2 gap-3 md:grid-cols-4">
-          {sources.map((s, i) => (
-            <Reveal key={i} className={`relative rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 ${s.soon ? "opacity-50" : ""}`}>
-              {s.soon && <span className="absolute right-2 top-2 rounded-full bg-[#0051FF]/15 px-1.5 py-0.5 text-[9px] font-semibold text-[#0051FF]">{t("Coming soon", "Bientôt")}</span>}
-              <div className="text-[20px]">{s.i}</div>
-              <div className="mt-1.5 text-[14px] font-medium text-[#0F172A]">{s.n}</div>
-              <div className="text-[12px] text-[#94A3B8]">{s.d}</div>
-            </Reveal>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function BeforeAfter() {
   const t = useTr();
   const before = [
@@ -917,7 +883,6 @@ export default function LandingV5() {
         <StatsStrip />
         <HowItWorks />
         <InteractiveDemo />
-        <Sources />
         <BeforeAfter />
         <Faq />
         <Footer />
