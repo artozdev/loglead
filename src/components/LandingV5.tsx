@@ -50,21 +50,21 @@ function ProductMenu({ cls }: { cls: string }) {
       href: "/#how",
       tag: t("Describe. LogLead finds.", "Décrivez. LogLead trouve."),
       icon: <><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></>,
-      art: <ScoutArt />,
+      art: <ProductArt src="/image1.svg" alt="Scout" />,
     },
     {
       name: "Lead Intelligence",
       href: "/#how",
       tag: t("Qualified, scored, enriched automatically.", "Qualifiés, scorés, enrichis automatiquement."),
       icon: <><path d="M3 3v18h18" /><path d="M7 13l3-3 3 2 5-6" /></>,
-      art: <LeadIntelArt />,
+      art: <ProductArt src="/image2.svg" alt="Lead Intelligence" />,
     },
     {
       name: "Web Spy",
       href: "/#before",
       tag: t("Find competitors' customers", "Trouvez les clients de vos concurrents"),
       icon: <><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" /><circle cx="12" cy="12" r="3" /></>,
-      art: <WebSpyArt />,
+      art: <ProductArt src="/image3.svg" alt="Web Spy" />,
     },
   ];
   return (
@@ -95,82 +95,12 @@ function ProductMenu({ cls }: { cls: string }) {
   );
 }
 
-// Scout — a dotted "globe" with a floating business result card.
-function ScoutArt() {
+// Product illustration — a user-provided SVG shown in the Product mega-menu.
+function ProductArt({ src, alt }: { src: string; alt: string }) {
   return (
-    <div className="relative h-[124px] overflow-hidden rounded-xl border border-[#EAECF0] bg-white">
-      <svg viewBox="0 0 240 124" className="absolute inset-0 h-full w-full">
-        <g fill="none" stroke="#CBD5E1" strokeWidth="1.3" strokeLinecap="round" strokeDasharray="0.6 4">
-          <circle cx="120" cy="70" r="46" />
-          <ellipse cx="120" cy="70" rx="17" ry="46" />
-          <ellipse cx="120" cy="70" rx="33" ry="46" />
-          <ellipse cx="120" cy="70" rx="46" ry="17" />
-          <ellipse cx="120" cy="70" rx="46" ry="33" />
-        </g>
-      </svg>
-      <div className="absolute left-1/2 top-3 flex -translate-x-1/2 items-center gap-1.5 rounded-lg border border-[#EAECF0] bg-white px-2 py-1 shadow-[0_8px_20px_-8px_rgba(15,23,42,0.28)]">
-        <span className="flex h-4 w-4 items-center justify-center rounded bg-gradient-to-br from-[#0051FF] to-[#0085FF] text-[7px] font-bold text-white">G</span>
-        <div className="leading-tight">
-          <div className="text-[8px] font-semibold text-[#0F172A]">Café Bloom · Lyon</div>
-          <div className="text-[7px] text-[#F59E0B]">★★★★☆ · 3.8 · 0 site web</div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Lead Intelligence — an enrichment table (company · email · phone).
-function LeadIntelArt() {
-  const rows = [
-    { n: "Canva", i: "C", c: "#00C4CC", hot: true },
-    { n: "Notion", i: "N", c: "#0F172A" },
-    { n: "Apollo", i: "A", c: "#6B4EFF" },
-  ];
-  return (
-    <div className="h-[124px] overflow-hidden rounded-xl border border-[#EAECF0] bg-white shadow-[0_8px_22px_-12px_rgba(15,23,42,0.28)]">
-      <div className="flex items-center gap-2 border-b border-[#F1F5F9] px-2.5 py-1.5 text-[6.5px] font-semibold uppercase tracking-wide text-[#94A3B8]">
-        <span className="w-[64px]">Company</span><span className="flex-1">Email</span><span>Phone</span>
-      </div>
-      {rows.map((r, idx) => (
-        <div key={r.n} className={`flex items-center gap-2 px-2.5 py-2 ${r.hot ? "bg-[#EFF4FF]" : ""} ${idx < 2 ? "border-b border-[#F5F6F8]" : ""}`}>
-          <span className="flex w-[64px] items-center gap-1.5">
-            <span className="flex h-4 w-4 items-center justify-center rounded-[5px] text-[7px] font-bold text-white" style={{ background: r.c }}>{r.i}</span>
-            <span className="text-[9px] font-medium text-[#0F172A]">{r.n}</span>
-          </span>
-          <span className="flex flex-1 items-center gap-1 text-[8px] text-[#475569]">
-            {r.hot ? <>contact@canva.com<span className="text-[#0051FF]">✓</span></> : <span className="h-1 w-14 rounded-full bg-[#EAECF0]" />}
-          </span>
-          <span className="text-[8px] text-[#475569]">{r.hot ? "+1 2 626 3251" : <span className="inline-block h-1 w-8 rounded-full bg-[#EAECF0]" />}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// Web Spy — an orbit of social/data sources around a central node.
-function WebSpyArt() {
-  const nodes = [
-    { g: "in", x: "50%", y: "12%", color: "#0A66C2", glyph: true },
-    { g: "📍", x: "82%", y: "28%" },
-    { g: "𝕏", x: "85%", y: "70%", color: "#0F172A", glyph: true },
-    { g: "🎵", x: "57%", y: "88%" },
-    { g: "f", x: "15%", y: "70%", color: "#1877F2", glyph: true },
-    { g: "📸", x: "17%", y: "28%" },
-  ];
-  return (
-    <div className="relative h-[124px] overflow-hidden rounded-xl border border-[#EAECF0] bg-white">
-      <svg viewBox="0 0 240 124" className="absolute inset-0 h-full w-full">
-        <ellipse cx="120" cy="62" rx="96" ry="46" fill="none" stroke="#E2E8F0" strokeWidth="1.3" />
-        <path d="M120 62 L104 18 L136 18 Z" fill="#0051FF" fillOpacity="0.1" />
-      </svg>
-      <div className="absolute left-1/2 top-1/2 flex h-7 w-7 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-gradient-to-br from-[#0051FF] to-[#0085FF] shadow-[0_6px_16px_-4px_rgba(0,81,255,0.6)]">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round"><path d="M5 20V9M12 20V4M19 20v-7" /></svg>
-      </div>
-      {nodes.map((n, i) => (
-        <span key={i} style={{ left: n.x, top: n.y }} className="absolute flex h-6 w-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-lg border border-[#EAECF0] bg-white text-[11px] shadow-[0_4px_12px_-4px_rgba(15,23,42,0.25)]">
-          {n.glyph ? <span className="text-[10px] font-bold" style={{ color: n.color }}>{n.g}</span> : n.g}
-        </span>
-      ))}
+    <div className="flex h-[124px] items-center justify-center overflow-hidden rounded-xl border border-[#EAECF0] bg-white p-2">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={src} alt={alt} className="max-h-full max-w-full object-contain" />
     </div>
   );
 }
