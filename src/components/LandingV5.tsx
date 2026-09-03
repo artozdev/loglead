@@ -615,19 +615,40 @@ function Faq() {
     [t("What are credits?", "Que sont les crédits ?"), t("Credits are consumed by each AI action — finding a prospect (5 cr), sending a message (10 cr), enriching an email (20 cr). Your plan includes monthly credits. Buy more from €5/500 credits.", "Les crédits sont consommés par chaque action IA — trouver un prospect (5 cr), envoyer un message (10 cr), enrichir un email (20 cr). Votre plan inclut des crédits mensuels. Rechargez dès 5 €/500 crédits.")],
     [t("Can I cancel anytime?", "Puis-je annuler à tout moment ?"), t("Yes. Cancel in one click from Settings → Subscription. No commitment, no penalties. Your data is kept for 30 days after cancellation.", "Oui. Annulez en un clic depuis Paramètres → Abonnement. Sans engagement, sans pénalité. Vos données sont conservées 30 jours après l'annulation.")],
   ];
+  const [open, setOpen] = useState(0);
   return (
-    <section id="faq" className="scroll-mt-24 px-5 py-20 sm:px-6">
-      <div className="mx-auto max-w-2xl">
-        <h2 className="text-center text-[32px] font-bold tracking-[-0.02em] text-[#0F172A] sm:text-[40px]">{t("Questions about your agent.", "Questions sur votre agent.")}</h2>
-        <div className="mt-8 divide-y divide-[#E2E8F0] rounded-2xl border border-[#E2E8F0]">
-          {faqs.map(([q, a], i) => (
-            <details key={i} className="group px-5 py-4">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[15px] font-semibold text-[#0F172A]">
-                {q}<span className="text-[#0051FF] transition group-open:rotate-45">+</span>
-              </summary>
-              <p className="mt-3 text-[14px] leading-relaxed text-[#475569]">{a}</p>
-            </details>
-          ))}
+    <section id="faq" className="scroll-mt-24 px-5 py-24 sm:px-6">
+      <div className="mx-auto max-w-3xl">
+        <div className="text-center">
+          <h2 className="text-[34px] font-bold tracking-[-0.02em] text-[#0F172A] sm:text-[44px]">{t("Need more answers?", "Besoin de plus de réponses ?")}</h2>
+          <p className="mx-auto mt-3 max-w-md text-[16px] text-[#64748B]">{t("Here are answers to our most asked questions", "Voici les réponses à nos questions les plus posées")}</p>
+        </div>
+        <div className="mt-10 space-y-1">
+          {faqs.map(([q, a], i) => {
+            const isOpen = open === i;
+            return (
+              <div
+                key={i}
+                className={
+                  isOpen
+                    ? "rounded-2xl border border-[#E2E8F0] bg-white px-6 py-5 shadow-[0_12px_40px_-18px_rgba(15,23,42,0.18)]"
+                    : "border-b border-[#EEF1F5] px-2"
+                }
+              >
+                <button
+                  onClick={() => setOpen(isOpen ? -1 : i)}
+                  aria-expanded={isOpen}
+                  className={`flex w-full items-center justify-between gap-4 text-left text-[18px] font-semibold text-[#0F172A] transition ${isOpen ? "" : "py-5 hover:text-[#0051FF]"}`}
+                >
+                  <span>{q}</span>
+                  <span className={`flex h-6 w-6 shrink-0 items-center justify-center text-[22px] font-light leading-none transition ${isOpen ? "text-[#0F172A]" : "text-[#94A3B8]"}`}>{isOpen ? "−" : "+"}</span>
+                </button>
+                <div className={`grid transition-all duration-300 ease-out ${isOpen ? "mt-3 grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}>
+                  <p className="overflow-hidden text-[15px] leading-relaxed text-[#64748B]">{a}</p>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
