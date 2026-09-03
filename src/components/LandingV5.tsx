@@ -382,11 +382,9 @@ function Hero() {
 function HowItWorks() {
   const t = useTr();
   const steps = [
-    { n: "01", h: t("You describe your ideal prospect", "Vous décrivez votre prospect idéal"), d: t("\"Web agencies in France hiring a sales rep.\" One sentence. Your agent does the rest.", "« Agences web en France qui recrutent un commercial. » Une phrase. Votre agent fait le reste.") },
-    { n: "02", h: t("Your agent finds them", "Votre agent les trouve"), d: t("LinkedIn · Google Maps · Reddit · Instagram · Web. Qualified, scored 0-100, enriched with email + phone.", "LinkedIn · Google Maps · Reddit · Instagram · Web. Qualifiés, scorés de 0 à 100, enrichis avec email + téléphone.") },
-    { n: "03", h: t("Your agent writes personalized messages", "Votre agent rédige des messages personnalisés"), d: t("Based on each prospect's signals, industry, recent activity and your offer. Every message sounds human. Never generic.", "À partir des signaux de chaque prospect, de son secteur, de son activité récente et de votre offre. Chaque message sonne humain. Jamais générique.") },
-    { n: "04", h: t("Your agent sends and follows up", "Votre agent envoie et relance"), d: t("First message → wait 3 days → follow-up → wait 5 days → last message. All automatically. All in your name.", "Premier message → attendre 3 jours → relance → attendre 5 jours → dernier message. Automatiquement. En votre nom.") },
-    { n: "05", h: t("You only see the hot conversations", "Vous ne voyez que les conversations chaudes"), d: t("Your agent filters replies and surfaces only the ones worth your time. You reply. You close. That's it.", "Votre agent filtre les réponses et ne remonte que celles qui valent votre temps. Vous répondez. Vous closez. C'est tout.") },
+    { n: "01", h: t("You describe your ideal prospect", "Vous décrivez votre prospect idéal"), d: t("\"Web agencies in France hiring a sales rep.\" One sentence — your agent does the rest.", "« Agences web en France qui recrutent un commercial. » Une phrase — votre agent fait le reste.") },
+    { n: "02", h: t("Your agent finds, scores & writes", "Votre agent trouve, score & rédige"), d: t("It searches LinkedIn, Google Maps, Reddit & the web, scores every prospect 0-100, enriches email + phone, and writes a personalized message for each one.", "Il cherche sur LinkedIn, Google Maps, Reddit & le web, score chaque prospect de 0 à 100, enrichit email + téléphone et rédige un message personnalisé pour chacun.") },
+    { n: "03", h: t("You only close the hot replies", "Vous ne closez que les réponses chaudes"), d: t("It sends, follows up automatically and surfaces only the conversations worth your time. You reply. You close. That's it.", "Il envoie, relance automatiquement et ne remonte que les conversations qui valent votre temps. Vous répondez. Vous closez. C'est tout.") },
   ];
   return (
     <section id="how" className="bg-[#F8FAFC] px-5 py-24 sm:px-6">
@@ -436,128 +434,96 @@ function Frame({ children }: { children: React.ReactNode }) {
 }
 
 function StepArt({ step, t }: { step: number; t: Tr }) {
+  // STEP 1 — Describe: a real search bar with the query + source chips.
   if (step === 0) {
-    // Describe your prospect — prompt input with typewriter cursor
     return (
       <Frame>
         <div className="rounded-xl border border-[#E2E8F0] bg-[#FBFCFE] p-4">
-          <div className="text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">{t("Your request", "Votre demande")}</div>
-          <div className="mt-2 text-[15px] font-medium text-[#0F172A]">
+          <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0051FF" strokeWidth="2.2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
+            {t("Your request", "Votre demande")}
+          </div>
+          <div className="mt-2 text-[15px] font-medium leading-relaxed text-[#0F172A]">
             {t("Web agencies in France hiring a sales rep", "Agences web en France qui recrutent un commercial")}<span className="v5-blink ml-0.5 inline-block h-4 w-[2px] translate-y-0.5 bg-[#0051FF]" />
           </div>
         </div>
         <div className="mt-3 flex items-center justify-between">
-          <div className="flex gap-1.5">
-            {["LinkedIn", "Google Maps", "Web"].map((s) => (
+          <div className="flex flex-wrap gap-1.5">
+            {["🔵 LinkedIn", "🟢 Maps", "🌐 Web"].map((s) => (
               <span key={s} className="rounded-md bg-[#EFF4FF] px-2 py-1 text-[11px] font-medium text-[#0051FF]">{s}</span>
             ))}
           </div>
-          <span className="rounded-lg bg-gradient-to-br from-[#0051FF] to-[#0085FF] px-3 py-1.5 text-[12px] font-semibold text-white">{t("Find them →", "Trouvez-les →")}</span>
+          <span className="rounded-lg bg-gradient-to-br from-[#0051FF] to-[#0085FF] px-3 py-1.5 text-[12px] font-semibold text-white shadow-[0_6px_16px_-6px_rgba(0,81,255,0.7)]">{t("Find them →", "Trouvez-les →")}</span>
         </div>
       </Frame>
     );
   }
+  // STEP 2 — Find, score & write: a results table (score bar + enrichment) with
+  // a personalized message preview on the top row.
   if (step === 1) {
-    // Finds them — prospect list with FIT scores rising in
     const rows = [
-      { c: "Pixelis Studio", s: 94, g: "#10B981" },
-      { c: "Nord Digital", s: 88, g: "#10B981" },
-      { c: "Atelier Web", s: 72, g: "#F59E0B" },
-      { c: "Studio Meraki", s: 61, g: "#F59E0B" },
+      { c: "Pixelis Studio", r: t("Founder · Paris", "Fondateur · Paris"), s: 94, g: "#10B981", open: true },
+      { c: "Nord Digital", r: t("CEO · Lille", "CEO · Lille"), s: 88, g: "#10B981" },
+      { c: "Atelier Web", r: t("Head of Sales · Lyon", "Head of Sales · Lyon"), s: 72, g: "#F59E0B" },
     ];
     return (
       <Frame>
-        <div className="mb-2 flex items-center justify-between text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">
-          <span>{t("Prospect", "Prospect")}</span><span>Fit</span>
-        </div>
         <div className="space-y-2">
           {rows.map((r, i) => (
-            <div key={r.c} className="v5-rise flex items-center justify-between rounded-lg border border-[#EEF2F7] bg-white px-3 py-2.5" style={{ animationDelay: `${i * 0.15}s` }}>
+            <div key={r.c} className="v5-rise rounded-xl border border-[#EEF2F7] bg-white px-3 py-2.5" style={{ animationDelay: `${i * 0.15}s` }}>
               <div className="flex items-center gap-2.5">
-                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#EFF4FF] text-[11px] font-bold text-[#0051FF]">{r.c[0]}</span>
-                <span className="text-[13px] font-medium text-[#0F172A]">{r.c}</span>
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#EFF4FF] text-[12px] font-bold text-[#0051FF]">{r.c[0]}</span>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-[13px] font-semibold text-[#0F172A]">{r.c}</div>
+                  <div className="truncate text-[11px] text-[#94A3B8]">{r.r}</div>
+                </div>
+                {/* enrichment badges */}
+                <span className="flex items-center gap-1 text-[10px] font-semibold text-[#10B981]"><span className="rounded bg-[#ECFDF3] px-1.5 py-0.5">✉ ✓</span><span className="rounded bg-[#ECFDF3] px-1.5 py-0.5">📞</span></span>
+                {/* score */}
+                <span className="flex w-11 shrink-0 flex-col items-end">
+                  <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ background: r.g }} /><span className="num text-[13px] font-bold text-[#0F172A]">{r.s}</span></span>
+                  <span className="mt-1 h-1 w-full overflow-hidden rounded-full bg-[#EEF2F7]"><span className="block h-full rounded-full" style={{ width: `${r.s}%`, background: r.g }} /></span>
+                </span>
               </div>
-              <span className="flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full" style={{ background: r.g }} />
-                <span className="num text-[13px] font-bold text-[#0F172A]">{r.s}</span>
-              </span>
+              {r.open && (
+                <div className="mt-2 rounded-lg bg-[#F1F5F9] px-2.5 py-1.5 text-[11.5px] leading-snug text-[#334155]">
+                  <span className="font-semibold text-[#0051FF]">{t("AI message · ", "Message IA · ")}</span>{t("\"Saw you're hiring a sales rep — that's exactly when outbound gets messy…\"", "« J'ai vu que vous recrutez un commercial — c'est justement quand l'outbound devient compliqué… »")}
+                </div>
+              )}
             </div>
           ))}
         </div>
       </Frame>
     );
   }
-  if (step === 2) {
-    // Writes personalized messages — chat composer with typing dots
-    return (
-      <Frame>
-        <div className="flex items-center gap-2.5 border-b border-[#F1F5F9] pb-3">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#EFF4FF] text-[12px] font-bold text-[#0051FF]">P</span>
-          <div>
-            <div className="text-[13px] font-semibold text-[#0F172A]">Pixelis Studio</div>
-            <div className="text-[11px] text-[#94A3B8]">{t("Founder · Paris", "Fondateur · Paris")}</div>
-          </div>
-        </div>
-        <div className="mt-3 space-y-2">
-          <div className="max-w-[85%] rounded-[12px_12px_12px_4px] bg-[#F1F5F9] px-3 py-2 text-[12.5px] leading-relaxed text-[#334155]">
-            {t("Hi — saw you're hiring a sales rep. Growing the team is exactly when outbound gets messy…", "Bonjour — j'ai vu que vous recrutez un commercial. Agrandir l'équipe, c'est justement quand l'outbound devient compliqué…")}
-          </div>
-          <div className="flex items-center gap-1.5 pl-1">
-            <span className="h-2 w-2 animate-bounce rounded-full bg-[#0051FF] [animation-delay:0s]" />
-            <span className="h-2 w-2 animate-bounce rounded-full bg-[#0051FF] [animation-delay:0.15s]" />
-            <span className="h-2 w-2 animate-bounce rounded-full bg-[#0051FF] [animation-delay:0.3s]" />
-            <span className="ml-1.5 text-[11px] text-[#94A3B8]">{t("writing follow-up…", "rédige la relance…")}</span>
-          </div>
-        </div>
-      </Frame>
-    );
-  }
-  if (step === 3) {
-    // Sends and follows up — sequence timeline
-    const seq = [
-      { l: t("First message", "Premier message"), d: t("Sent", "Envoyé"), done: true },
-      { l: t("Wait 3 days", "Attendre 3 jours"), d: t("Auto", "Auto"), done: true },
-      { l: t("Follow-up", "Relance"), d: t("Sent", "Envoyé"), done: true },
-      { l: t("Wait 5 days", "Attendre 5 jours"), d: t("Scheduled", "Planifié"), done: false },
-      { l: t("Last message", "Dernier message"), d: t("Queued", "En file"), done: false },
-    ];
-    return (
-      <Frame>
-        <div className="text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">{t("Sequence · on autopilot", "Séquence · en pilote auto")}</div>
-        <div className="relative mt-3 space-y-3 pl-6">
-          <span aria-hidden className="absolute bottom-2 left-[9px] top-2 w-px bg-[#E2E8F0]" />
-          {seq.map((x, i) => (
-            <div key={i} className="v5-rise relative flex items-center justify-between" style={{ animationDelay: `${i * 0.12}s` }}>
-              <span className={`absolute -left-6 top-1 flex h-[18px] w-[18px] items-center justify-center rounded-full text-[10px] font-bold ${x.done ? "bg-[#0051FF] text-white" : "border-2 border-[#CBD5E1] bg-white text-transparent"}`}>✓</span>
-              <span className="text-[13px] font-medium text-[#0F172A]">{x.l}</span>
-              <span className={`text-[11px] font-medium ${x.done ? "text-[#10B981]" : "text-[#94A3B8]"}`}>{x.d}</span>
-            </div>
-          ))}
-        </div>
-      </Frame>
-    );
-  }
-  // step 4 — hot conversations surfaced
+  // STEP 3 — Close: hot inbox with replies + a sent/auto sequence pill.
   const hot = [
     { c: "Nord Digital", m: t("Yes, let's talk — how does Tuesday look?", "Oui, parlons-en — mardi vous convient ?") },
     { c: "Pixelis Studio", m: t("Interested. Can you send pricing?", "Intéressé. Vous pouvez m'envoyer les tarifs ?") },
   ];
   return (
     <Frame>
-      <div className="mb-3 flex items-center gap-2">
+      <div className="mb-2.5 flex items-center gap-2">
         <span className="text-[15px]">🔥</span>
-        <span className="text-[13px] font-semibold text-[#0F172A]">{t("Hot conversations", "Conversations chaudes")}</span>
+        <span className="text-[13px] font-semibold text-[#0F172A]">{t("Hot replies", "Réponses chaudes")}</span>
         <span className="ml-auto rounded-full bg-[#FEF2F2] px-2 py-0.5 text-[11px] font-bold text-[#EF4444]">{t("2 new", "2 nouvelles")}</span>
       </div>
-      <div className="space-y-2.5">
+      <div className="mb-2.5 flex items-center gap-1.5 rounded-lg bg-[#EFF4FF] px-2.5 py-1.5 text-[11px] font-medium text-[#0051FF]">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M20 6L9 17l-5-5" /></svg>
+        {t("Message + 2 follow-ups sent automatically", "Message + 2 relances envoyés automatiquement")}
+      </div>
+      <div className="space-y-2">
         {hot.map((h, i) => (
-          <div key={h.c} className="v5-rise rounded-xl border border-[#E2E8F0] bg-[#FBFCFE] p-3" style={{ animationDelay: `${i * 0.2}s` }}>
+          <div key={h.c} className="v5-rise rounded-xl border border-[#E2E8F0] bg-[#FBFCFE] p-2.5" style={{ animationDelay: `${i * 0.2}s` }}>
             <div className="flex items-center gap-2">
               <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#EFF4FF] text-[10px] font-bold text-[#0051FF]">{h.c[0]}</span>
               <span className="text-[12.5px] font-semibold text-[#0F172A]">{h.c}</span>
               <span className="ml-auto h-2 w-2 rounded-full bg-[#10B981]" />
             </div>
-            <div className="mt-1.5 text-[12.5px] leading-relaxed text-[#475569]">“{h.m}”</div>
+            <div className="mt-1.5 flex items-end gap-2">
+              <div className="flex-1 rounded-[10px_10px_10px_2px] bg-[#F1F5F9] px-2.5 py-1.5 text-[12px] leading-snug text-[#334155]">{h.m}</div>
+              <span className="shrink-0 rounded-lg bg-gradient-to-br from-[#0051FF] to-[#0085FF] px-2.5 py-1.5 text-[11px] font-semibold text-white">{t("Reply", "Répondre")}</span>
+            </div>
           </div>
         ))}
       </div>
