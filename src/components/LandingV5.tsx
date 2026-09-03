@@ -74,7 +74,7 @@ function ProductMenu({ cls }: { cls: string }) {
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="transition group-hover:rotate-180"><path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
       </button>
       <div className="invisible absolute -left-44 top-full z-50 pt-3 opacity-0 transition duration-150 group-hover:visible group-hover:opacity-100">
-        <div className="w-[860px] max-w-[calc(100vw-2rem)] rounded-2xl border border-[#E2E8F0] bg-white p-3 shadow-[0_16px_44px_-14px_rgba(15,23,42,0.25)]">
+        <div className="w-[960px] max-w-[calc(100vw-2rem)] rounded-2xl border border-[#E2E8F0] bg-white p-3 shadow-[0_16px_44px_-14px_rgba(15,23,42,0.25)]">
           <div className="grid grid-cols-3 gap-3">
             {products.map((p) => (
               <Link key={p.name} href={p.href} className="group/card rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 transition hover:border-[#0051FF60] hover:bg-white hover:shadow-[0_12px_32px_-14px_rgba(15,23,42,0.2)]">
@@ -98,9 +98,9 @@ function ProductMenu({ cls }: { cls: string }) {
 // Product illustration — a user-provided SVG shown in the Product mega-menu.
 function ProductArt({ src, alt }: { src: string; alt: string }) {
   return (
-    <div className="flex h-[124px] items-center justify-center overflow-hidden rounded-xl border border-[#EAECF0] bg-white p-2">
+    <div className="flex h-[190px] items-center justify-center overflow-hidden rounded-xl border border-[#EAECF0] bg-white p-1">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={src} alt={alt} className="max-h-full max-w-full object-contain" />
+      <img src={src} alt={alt} className="h-full w-full object-contain" />
     </div>
   );
 }
