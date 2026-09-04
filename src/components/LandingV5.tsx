@@ -61,7 +61,7 @@ function ProductMenu({ cls }: { cls: string }) {
     },
     {
       name: "Web Spy",
-      href: "/#before",
+      href: "/#how",
       tag: t("Find competitors' customers", "Trouvez les clients de vos concurrents"),
       icon: <><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" /><circle cx="12" cy="12" r="3" /></>,
       art: <ProductArt src="/image3.svg" alt="Web Spy" />,
@@ -668,46 +668,6 @@ function HowItWorks() {
   );
 }
 
-function BeforeAfter() {
-  const t = useTr();
-  const before = [
-    t("4 hours/day searching for prospects manually", "4 heures/jour à chercher des prospects à la main"),
-    t("Copy-pasting from LinkedIn, Google, Maps", "Copier-coller depuis LinkedIn, Google, Maps"),
-    t("Generic messages that get ignored", "Des messages génériques qui sont ignorés"),
-    t("Forgetting to follow up", "Oublier de relancer"),
-    t("Missing signals that mean \"ready to buy\"", "Rater les signaux d'un « prêt à acheter »"),
-    t("€3,000+/month for a human SDR", "3 000 €+/mois pour un SDR humain"),
-    t("Your pipeline depends on one person", "Votre pipeline dépend d'une seule personne"),
-  ];
-  const after = [
-    t("Agent finds 50+ qualified prospects overnight", "L'agent trouve 50+ prospects qualifiés pendant la nuit"),
-    t("6 sources searched simultaneously", "6 sources scannées simultanément"),
-    t("Every message personalized with real signals", "Chaque message personnalisé avec de vrais signaux"),
-    t("Automatic follow-ups on perfect timing", "Des relances automatiques au bon moment"),
-    t("Only hot replies surface to your inbox", "Seules les réponses chaudes remontent dans votre boîte"),
-    t("€59/month. Works 24/7. Never quits.", "59 €/mois. Travaille 24h/24. Ne démissionne jamais."),
-    t("Your pipeline runs while you sleep", "Votre pipeline tourne pendant que vous dormez"),
-  ];
-  return (
-    <section id="before" className="scroll-mt-24 bg-[#F8FAFC] px-5 py-24 sm:px-6">
-      <div className="mx-auto max-w-4xl">
-        <div className="text-center">
-          <h2 className="text-[36px] font-bold tracking-[-0.02em] text-[#0F172A] sm:text-[48px]">{t("Replace your SDR.", "Remplacez votre SDR.")}<br />{t("Or supercharge them.", "Ou boostez-le.")}</h2>
-          <p className="mx-auto mt-4 max-w-lg text-[16px] text-[#475569]">{t("What your sales process looks like before and after LogLead.", "À quoi ressemble votre process commercial avant et après LogLead.")}</p>
-        </div>
-        <div className="mt-10 grid gap-4 md:grid-cols-2">
-          <div className="rounded-2xl border-l-[3px] border-[#EF4444] bg-[#EF4444]/[0.04] p-6">
-            {before.map((b, i) => <p key={i} className="flex items-start gap-2 py-1.5 text-[14px] text-[#475569]"><span className="text-[#EF4444]">✕</span> {b}</p>)}
-          </div>
-          <div className="rounded-2xl border-l-[3px] border-[#22C55E] bg-[#22C55E]/[0.04] p-6">
-            {after.map((a, i) => <Reveal key={i} className="flex items-start gap-2 py-1.5 text-[14px] text-[#0F172A]"><span className="text-[#22C55E]">✓</span> {a}</Reveal>)}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function Faq() {
   const t = useTr();
   const faqs: [string, string][] = [
@@ -1020,7 +980,6 @@ export default function LandingV5() {
         <StatsStrip />
         <HowItWorks />
         <InteractiveDemo />
-        <BeforeAfter />
         <Faq />
         <Footer />
       </div>
