@@ -325,20 +325,6 @@ function Win({ url, children }: { url?: string; children: React.ReactNode }) {
 }
 
 // ---- Step illustrations (modern, immediately readable) --------------------
-const I = {
-  search: <><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></>,
-  chat: <><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" /></>,
-  like: <><path d="M7 10v11" /><path d="M15 5.88L14 10h5.83a2 2 0 011.92 2.56l-2.33 8A2 2 0 0117.5 22H4a2 2 0 01-2-2v-8a2 2 0 012-2h2.76a2 2 0 001.79-1.11L12 2a3 3 0 013 3z" /></>,
-  users: <><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87" /></>,
-  link: <><path d="M10 13a5 5 0 007 0l3-3a5 5 0 00-7-7l-1 1" /><path d="M14 11a5 5 0 00-7 0l-3 3a5 5 0 007 7l1-1" /></>,
-};
-function IconBox({ path }: { path: React.ReactNode }) {
-  return (
-    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#EFF4FF] text-[#0051FF]">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">{path}</svg>
-    </span>
-  );
-}
 
 // A tiny looping ticker: 0 → max, then pause and reset. Drives the animations.
 function useLoop(max: number, stepMs: number, holdMs = 1600) {
@@ -358,52 +344,131 @@ function useLoop(max: number, stepMs: number, holdMs = 1600) {
   return n;
 }
 
-// STEP 1 — Find: a source pulses, prospects stream into the list, count climbs.
+// STEP 1 — Find: the real LogAgent UI in action. A query types itself, the
+// agent searches, and prospects stream into the results panel. Loops.
 function FindArt({ t }: { t: Tr }) {
-  const sources = [
-    { i: I.chat, l: t("Who commented a post", "Qui a commenté un post") },
-    { i: I.search, l: t("A LinkedIn search", "Une recherche LinkedIn") },
-    { i: I.like, l: t("Who reacted to a post", "Qui a réagi à un post") },
-    { i: I.users, l: t("From my followers", "De mes abonnés") },
-    { i: I.link, l: t("From an X URL", "Depuis une URL X") },
+  const query = t("Web agencies in France hiring a sales rep", "Agences web en France qui recrutent un commercial");
+  const suggestions = [
+    t("Web agencies hiring a sales rep in France", "Agences web qui recrutent un commercial en France"),
+    t("Restaurants in Lyon rated under 4★ with no website", "Restaurants à Lyon notés sous 4★ sans site web"),
+    t("B2B SaaS between 20 and 200 employees in Paris", "SaaS B2B de 20 à 200 employés à Paris"),
   ];
-  const found = [
-    { n: "Le Bistrot du Port", s: 93 }, { n: "Nord Digital", s: 88 },
-    { n: "Atelier Web", s: 82 }, { n: "Studio Meraki", s: 74 },
+  const results = [
+    { n: "Pixelis Studio", m: "Sales rep · Paris", s: 94 },
+    { n: "Nord Digital", m: "Business Dev · Lille", s: 88 },
+    { n: "Atelier Web", m: "Account exec · Lyon", s: 82 },
+    { n: "Studio Meraki", m: "SDR · Nantes", s: 74 },
   ];
-  const n = useLoop(found.length, 520, 1500);
+  const [phase, setPhase] = useState<"idle" | "typing" | "searching" | "results">("idle");
+  const [typed, setTyped] = useState("");
+  const [rows, setRows] = useState(0);
+
+  useEffect(() => {
+    let alive = true;
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    const run = () => {
+      if (!alive) return;
+      setPhase("idle"); setTyped(""); setRows(0);
+      timers.push(setTimeout(() => {
+        if (!alive) return;
+        setPhase("typing");
+        let i = 0;
+        const type = () => {
+          if (!alive) return;
+          i += 1; setTyped(query.slice(0, i));
+          if (i < query.length) { timers.push(setTimeout(type, 34)); return; }
+          timers.push(setTimeout(() => {
+            if (!alive) return;
+            setPhase("searching");
+            timers.push(setTimeout(() => {
+              if (!alive) return;
+              setPhase("results");
+              results.forEach((_, idx) => timers.push(setTimeout(() => alive && setRows(idx + 1), idx * 380)));
+              timers.push(setTimeout(run, results.length * 380 + 2600));
+            }, 950));
+          }, 450));
+        };
+        type();
+      }, 900));
+    };
+    run();
+    return () => { alive = false; timers.forEach(clearTimeout); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const started = phase !== "idle";
   return (
-    <Win url="app.loglead.io/audience">
-      <div className="grid gap-4 sm:grid-cols-[1fr_260px]">
-        <div className="rounded-xl border border-[#EEF2F7] p-4">
-          <div className="flex items-center justify-between border-b border-[#F1F5F9] pb-3">
-            <span className="text-[14px] font-semibold text-[#0F172A]">{t("My prospect list", "Ma liste de prospects")}</span>
-            <span className="text-[13px] text-[#94A3B8]"><span className="num font-bold text-[#0051FF]">{n}</span> {t("prospects", "prospects")}</span>
-          </div>
-          {n === 0 ? (
-            <div className="flex h-[160px] items-center justify-center px-4 text-center text-[13px] text-[#94A3B8]">{t("Pick a source on the right to fill the list.", "Choisis une source à droite pour remplir la liste.")}</div>
+    <Win url="app.loglead.io/logagent">
+      <div className="grid h-[320px] grid-cols-[1fr_1.25fr] overflow-hidden">
+        {/* Left — chat */}
+        <div className="flex flex-col border-r border-[#F1F5F9] pr-4">
+          {!started ? (
+            <div className="flex flex-1 flex-col items-center justify-center px-2 text-center">
+              <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-[#0051FF] to-[#0085FF] text-[16px] font-bold text-white">L</span>
+              <p className="mt-3 text-[15px] font-bold text-[#0F172A]">{t("What do you want to find?", "Que veux-tu trouver ?")}</p>
+              <p className="mt-1 text-[11px] text-[#94A3B8]">{t("Describe your prospect. LogLead finds it.", "Décris ton prospect. LogLead le trouve.")}</p>
+              <div className="mt-4 w-full space-y-2">
+                {suggestions.map((s, i) => (
+                  <div key={i} className="flex items-center gap-2 rounded-lg border border-[#EEF2F7] bg-[#F8FAFC] px-2.5 py-2 text-left text-[11px] text-[#64748B]">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2.2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
+                    <span className="truncate">{s}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           ) : (
-            <div className="mt-3 space-y-2">
-              {found.slice(0, n).map((f, i) => (
-                <div key={f.n} className={`flex items-center gap-2.5 rounded-lg bg-[#F8FAFC] px-2.5 py-2 ${i === n - 1 ? "v5-pop" : ""}`}>
-                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#EFF4FF] text-[11px] font-bold text-[#0051FF]">{f.n[0]}</span>
-                  <span className="flex-1 truncate text-[13px] font-medium text-[#0F172A]">{f.n}</span>
-                  <span className="flex items-center gap-1 text-[12px] font-bold text-[#0F172A]"><span className="h-2 w-2 rounded-full" style={{ background: f.s > 80 ? "#10B981" : "#F59E0B" }} />{f.s}</span>
+            <div className="flex-1 space-y-2.5 overflow-hidden py-1">
+              <div className="flex justify-end">
+                <div className="max-w-[88%] rounded-[12px_12px_4px_12px] bg-[#EFF4FF] px-3 py-2 text-[12px] font-medium text-[#0F172A]">{query}</div>
+              </div>
+              {phase === "searching" && (
+                <div className="flex items-center gap-1.5 pl-1 text-[11px] text-[#64748B]">
+                  <span className="flex gap-1">{[0, 1, 2].map((k) => <span key={k} className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#0051FF]" style={{ animationDelay: `${k * 0.15}s` }} />)}</span>
+                  {t("Analyzing…", "Analyse…")}
                 </div>
-              ))}
+              )}
+              {phase === "results" && (
+                <div className="flex items-start gap-1.5 pl-1">
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-[#0051FF] to-[#0085FF] text-[9px] font-bold text-white">L</span>
+                  <p className="text-[12px] leading-snug text-[#334155]"><span className="font-semibold text-[#10B981]">● 22</span> {t("prospects found — LinkedIn · Web.", "prospects trouvés — LinkedIn · Web.")}</p>
+                </div>
+              )}
             </div>
           )}
-        </div>
-        <div>
-          <div className="mb-3 text-[14px] font-semibold text-[#0F172A]">{t("Import prospects", "Importer des prospects")}</div>
-          <div className="space-y-2">
-            {sources.map((s, i) => (
-              <div key={i} className={`relative flex items-center gap-2.5 rounded-lg border bg-white px-3 py-2.5 text-[13px] font-medium text-[#0F172A] transition ${i === 0 ? "border-[#0051FF] shadow-[0_0_0_3px_rgba(0,81,255,0.12)]" : "border-[#E7EBF1] shadow-[0_4px_12px_-8px_rgba(15,23,42,0.2)]"}`}>
-                <IconBox path={s.i} />{s.l}
-                {i === 0 && <span className="absolute right-2.5 h-2 w-2 rounded-full bg-[#0051FF]"><span className="absolute inset-0 animate-ping rounded-full bg-[#0051FF]" /></span>}
-              </div>
-            ))}
+          {/* input */}
+          <div className="mt-2 flex items-center gap-2 rounded-xl border border-[#E7EBF1] bg-white px-2.5 py-2">
+            <span className="text-[15px] leading-none text-[#94A3B8]">+</span>
+            <span className="flex-1 truncate text-[11px] text-[#0F172A]">
+              {phase === "typing" ? <>{typed}<span className="v5-blink inline-block h-3 w-[1.5px] translate-y-0.5 bg-[#0051FF]" /></> : <span className="text-[#94A3B8]">{t("Describe your ideal prospect…", "Décris ton prospect idéal…")}</span>}
+            </span>
+            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-[#0051FF] to-[#0085FF] text-white"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M12 19V5M5 12l7-7 7 7" /></svg></span>
           </div>
+        </div>
+
+        {/* Right — results */}
+        <div className="flex flex-col pl-4">
+          {phase !== "results" ? (
+            <div className="flex flex-1 flex-col items-center justify-center text-center text-[#94A3B8]">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
+              <p className="mt-2 max-w-[180px] text-[12px]">{phase === "searching" ? t("Searching everywhere they are…", "Recherche partout où ils sont…") : t("Your search results will appear here.", "Les résultats de ta recherche apparaîtront ici.")}</p>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center justify-between pb-2 text-[11px]">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#EFF4FF] px-2.5 py-1 font-semibold text-[#0051FF]"><span className="h-1.5 w-1.5 rounded-full bg-[#0051FF]" /> 22 {t("prospects", "prospects")} · 68% {t("qualified", "qualifiés")}</span>
+                <span className="text-[#94A3B8]">LinkedIn · Web</span>
+              </div>
+              <div className="space-y-1.5 overflow-hidden">
+                {results.slice(0, rows).map((r, i) => (
+                  <div key={i} className="v5-pop flex items-center gap-2.5 rounded-lg border border-[#EEF2F7] bg-[#FBFCFE] px-2.5 py-2">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#EFF4FF] text-[11px] font-bold text-[#0051FF]">{r.n[0]}</span>
+                    <span className="min-w-0 flex-1"><span className="block truncate text-[12.5px] font-semibold text-[#0F172A]">{r.n}</span><span className="block truncate text-[10.5px] text-[#94A3B8]">{r.m}</span></span>
+                    <span className="flex items-center gap-1 text-[12px] font-bold text-[#0F172A]"><span className="h-2 w-2 rounded-full" style={{ background: r.s > 80 ? "#10B981" : "#F59E0B" }} />{r.s}</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </Win>
