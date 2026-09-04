@@ -630,3 +630,5 @@ body {
   -webkit-text-fill-color: transparent;
   color: transparent;
 }
+@keyframes v5-fade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.v5-fade { animation: v5-fade 0.45s ease both; }

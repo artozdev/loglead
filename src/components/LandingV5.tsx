@@ -309,155 +309,207 @@ function Hero() {
   );
 }
 
-function HowItWorks() {
-  const t = useTr();
-  const steps = [
-    { n: "01", h: t("You describe your ideal prospect", "Vous décrivez votre prospect idéal"), d: t("\"Web agencies in France hiring a sales rep.\" One sentence — your agent does the rest.", "« Agences web en France qui recrutent un commercial. » Une phrase — votre agent fait le reste.") },
-    { n: "02", h: t("Your agent finds, scores & writes", "Votre agent trouve, score & rédige"), d: t("It searches LinkedIn, Google Maps, Reddit & the web, scores every prospect 0-100, enriches email + phone, and writes a personalized message for each one.", "Il cherche sur LinkedIn, Google Maps, Reddit & le web, score chaque prospect de 0 à 100, enrichit email + téléphone et rédige un message personnalisé pour chacun.") },
-    { n: "03", h: t("You only close the hot replies", "Vous ne closez que les réponses chaudes"), d: t("It sends, follows up automatically and surfaces only the conversations worth your time. You reply. You close. That's it.", "Il envoie, relance automatiquement et ne remonte que les conversations qui valent votre temps. Vous répondez. Vous closez. C'est tout.") },
-  ];
+// Browser window with a URL bar — wraps each step's illustration.
+function Win({ url, children }: { url?: string; children: React.ReactNode }) {
   return (
-    <section id="how" className="bg-[#F8FAFC] px-5 py-24 sm:px-6">
-      <div className="mx-auto max-w-6xl">
-        <div className="text-center">
-          <span className={EY}><span className="text-[#0085FF]">✦</span> {t("How your agent works", "Comment votre agent travaille")}</span>
-          <h2 className="mt-5 text-[36px] font-bold leading-[1.05] tracking-[-0.02em] text-[#0F172A] sm:text-[48px]">{t("Set it up once.", "Configurez-le une fois.")}<br /><span className="v5-gradient-text">{t("Let it run forever.", "Laissez-le tourner à l'infini.")}</span></h2>
-          <p className="mx-auto mt-4 max-w-lg text-[16px] text-[#475569]">{t("Your AI Sales Agent works around the clock. You review and close.", "Votre agent commercial IA travaille 24h/24. Vous validez et vous closez.")}</p>
-        </div>
-        <div className="mt-16 space-y-16 sm:space-y-24">
-          {steps.map((s, i) => (
-            <Reveal key={s.n}>
-              <div className={`grid items-center gap-8 sm:gap-12 lg:grid-cols-2 ${i % 2 === 1 ? "lg:[&>*:first-child]:order-2" : ""}`}>
-                {/* Text */}
-                <div className={i % 2 === 1 ? "lg:pl-4" : "lg:pr-4"}>
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#0051FF] to-[#0085FF] text-[13px] font-bold text-white shadow-[0_6px_16px_-4px_rgba(0,81,255,0.5)]">{s.n}</span>
-                    <span className="h-px flex-1 bg-gradient-to-r from-[#0051FF40] to-transparent" />
-                  </div>
-                  <h3 className="mt-4 text-[24px] font-bold leading-tight tracking-[-0.01em] text-[#0F172A] sm:text-[28px]">{s.h}</h3>
-                  <p className="mt-3 text-[16px] leading-relaxed text-[#475569]">{s.d}</p>
-                </div>
-                {/* Illustration */}
-                <StepArt step={i} t={t} />
-              </div>
-            </Reveal>
-          ))}
-        </div>
+    <div className="overflow-hidden rounded-2xl border border-[#E2E8F0] bg-white shadow-[0_40px_90px_-40px_rgba(15,23,42,0.3)]">
+      <div className="flex items-center gap-1.5 border-b border-[#F1F5F9] bg-[#F8FAFC] px-4 py-3">
+        <span className="h-2.5 w-2.5 rounded-full bg-[#FF5F57]" /><span className="h-2.5 w-2.5 rounded-full bg-[#FEBC2E]" /><span className="h-2.5 w-2.5 rounded-full bg-[#28C840]" />
+        <span className="ml-3 flex h-6 flex-1 items-center gap-2 rounded-md bg-white px-2.5 text-[11px] text-[#94A3B8] shadow-[inset_0_0_0_1px_#E9EEF5]">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2"><rect x="3" y="11" width="18" height="10" rx="2" /><path d="M7 11V7a5 5 0 0110 0v4" /></svg>{url}
+        </span>
       </div>
-    </section>
-  );
-}
-
-// Browser-chrome frame wrapping each step's animated mini-mockup.
-function Frame({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="v5-float overflow-hidden rounded-2xl border border-[#E2E8F0] bg-white shadow-[0_24px_60px_-24px_rgba(15,23,42,0.22)]">
-      <div className="flex items-center gap-1.5 border-b border-[#F1F5F9] bg-[#F8FAFC] px-4 py-2.5">
-        <span className="h-2.5 w-2.5 rounded-full bg-[#FF5F57]" />
-        <span className="h-2.5 w-2.5 rounded-full bg-[#FEBC2E]" />
-        <span className="h-2.5 w-2.5 rounded-full bg-[#28C840]" />
-        <span className="ml-3 h-4 flex-1 rounded-md bg-[#EEF2F7]" />
-      </div>
-      <div className="p-5">{children}</div>
+      <div className="p-5 sm:p-6">{children}</div>
     </div>
   );
 }
 
-function StepArt({ step, t }: { step: number; t: Tr }) {
-  // STEP 1 — Describe: a real search bar with the query + source chips.
-  if (step === 0) {
-    return (
-      <Frame>
-        <div className="rounded-xl border border-[#E2E8F0] bg-[#FBFCFE] p-4">
-          <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0051FF" strokeWidth="2.2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
-            {t("Your request", "Votre demande")}
+// ---- Step illustrations (modern, immediately readable) --------------------
+const I = {
+  search: <><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></>,
+  chat: <><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" /></>,
+  like: <><path d="M7 10v11" /><path d="M15 5.88L14 10h5.83a2 2 0 011.92 2.56l-2.33 8A2 2 0 0117.5 22H4a2 2 0 01-2-2v-8a2 2 0 012-2h2.76a2 2 0 001.79-1.11L12 2a3 3 0 013 3z" /></>,
+  users: <><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87" /></>,
+  link: <><path d="M10 13a5 5 0 007 0l3-3a5 5 0 00-7-7l-1 1" /><path d="M14 11a5 5 0 00-7 0l-3 3a5 5 0 007 7l1-1" /></>,
+};
+function IconBox({ path }: { path: React.ReactNode }) {
+  return (
+    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#EFF4FF] text-[#0051FF]">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">{path}</svg>
+    </span>
+  );
+}
+
+function FindArt({ t }: { t: Tr }) {
+  const sources = [
+    { i: I.search, l: t("A LinkedIn search", "Une recherche LinkedIn") },
+    { i: I.chat, l: t("Who commented a post", "Qui a commenté un post") },
+    { i: I.like, l: t("Who reacted to a post", "Qui a réagi à un post") },
+    { i: I.users, l: t("From my followers", "De mes abonnés") },
+    { i: I.link, l: t("From an X URL", "Depuis une URL X") },
+  ];
+  return (
+    <Win url="app.loglead.io/audience">
+      <div className="grid gap-4 sm:grid-cols-[1fr_260px]">
+        <div className="rounded-xl border border-[#EEF2F7] p-4">
+          <div className="flex items-center justify-between border-b border-[#F1F5F9] pb-3">
+            <span className="text-[14px] font-semibold text-[#0F172A]">{t("My prospect list", "Ma liste de prospects")}</span>
+            <span className="text-[13px] text-[#94A3B8]"><span className="font-bold text-[#0F172A]">0</span> {t("prospects", "prospects")}</span>
           </div>
-          <div className="mt-2 text-[15px] font-medium leading-relaxed text-[#0F172A]">
-            {t("Web agencies in France hiring a sales rep", "Agences web en France qui recrutent un commercial")}<span className="v5-blink ml-0.5 inline-block h-4 w-[2px] translate-y-0.5 bg-[#0051FF]" />
-          </div>
+          <div className="flex h-[150px] items-center justify-center px-4 text-center text-[13px] text-[#94A3B8]">{t("Pick a source on the right to fill the list.", "Choisis une source à droite pour remplir la liste.")}</div>
         </div>
-        <div className="mt-3 flex items-center justify-between">
-          <div className="flex flex-wrap gap-1.5">
-            {["🔵 LinkedIn", "🟢 Maps", "🌐 Web"].map((s) => (
-              <span key={s} className="rounded-md bg-[#EFF4FF] px-2 py-1 text-[11px] font-medium text-[#0051FF]">{s}</span>
+        <div>
+          <div className="mb-3 text-[14px] font-semibold text-[#0F172A]">{t("Import prospects", "Importer des prospects")}</div>
+          <div className="space-y-2">
+            {sources.map((s, i) => (
+              <div key={i} className="v5-rise flex items-center gap-2.5 rounded-lg border border-[#E7EBF1] bg-white px-3 py-2.5 text-[13px] font-medium text-[#0F172A] shadow-[0_4px_12px_-8px_rgba(15,23,42,0.2)]" style={{ animationDelay: `${i * 0.08}s` }}>
+                <IconBox path={s.i} />{s.l}
+              </div>
             ))}
           </div>
-          <span className="rounded-lg bg-gradient-to-br from-[#0051FF] to-[#0085FF] px-3 py-1.5 text-[12px] font-semibold text-white shadow-[0_6px_16px_-6px_rgba(0,81,255,0.7)]">{t("Find them →", "Trouvez-les →")}</span>
         </div>
-      </Frame>
-    );
-  }
-  // STEP 2 — Find, score & write: a results table (score bar + enrichment) with
-  // a personalized message preview on the top row.
-  if (step === 1) {
-    const rows = [
-      { c: "Pixelis Studio", r: t("Founder · Paris", "Fondateur · Paris"), s: 94, g: "#10B981", open: true },
-      { c: "Nord Digital", r: t("CEO · Lille", "CEO · Lille"), s: 88, g: "#10B981" },
-      { c: "Atelier Web", r: t("Head of Sales · Lyon", "Head of Sales · Lyon"), s: 72, g: "#F59E0B" },
-    ];
-    return (
-      <Frame>
-        <div className="space-y-2">
-          {rows.map((r, i) => (
-            <div key={r.c} className="v5-rise rounded-xl border border-[#EEF2F7] bg-white px-3 py-2.5" style={{ animationDelay: `${i * 0.15}s` }}>
-              <div className="flex items-center gap-2.5">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#EFF4FF] text-[12px] font-bold text-[#0051FF]">{r.c[0]}</span>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-[13px] font-semibold text-[#0F172A]">{r.c}</div>
-                  <div className="truncate text-[11px] text-[#94A3B8]">{r.r}</div>
-                </div>
-                {/* enrichment badges */}
-                <span className="flex items-center gap-1 text-[10px] font-semibold text-[#10B981]"><span className="rounded bg-[#ECFDF3] px-1.5 py-0.5">✉ ✓</span><span className="rounded bg-[#ECFDF3] px-1.5 py-0.5">📞</span></span>
-                {/* score */}
-                <span className="flex w-11 shrink-0 flex-col items-end">
-                  <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ background: r.g }} /><span className="num text-[13px] font-bold text-[#0F172A]">{r.s}</span></span>
-                  <span className="mt-1 h-1 w-full overflow-hidden rounded-full bg-[#EEF2F7]"><span className="block h-full rounded-full" style={{ width: `${r.s}%`, background: r.g }} /></span>
-                </span>
-              </div>
-              {r.open && (
-                <div className="mt-2 rounded-lg bg-[#F1F5F9] px-2.5 py-1.5 text-[11.5px] leading-snug text-[#334155]">
-                  <span className="font-semibold text-[#0051FF]">{t("AI message · ", "Message IA · ")}</span>{t("\"Saw you're hiring a sales rep — that's exactly when outbound gets messy…\"", "« J'ai vu que vous recrutez un commercial — c'est justement quand l'outbound devient compliqué… »")}
-                </div>
-              )}
+      </div>
+    </Win>
+  );
+}
+
+function ContactArt({ t }: { t: Tr }) {
+  return (
+    <Win url="app.loglead.io/outreach">
+      <div className="mx-auto max-w-lg">
+        <div className="flex items-center gap-2.5 border-b border-[#F1F5F9] pb-3">
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#EFF4FF] text-[13px] font-bold text-[#0051FF]">P</span>
+          <div><div className="text-[14px] font-semibold text-[#0F172A]">Pixelis Studio</div><div className="text-[12px] text-[#94A3B8]">{t("Founder · Paris", "Fondateur · Paris")}</div></div>
+          <span className="ml-auto rounded-full bg-[#ECFDF3] px-2.5 py-1 text-[11px] font-semibold text-[#10B981]">✓ {t("Sent", "Envoyé")}</span>
+        </div>
+        <div className="mt-4 max-w-[90%] rounded-[14px_14px_14px_4px] bg-[#F1F5F9] px-4 py-3 text-[13.5px] leading-relaxed text-[#334155]">
+          {t("Hi — saw you're hiring a sales rep. That's exactly when outbound gets messy. We help agencies like yours…", "Bonjour — j'ai vu que vous recrutez un commercial. C'est justement quand l'outbound devient compliqué. On aide les agences comme la vôtre…")}
+        </div>
+        <div className="mt-4 flex items-center gap-1.5 rounded-lg bg-[#EFF4FF] px-3 py-2.5 text-[12.5px] font-medium text-[#0051FF]">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M20 6L9 17l-5-5" /></svg>
+          {t("Message + 2 follow-ups sent automatically, in your name.", "Message + 2 relances envoyés automatiquement, en ton nom.")}
+        </div>
+      </div>
+    </Win>
+  );
+}
+
+function TrackArt({ t }: { t: Tr }) {
+  const rows = [
+    { n: "Nord Digital", st: t("Replied", "Répondu"), c: "#10B981", bg: "#ECFDF3", s: 88, hot: true },
+    { n: "Pixelis Studio", st: t("Followed up", "Relancé"), c: "#D97706", bg: "#FEF3C7", s: 94 },
+    { n: "Atelier Web", st: t("Contacted", "Contacté"), c: "#0051FF", bg: "#EFF4FF", s: 72 },
+    { n: "Studio Meraki", st: t("New", "Nouveau"), c: "#64748B", bg: "#F1F5F9", s: 61 },
+  ];
+  return (
+    <Win url="app.loglead.io/pipeline">
+      <div className="grid grid-cols-[1fr_120px_56px] gap-2 border-b border-[#F1F5F9] px-2 pb-2 text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">
+        <span>{t("Prospect", "Prospect")}</span><span>{t("Status", "Statut")}</span><span className="text-right">Score</span>
+      </div>
+      <div className="mt-1 space-y-1">
+        {rows.map((r, i) => (
+          <div key={i} className="v5-rise grid grid-cols-[1fr_120px_56px] items-center gap-2 rounded-lg px-2 py-2.5 hover:bg-[#F8FAFC]" style={{ animationDelay: `${i * 0.1}s` }}>
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#EFF4FF] text-[11px] font-bold text-[#0051FF]">{r.n[0]}</span>
+              <span className="text-[13px] font-medium text-[#0F172A]">{r.n}</span>
             </div>
-          ))}
-        </div>
-      </Frame>
-    );
-  }
-  // STEP 3 — Close: hot inbox with replies + a sent/auto sequence pill.
+            <span><span className="rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ color: r.c, background: r.bg }}>{r.st}{r.hot ? " 🔥" : ""}</span></span>
+            <span className="text-right"><span className="num text-[13px] font-bold text-[#0F172A]">{r.s}</span></span>
+          </div>
+        ))}
+      </div>
+    </Win>
+  );
+}
+
+function CloseArt({ t }: { t: Tr }) {
   const hot = [
-    { c: "Nord Digital", m: t("Yes, let's talk — how does Tuesday look?", "Oui, parlons-en — mardi vous convient ?") },
+    { c: "Nord Digital", m: t("Yes, let's talk — Tuesday works?", "Oui, parlons-en — mardi ça marche ?") },
     { c: "Pixelis Studio", m: t("Interested. Can you send pricing?", "Intéressé. Vous pouvez m'envoyer les tarifs ?") },
   ];
   return (
-    <Frame>
-      <div className="mb-2.5 flex items-center gap-2">
-        <span className="text-[15px]">🔥</span>
-        <span className="text-[13px] font-semibold text-[#0F172A]">{t("Hot replies", "Réponses chaudes")}</span>
+    <Win url="app.loglead.io/inbox">
+      <div className="mb-3 flex items-center gap-2">
+        <span className="text-[16px]">🔥</span><span className="text-[14px] font-semibold text-[#0F172A]">{t("Hot replies", "Réponses chaudes")}</span>
         <span className="ml-auto rounded-full bg-[#FEF2F2] px-2 py-0.5 text-[11px] font-bold text-[#EF4444]">{t("2 new", "2 nouvelles")}</span>
       </div>
-      <div className="mb-2.5 flex items-center gap-1.5 rounded-lg bg-[#EFF4FF] px-2.5 py-1.5 text-[11px] font-medium text-[#0051FF]">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M20 6L9 17l-5-5" /></svg>
-        {t("Message + 2 follow-ups sent automatically", "Message + 2 relances envoyés automatiquement")}
-      </div>
-      <div className="space-y-2">
+      <div className="space-y-2.5">
         {hot.map((h, i) => (
-          <div key={h.c} className="v5-rise rounded-xl border border-[#E2E8F0] bg-[#FBFCFE] p-2.5" style={{ animationDelay: `${i * 0.2}s` }}>
-            <div className="flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#EFF4FF] text-[10px] font-bold text-[#0051FF]">{h.c[0]}</span>
-              <span className="text-[12.5px] font-semibold text-[#0F172A]">{h.c}</span>
-              <span className="ml-auto h-2 w-2 rounded-full bg-[#10B981]" />
-            </div>
-            <div className="mt-1.5 flex items-end gap-2">
-              <div className="flex-1 rounded-[10px_10px_10px_2px] bg-[#F1F5F9] px-2.5 py-1.5 text-[12px] leading-snug text-[#334155]">{h.m}</div>
-              <span className="shrink-0 rounded-lg bg-gradient-to-br from-[#0051FF] to-[#0085FF] px-2.5 py-1.5 text-[11px] font-semibold text-white">{t("Reply", "Répondre")}</span>
+          <div key={i} className="v5-rise rounded-xl border border-[#E2E8F0] bg-[#FBFCFE] p-3" style={{ animationDelay: `${i * 0.12}s` }}>
+            <div className="flex items-center gap-2"><span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#EFF4FF] text-[10px] font-bold text-[#0051FF]">{h.c[0]}</span><span className="text-[13px] font-semibold text-[#0F172A]">{h.c}</span><span className="ml-auto h-2 w-2 rounded-full bg-[#10B981]" /></div>
+            <div className="mt-2 flex items-center gap-2">
+              <div className="flex-1 rounded-[10px_10px_10px_2px] bg-[#F1F5F9] px-3 py-2 text-[12.5px] text-[#334155]">{h.m}</div>
+              <span className="shrink-0 rounded-lg bg-gradient-to-br from-[#0051FF] to-[#0085FF] px-3 py-2 text-[12px] font-semibold text-white">{t("Reply", "Répondre")}</span>
             </div>
           </div>
         ))}
       </div>
-    </Frame>
+    </Win>
+  );
+}
+
+// Scroll-driven stepper — the active step advances as you scroll; the left rail
+// highlights it and the central illustration swaps with a fade.
+function HowItWorks() {
+  const t = useTr();
+  const steps = [
+    { rail: t("Find", "Trouver"), title: t("Find your prospects.", "Trouve tes prospects."), sub: t("Up to 1,500 qualified prospects a month — in 3 clicks.", "Jusqu'à 1 500 prospects qualifiés/mois — en 3 clics."), art: <FindArt t={t} /> },
+    { rail: t("Contact", "Contacter"), title: t("Contact them hands-free.", "Contacte-les sans rien faire."), sub: t("Personalized messages + follow-ups, sent in your name.", "Messages personnalisés + relances, envoyés en ton nom."), art: <ContactArt t={t} /> },
+    { rail: t("Track", "Suivre"), title: t("Track everything in one place.", "Suis tout au même endroit."), sub: t("Every prospect, every reply, every status.", "Chaque prospect, chaque réponse, chaque statut."), art: <TrackArt t={t} /> },
+    { rail: t("Close", "Closer"), title: t("Close the hot conversations.", "Close les conversations chaudes."), sub: t("You only see the replies worth your time.", "Tu ne vois que les réponses qui valent ton temps."), art: <CloseArt t={t} /> },
+  ];
+  const [active, setActive] = useState(0);
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const el = wrapRef.current;
+      if (!el) return;
+      const total = el.offsetHeight - window.innerHeight;
+      const scrolled = Math.min(Math.max(-el.getBoundingClientRect().top, 0), Math.max(total, 1));
+      const p = total > 0 ? scrolled / total : 0;
+      setActive(Math.min(steps.length - 1, Math.floor(p * steps.length * 0.9999)));
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => { window.removeEventListener("scroll", onScroll); window.removeEventListener("resize", onScroll); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [steps.length]);
+
+  const goTo = (i: number) => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const total = el.offsetHeight - window.innerHeight;
+    window.scrollTo({ top: el.offsetTop + (i / steps.length) * total + 10, behavior: "smooth" });
+  };
+
+  return (
+    <section id="how" ref={wrapRef} className="relative bg-[#F8FAFC]" style={{ height: `${steps.length * 85 + 15}vh` }}>
+      <div className="sticky top-0 flex h-screen items-center px-5 sm:px-6">
+        <div className="mx-auto w-full max-w-6xl">
+          <span className={EY}><span className="text-[#0085FF]">✦</span> {t("How it works", "Comment ça marche")}</span>
+          <div key={`h-${active}`} className="v5-fade">
+            <h2 className="mt-4 max-w-3xl text-[28px] font-bold leading-[1.12] tracking-[-0.02em] text-[#0F172A] sm:text-[40px]">
+              {steps[active].title} <span className="text-[#94A3B8]">{steps[active].sub}</span>
+            </h2>
+          </div>
+          <div className="mt-8 grid items-center gap-8 lg:mt-10 lg:grid-cols-[190px_1fr] lg:gap-12">
+            {/* Left rail */}
+            <div className="hidden flex-col gap-0.5 lg:flex">
+              {steps.map((s, i) => (
+                <button key={i} onClick={() => goTo(i)} className="group flex items-center gap-3 py-2 text-left">
+                  <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold transition ${i === active ? "bg-[#0051FF] text-white shadow-[0_6px_14px_-4px_rgba(0,81,255,0.6)]" : "bg-[#E2E8F0] text-[#94A3B8]"}`}>{i + 1}</span>
+                  <span className={`text-[17px] font-semibold transition ${i === active ? "text-[#0F172A]" : "text-[#CBD5E1] group-hover:text-[#94A3B8]"}`}>{s.rail}</span>
+                </button>
+              ))}
+            </div>
+            {/* Illustration */}
+            <div key={`a-${active}`} className="v5-fade">{steps[active].art}</div>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
