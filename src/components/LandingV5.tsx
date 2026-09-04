@@ -340,30 +340,67 @@ function IconBox({ path }: { path: React.ReactNode }) {
   );
 }
 
+// A tiny looping ticker: 0 → max, then pause and reset. Drives the animations.
+function useLoop(max: number, stepMs: number, holdMs = 1600) {
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    let alive = true;
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    const run = () => {
+      if (!alive) return;
+      setN(0);
+      for (let i = 1; i <= max; i++) timers.push(setTimeout(() => alive && setN(i), i * stepMs));
+      timers.push(setTimeout(run, max * stepMs + holdMs));
+    };
+    run();
+    return () => { alive = false; timers.forEach(clearTimeout); };
+  }, [max, stepMs, holdMs]);
+  return n;
+}
+
+// STEP 1 — Find: a source pulses, prospects stream into the list, count climbs.
 function FindArt({ t }: { t: Tr }) {
   const sources = [
-    { i: I.search, l: t("A LinkedIn search", "Une recherche LinkedIn") },
     { i: I.chat, l: t("Who commented a post", "Qui a commenté un post") },
+    { i: I.search, l: t("A LinkedIn search", "Une recherche LinkedIn") },
     { i: I.like, l: t("Who reacted to a post", "Qui a réagi à un post") },
     { i: I.users, l: t("From my followers", "De mes abonnés") },
     { i: I.link, l: t("From an X URL", "Depuis une URL X") },
   ];
+  const found = [
+    { n: "Le Bistrot du Port", s: 93 }, { n: "Nord Digital", s: 88 },
+    { n: "Atelier Web", s: 82 }, { n: "Studio Meraki", s: 74 },
+  ];
+  const n = useLoop(found.length, 520, 1500);
   return (
     <Win url="app.loglead.io/audience">
       <div className="grid gap-4 sm:grid-cols-[1fr_260px]">
         <div className="rounded-xl border border-[#EEF2F7] p-4">
           <div className="flex items-center justify-between border-b border-[#F1F5F9] pb-3">
             <span className="text-[14px] font-semibold text-[#0F172A]">{t("My prospect list", "Ma liste de prospects")}</span>
-            <span className="text-[13px] text-[#94A3B8]"><span className="font-bold text-[#0F172A]">0</span> {t("prospects", "prospects")}</span>
+            <span className="text-[13px] text-[#94A3B8]"><span className="num font-bold text-[#0051FF]">{n}</span> {t("prospects", "prospects")}</span>
           </div>
-          <div className="flex h-[150px] items-center justify-center px-4 text-center text-[13px] text-[#94A3B8]">{t("Pick a source on the right to fill the list.", "Choisis une source à droite pour remplir la liste.")}</div>
+          {n === 0 ? (
+            <div className="flex h-[160px] items-center justify-center px-4 text-center text-[13px] text-[#94A3B8]">{t("Pick a source on the right to fill the list.", "Choisis une source à droite pour remplir la liste.")}</div>
+          ) : (
+            <div className="mt-3 space-y-2">
+              {found.slice(0, n).map((f, i) => (
+                <div key={f.n} className={`flex items-center gap-2.5 rounded-lg bg-[#F8FAFC] px-2.5 py-2 ${i === n - 1 ? "v5-pop" : ""}`}>
+                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#EFF4FF] text-[11px] font-bold text-[#0051FF]">{f.n[0]}</span>
+                  <span className="flex-1 truncate text-[13px] font-medium text-[#0F172A]">{f.n}</span>
+                  <span className="flex items-center gap-1 text-[12px] font-bold text-[#0F172A]"><span className="h-2 w-2 rounded-full" style={{ background: f.s > 80 ? "#10B981" : "#F59E0B" }} />{f.s}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
         <div>
           <div className="mb-3 text-[14px] font-semibold text-[#0F172A]">{t("Import prospects", "Importer des prospects")}</div>
           <div className="space-y-2">
             {sources.map((s, i) => (
-              <div key={i} className="v5-rise flex items-center gap-2.5 rounded-lg border border-[#E7EBF1] bg-white px-3 py-2.5 text-[13px] font-medium text-[#0F172A] shadow-[0_4px_12px_-8px_rgba(15,23,42,0.2)]" style={{ animationDelay: `${i * 0.08}s` }}>
+              <div key={i} className={`relative flex items-center gap-2.5 rounded-lg border bg-white px-3 py-2.5 text-[13px] font-medium text-[#0F172A] transition ${i === 0 ? "border-[#0051FF] shadow-[0_0_0_3px_rgba(0,81,255,0.12)]" : "border-[#E7EBF1] shadow-[0_4px_12px_-8px_rgba(15,23,42,0.2)]"}`}>
                 <IconBox path={s.i} />{s.l}
+                {i === 0 && <span className="absolute right-2.5 h-2 w-2 rounded-full bg-[#0051FF]"><span className="absolute inset-0 animate-ping rounded-full bg-[#0051FF]" /></span>}
               </div>
             ))}
           </div>
@@ -373,19 +410,42 @@ function FindArt({ t }: { t: Tr }) {
   );
 }
 
+// STEP 2 — Contact: the message types itself, then "Sent" + the auto pill appear.
 function ContactArt({ t }: { t: Tr }) {
+  const msg = t("Hi — saw you're hiring a sales rep. That's exactly when outbound gets messy. We help agencies like yours fill the pipeline automatically.", "Bonjour — j'ai vu que vous recrutez un commercial. C'est justement quand l'outbound devient compliqué. On aide les agences comme la vôtre à remplir leur pipeline automatiquement.");
+  const [typed, setTyped] = useState("");
+  const [sent, setSent] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    const play = () => {
+      if (!alive) return;
+      setTyped(""); setSent(false);
+      let i = 0;
+      const type = () => {
+        if (!alive) return;
+        i += 2; setTyped(msg.slice(0, i));
+        if (i < msg.length) { timers.push(setTimeout(type, 22)); return; }
+        timers.push(setTimeout(() => alive && setSent(true), 400));
+        timers.push(setTimeout(play, 4200));
+      };
+      timers.push(setTimeout(type, 500));
+    };
+    play();
+    return () => { alive = false; timers.forEach(clearTimeout); };
+  }, [msg]);
   return (
     <Win url="app.loglead.io/outreach">
       <div className="mx-auto max-w-lg">
         <div className="flex items-center gap-2.5 border-b border-[#F1F5F9] pb-3">
           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#EFF4FF] text-[13px] font-bold text-[#0051FF]">P</span>
           <div><div className="text-[14px] font-semibold text-[#0F172A]">Pixelis Studio</div><div className="text-[12px] text-[#94A3B8]">{t("Founder · Paris", "Fondateur · Paris")}</div></div>
-          <span className="ml-auto rounded-full bg-[#ECFDF3] px-2.5 py-1 text-[11px] font-semibold text-[#10B981]">✓ {t("Sent", "Envoyé")}</span>
+          <span className={`ml-auto rounded-full px-2.5 py-1 text-[11px] font-semibold transition ${sent ? "bg-[#ECFDF3] text-[#10B981] opacity-100" : "opacity-0"}`}>✓ {t("Sent", "Envoyé")}</span>
         </div>
-        <div className="mt-4 max-w-[90%] rounded-[14px_14px_14px_4px] bg-[#F1F5F9] px-4 py-3 text-[13.5px] leading-relaxed text-[#334155]">
-          {t("Hi — saw you're hiring a sales rep. That's exactly when outbound gets messy. We help agencies like yours…", "Bonjour — j'ai vu que vous recrutez un commercial. C'est justement quand l'outbound devient compliqué. On aide les agences comme la vôtre…")}
+        <div className="mt-4 min-h-[92px] max-w-[92%] rounded-[14px_14px_14px_4px] bg-[#F1F5F9] px-4 py-3 text-[13.5px] leading-relaxed text-[#334155]">
+          {typed}{!sent && <span className="v5-blink ml-0.5 inline-block h-4 w-[2px] translate-y-0.5 bg-[#0051FF]" />}
         </div>
-        <div className="mt-4 flex items-center gap-1.5 rounded-lg bg-[#EFF4FF] px-3 py-2.5 text-[12.5px] font-medium text-[#0051FF]">
+        <div className={`mt-4 flex items-center gap-1.5 rounded-lg bg-[#EFF4FF] px-3 py-2.5 text-[12.5px] font-medium text-[#0051FF] transition-all duration-500 ${sent ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"}`}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M20 6L9 17l-5-5" /></svg>
           {t("Message + 2 follow-ups sent automatically, in your name.", "Message + 2 relances envoyés automatiquement, en ton nom.")}
         </div>
@@ -394,55 +454,85 @@ function ContactArt({ t }: { t: Tr }) {
   );
 }
 
+// STEP 3 — Track: score bars fill, and a row flips to "Replied 🔥" live.
 function TrackArt({ t }: { t: Tr }) {
-  const rows = [
-    { n: "Nord Digital", st: t("Replied", "Répondu"), c: "#10B981", bg: "#ECFDF3", s: 88, hot: true },
-    { n: "Pixelis Studio", st: t("Followed up", "Relancé"), c: "#D97706", bg: "#FEF3C7", s: 94 },
-    { n: "Atelier Web", st: t("Contacted", "Contacté"), c: "#0051FF", bg: "#EFF4FF", s: 72 },
-    { n: "Studio Meraki", st: t("New", "Nouveau"), c: "#64748B", bg: "#F1F5F9", s: 61 },
+  const base = [
+    { n: "Nord Digital", s: 88 }, { n: "Pixelis Studio", s: 94 },
+    { n: "Atelier Web", s: 72 }, { n: "Studio Meraki", s: 61 },
   ];
+  const [grow, setGrow] = useState(false);
+  const [replied, setReplied] = useState(0); // how many rows flipped to "Replied"
+  useEffect(() => {
+    let alive = true;
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    const play = () => {
+      if (!alive) return;
+      setGrow(false); setReplied(0);
+      timers.push(setTimeout(() => alive && setGrow(true), 120));
+      timers.push(setTimeout(() => alive && setReplied(1), 1100));
+      timers.push(setTimeout(() => alive && setReplied(2), 2000));
+      timers.push(setTimeout(play, 4600));
+    };
+    play();
+    return () => { alive = false; timers.forEach(clearTimeout); };
+  }, []);
+  const status = (i: number) => {
+    if (i < replied) return { l: t("Replied", "Répondu"), c: "#10B981", bg: "#ECFDF3", hot: true };
+    if (i === 0 || i === 1) return { l: t("Followed up", "Relancé"), c: "#D97706", bg: "#FEF3C7" };
+    if (i === 2) return { l: t("Contacted", "Contacté"), c: "#0051FF", bg: "#EFF4FF" };
+    return { l: t("New", "Nouveau"), c: "#64748B", bg: "#F1F5F9" };
+  };
   return (
     <Win url="app.loglead.io/pipeline">
-      <div className="grid grid-cols-[1fr_120px_56px] gap-2 border-b border-[#F1F5F9] px-2 pb-2 text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">
-        <span>{t("Prospect", "Prospect")}</span><span>{t("Status", "Statut")}</span><span className="text-right">Score</span>
+      <div className="grid grid-cols-[1fr_128px_84px] gap-2 border-b border-[#F1F5F9] px-2 pb-2 text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">
+        <span>{t("Prospect", "Prospect")}</span><span>{t("Status", "Statut")}</span><span>Score</span>
       </div>
       <div className="mt-1 space-y-1">
-        {rows.map((r, i) => (
-          <div key={i} className="v5-rise grid grid-cols-[1fr_120px_56px] items-center gap-2 rounded-lg px-2 py-2.5 hover:bg-[#F8FAFC]" style={{ animationDelay: `${i * 0.1}s` }}>
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#EFF4FF] text-[11px] font-bold text-[#0051FF]">{r.n[0]}</span>
-              <span className="text-[13px] font-medium text-[#0F172A]">{r.n}</span>
+        {base.map((r, i) => {
+          const st = status(i);
+          return (
+            <div key={i} className="grid grid-cols-[1fr_128px_84px] items-center gap-2 rounded-lg px-2 py-2.5">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#EFF4FF] text-[11px] font-bold text-[#0051FF]">{r.n[0]}</span>
+                <span className="text-[13px] font-medium text-[#0F172A]">{r.n}</span>
+              </div>
+              <span><span key={st.l} className="v5-pop inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ color: st.c, background: st.bg }}>{st.l}{st.hot ? " 🔥" : ""}</span></span>
+              <span className="flex items-center gap-1.5">
+                <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#EEF2F7]"><span className="block h-full rounded-full transition-[width] duration-700 ease-out" style={{ width: grow ? `${r.s}%` : "0%", background: r.s > 80 ? "#10B981" : "#F59E0B" }} /></span>
+                <span className="num w-6 text-right text-[12px] font-bold text-[#0F172A]">{r.s}</span>
+              </span>
             </div>
-            <span><span className="rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ color: r.c, background: r.bg }}>{r.st}{r.hot ? " 🔥" : ""}</span></span>
-            <span className="text-right"><span className="num text-[13px] font-bold text-[#0F172A]">{r.s}</span></span>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </Win>
   );
 }
 
+// STEP 4 — Close: hot replies pop in one after another; the reply button pulses.
 function CloseArt({ t }: { t: Tr }) {
   const hot = [
     { c: "Nord Digital", m: t("Yes, let's talk — Tuesday works?", "Oui, parlons-en — mardi ça marche ?") },
     { c: "Pixelis Studio", m: t("Interested. Can you send pricing?", "Intéressé. Vous pouvez m'envoyer les tarifs ?") },
   ];
+  const n = useLoop(hot.length, 900, 2200);
   return (
     <Win url="app.loglead.io/inbox">
       <div className="mb-3 flex items-center gap-2">
         <span className="text-[16px]">🔥</span><span className="text-[14px] font-semibold text-[#0F172A]">{t("Hot replies", "Réponses chaudes")}</span>
-        <span className="ml-auto rounded-full bg-[#FEF2F2] px-2 py-0.5 text-[11px] font-bold text-[#EF4444]">{t("2 new", "2 nouvelles")}</span>
+        <span className="relative ml-auto rounded-full bg-[#FEF2F2] px-2 py-0.5 text-[11px] font-bold text-[#EF4444]">{n} {t("new", "nouvelles")}</span>
       </div>
       <div className="space-y-2.5">
-        {hot.map((h, i) => (
-          <div key={i} className="v5-rise rounded-xl border border-[#E2E8F0] bg-[#FBFCFE] p-3" style={{ animationDelay: `${i * 0.12}s` }}>
-            <div className="flex items-center gap-2"><span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#EFF4FF] text-[10px] font-bold text-[#0051FF]">{h.c[0]}</span><span className="text-[13px] font-semibold text-[#0F172A]">{h.c}</span><span className="ml-auto h-2 w-2 rounded-full bg-[#10B981]" /></div>
+        {hot.slice(0, n).map((h, i) => (
+          <div key={i} className="v5-pop rounded-xl border border-[#E2E8F0] bg-[#FBFCFE] p-3">
+            <div className="flex items-center gap-2"><span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#EFF4FF] text-[10px] font-bold text-[#0051FF]">{h.c[0]}</span><span className="text-[13px] font-semibold text-[#0F172A]">{h.c}</span><span className="ml-auto h-2 w-2 rounded-full bg-[#10B981]"><span className="block h-full w-full animate-ping rounded-full bg-[#10B981]" /></span></div>
             <div className="mt-2 flex items-center gap-2">
               <div className="flex-1 rounded-[10px_10px_10px_2px] bg-[#F1F5F9] px-3 py-2 text-[12.5px] text-[#334155]">{h.m}</div>
-              <span className="shrink-0 rounded-lg bg-gradient-to-br from-[#0051FF] to-[#0085FF] px-3 py-2 text-[12px] font-semibold text-white">{t("Reply", "Répondre")}</span>
+              <span className="relative shrink-0 rounded-lg bg-gradient-to-br from-[#0051FF] to-[#0085FF] px-3 py-2 text-[12px] font-semibold text-white">{t("Reply", "Répondre")}{i === n - 1 && <span className="absolute inset-0 animate-pulse rounded-lg ring-2 ring-[#0051FF]/40" />}</span>
             </div>
           </div>
         ))}
+        {n === 0 && <div className="flex h-[120px] items-center justify-center text-[13px] text-[#94A3B8]">{t("Waiting for replies…", "En attente de réponses…")}</div>}
       </div>
     </Win>
   );

@@ -632,3 +632,5 @@ body {
 }
 @keyframes v5-fade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 .v5-fade { animation: v5-fade 0.45s ease both; }
+@keyframes v5-pop { 0% { opacity: 0; transform: translateY(8px) scale(0.96); } 60% { transform: translateY(-1px) scale(1.01); } 100% { opacity: 1; transform: none; } }
+.v5-pop { animation: v5-pop 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.2) both; }
