@@ -636,6 +636,11 @@ export const searches = {
       .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
       .slice(0, limit);
   },
+  async delete(id: string, workspaceId: string) {
+    const db = await read();
+    db.searches = db.searches.filter((s) => !(s.id === id && s.workspaceId === workspaceId));
+    await write(db);
+  },
 };
 
 // ----- LogAgent: prospects (email/phone encrypted at rest) ------------------
@@ -690,6 +695,11 @@ export const prospects = {
       .filter((p) => p.workspaceId === workspaceId)
       .map(decryptProspect)
       .sort((a, b) => b.fitScore - a.fitScore);
+  },
+  async deleteBySearch(searchId: string, workspaceId: string) {
+    const db = await read();
+    db.prospects = db.prospects.filter((p) => !(p.searchId === searchId && p.workspaceId === workspaceId));
+    await write(db);
   },
 };
 
