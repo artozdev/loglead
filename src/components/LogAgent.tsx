@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUp, Plus, Search, Sparkles } from "lucide-react";
+import { ArrowUp, ChevronDown, Loader2, Plus, Search, Sparkles } from "lucide-react";
 import { useRef, useState } from "react";
 
 // LogAgent — the product's core: a conversational search engine. Left column =
@@ -87,84 +87,110 @@ export default function LogAgent({ initialQuery = "" }: { initialQuery?: string 
   }
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] flex-col lg:flex-row">
-      {/* Left — chat */}
-      <div className="flex w-full shrink-0 flex-col border-b border-line lg:w-[35%] lg:border-b-0 lg:border-r">
-        {!started ? (
-          <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
-            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-[22px] font-bold text-white">L</span>
-            <h1 className="mt-5 font-display text-[22px] font-semibold text-ink">What do you want to find?</h1>
-            <p className="mt-1 text-[13px] text-muted">Décris ton prospect. LogLead le trouve.</p>
-            <div className="mt-6 w-full max-w-md space-y-2">
-              {SUGGESTIONS.map((s) => (
-                <button
-                  key={s}
-                  onClick={() => { setInput(s); inputRef.current?.focus(); }}
-                  className="flex w-full items-center gap-2 rounded-xl border border-line bg-surface px-3.5 py-2.5 text-left text-[13px] text-muted transition hover:border-primary/40 hover:text-ink"
-                >
-                  <Search size={14} className="shrink-0 text-faint" /> {s}
-                </button>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div className="flex-1 space-y-4 overflow-y-auto px-4 py-5">
-            {messages.map((m, i) =>
-              m.role === "user" ? (
-                <div key={i} className="flex justify-end">
-                  <div className="max-w-[85%] rounded-[12px_12px_4px_12px] bg-primary/10 px-3.5 py-2.5 text-[14px] text-ink">{m.text}</div>
-                </div>
-              ) : (
-                <div key={i} className="flex items-start gap-2">
-                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-primary text-[11px] font-bold text-white">L</span>
-                  <div className="max-w-[85%] text-[14px] leading-relaxed text-ink">{m.text}</div>
-                </div>
-              ),
-            )}
-            {busy && <div className="flex items-center gap-2 text-[13px] text-muted"><Sparkles size={14} className="animate-pulse text-primary" /> Analyse…</div>}
-          </div>
+    <div className="flex h-[calc(100vh-4rem)] flex-col bg-canvas">
+      {/* Top toolbar */}
+      <div className="flex items-center justify-between px-5 py-3">
+        <div className="flex items-center gap-2 text-[14px] font-semibold text-ink">
+          <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary text-[11px] font-bold text-white">L</span>
+          <span className="truncate">{result?.analysis?.title || (started ? "Recherche en cours" : "Nouvelle recherche")}</span>
+        </div>
+        {started && (
+          <button
+            onClick={() => { setMessages([]); setResult(null); setInput(""); inputRef.current?.focus(); }}
+            className="rounded-lg border border-line bg-surface px-3 py-1.5 text-[13px] font-medium text-muted transition hover:text-ink"
+          >
+            Nouvelle recherche
+          </button>
         )}
+      </div>
 
-        {/* Input */}
-        <div className="border-t border-line p-3">
-          <div className="flex items-end gap-2 rounded-2xl border border-line bg-surface px-3 py-2">
-            <button className="mb-1 text-muted hover:text-ink" title="Options avancées" aria-label="Options"><Plus size={18} /></button>
+      {/* Body — chat + canvas */}
+      <div className="flex flex-1 flex-col gap-4 overflow-hidden px-4 pb-4 lg:flex-row">
+        {/* Left — chat */}
+        <div className="flex w-full flex-col lg:w-[38%]">
+          <div className="flex-1 overflow-y-auto">
+            {!started ? (
+              <div className="flex h-full flex-col items-center justify-center px-4 text-center">
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-[#0085FF] text-[22px] font-bold text-white shadow-[0_10px_28px_-8px_rgba(0,81,255,0.6)]">L</span>
+                <h1 className="mt-5 font-display text-[22px] font-semibold text-ink">What do you want to find?</h1>
+                <p className="mt-1 text-[13px] text-muted">Décris ton prospect. LogLead le trouve.</p>
+                <div className="mt-6 w-full max-w-md space-y-2">
+                  {SUGGESTIONS.map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => { setInput(s); inputRef.current?.focus(); }}
+                      className="flex w-full items-center gap-2 rounded-xl border border-line bg-surface px-3.5 py-2.5 text-left text-[13px] text-muted transition hover:-translate-y-0.5 hover:border-primary/40 hover:text-ink hover:shadow-[0_8px_20px_-12px_rgba(15,23,42,0.25)]"
+                    >
+                      <Search size={14} className="shrink-0 text-faint" /> {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4 py-2 pr-1">
+                {messages.map((m, i) =>
+                  m.role === "user" ? (
+                    <div key={i} className="flex justify-end">
+                      <div className="max-w-[88%] rounded-[16px_16px_4px_16px] bg-surface px-4 py-2.5 text-[14px] text-ink shadow-[0_4px_14px_-8px_rgba(15,23,42,0.25)]">{m.text}</div>
+                    </div>
+                  ) : (
+                    <div key={i} className="flex items-start gap-2.5">
+                      <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-[#0085FF] text-[11px] font-bold text-white">L</span>
+                      <div className="max-w-[88%] text-[14px] leading-relaxed text-ink">{m.text}</div>
+                    </div>
+                  ),
+                )}
+                {busy && (
+                  <div className="flex items-center gap-2 text-[13px] font-medium text-muted">
+                    <Loader2 size={15} className="animate-spin text-primary" /> En cours de réflexion…
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Input — modern composer */}
+          <div className="mt-3 rounded-2xl border border-line bg-surface p-2.5 shadow-[0_10px_30px_-16px_rgba(15,23,42,0.25)]">
             <textarea
               ref={inputRef}
-              rows={1}
+              rows={2}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(input); } }}
-              placeholder="Describe your ideal prospect…"
-              className="max-h-32 flex-1 resize-none bg-transparent py-1 text-[14px] text-ink outline-none placeholder:text-faint"
+              placeholder="Demandez à LogLead…"
+              className="max-h-32 w-full resize-none bg-transparent px-1.5 pt-1 text-[14px] text-ink outline-none placeholder:text-faint"
             />
-            <button
-              onClick={() => submit(input)}
-              disabled={busy || !input.trim()}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary text-white transition disabled:opacity-40"
-              aria-label="Envoyer"
-            >
-              <ArrowUp size={17} />
-            </button>
+            <div className="mt-1 flex items-center gap-2">
+              <button className="flex h-8 w-8 items-center justify-center rounded-full border border-line text-muted transition hover:border-primary/40 hover:text-ink" title="Ajouter du contexte" aria-label="Ajouter du contexte"><Plus size={16} /></button>
+              <span className="ml-auto inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-[13px] font-medium text-muted">Rechercher <ChevronDown size={14} /></span>
+              <button
+                onClick={() => submit(input)}
+                disabled={busy || !input.trim()}
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-[#0085FF] text-white shadow-[0_6px_16px_-6px_rgba(0,81,255,0.7)] transition disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
+                aria-label="Envoyer"
+              >
+                {busy ? <Loader2 size={16} className="animate-spin" /> : <ArrowUp size={17} />}
+              </button>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Right — dynamic results */}
-      <div className="flex-1 overflow-y-auto bg-canvas">
-        {!result ? (
-          <div className="flex h-full flex-col items-center justify-center px-6 text-center text-muted">
-            <Search size={26} className="text-faint" />
-            <p className="mt-3 max-w-xs text-[14px]">Les résultats de ta recherche apparaîtront ici.</p>
-          </div>
-        ) : result.analysis.intent === "prospect_search" ? (
-          <ResultsPanel row={result} />
-        ) : (
-          <div className="mx-auto max-w-2xl px-6 py-8">
-            <h2 className="font-display text-[18px] font-semibold text-ink">{result.analysis.title}</h2>
-            <p className="mt-2 text-[14px] leading-relaxed text-muted">{replyForIntent(result.analysis)}</p>
-          </div>
-        )}
+        {/* Right — canvas */}
+        <div className="flex-1 overflow-y-auto rounded-2xl border border-line bg-surface">
+          {!result ? (
+            <div className="flex h-full min-h-[300px] flex-col items-center justify-center px-6 text-center text-muted">
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-surface-hover"><Search size={22} className="text-faint" /></span>
+              <p className="mt-3 max-w-xs text-[14px]">{busy ? "Recherche en cours…" : "Les résultats de ta recherche apparaîtront ici."}</p>
+            </div>
+          ) : result.analysis.intent === "prospect_search" ? (
+            <ResultsPanel row={result} />
+          ) : (
+            <div className="mx-auto max-w-2xl px-6 py-8">
+              <h2 className="font-display text-[18px] font-semibold text-ink">{result.analysis.title}</h2>
+              <p className="mt-2 text-[14px] leading-relaxed text-muted">{replyForIntent(result.analysis)}</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
