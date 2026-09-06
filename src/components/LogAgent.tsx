@@ -88,21 +88,17 @@ export default function LogAgent({ initialQuery = "" }: { initialQuery?: string 
 
   return (
     <div className="flex h-[calc(100vh-4rem)] flex-col bg-canvas">
-      {/* Top toolbar */}
-      <div className="flex items-center justify-between px-5 py-3">
-        <div className="flex items-center gap-2 text-[14px] font-semibold text-ink">
-          <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary text-[11px] font-bold text-white">L</span>
-          <span className="truncate">{result?.analysis?.title || (started ? "Recherche en cours" : "Nouvelle recherche")}</span>
-        </div>
-        {started && (
+      {/* Top toolbar — reset only (title removed) */}
+      {started && (
+        <div className="flex items-center justify-end px-5 py-3">
           <button
             onClick={() => { setMessages([]); setResult(null); setInput(""); inputRef.current?.focus(); }}
             className="rounded-lg border border-line bg-surface px-3 py-1.5 text-[13px] font-medium text-muted transition hover:text-ink"
           >
             Nouvelle recherche
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Body — chat + canvas */}
       <div className="flex flex-1 flex-col gap-4 overflow-hidden px-4 pb-4 lg:flex-row">
