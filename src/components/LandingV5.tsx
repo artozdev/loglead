@@ -294,14 +294,11 @@ function Hero() {
 
         {/* Social proof */}
         <Reveal delay={320}>
-          <div className="mt-8 flex flex-col items-center gap-2">
-            <div className="flex items-center gap-3">
-              <div className="flex -space-x-2">
-                {["#0051FF", "#00A3FF", "#4F8BFF", "#00D4FF", "#1A6BFF"].map((c, i) => <span key={i} className="h-7 w-7 rounded-full border-2 border-white" style={{ background: c }} />)}
-              </div>
-              <span className="text-[13px] text-[#475569]">{t("500+ B2B sales teams trust LogLead", "500+ équipes commerciales B2B font confiance à LogLead")}</span>
+          <div className="mt-8 flex items-center justify-center gap-3">
+            <div className="flex -space-x-2">
+              {["#0051FF", "#00A3FF", "#4F8BFF", "#00D4FF", "#1A6BFF"].map((c, i) => <span key={i} className="h-7 w-7 rounded-full border-2 border-white" style={{ background: c }} />)}
             </div>
-            <p className="text-[13px] text-[#94A3B8]"><span className="text-[#F59E0B]">★★★★★</span> {t("“Like having a full-time SDR for €59/month”", "« Comme un SDR à plein temps pour 59 €/mois »")}</p>
+            <span className="text-[13px] text-[#475569]">{t("50+ agencies & founders use LogLead", "+50 agences & fondateurs utilisent LogLead")}</span>
           </div>
         </Reveal>
       </div>
@@ -1027,12 +1024,12 @@ function StatsStrip() {
     { v: <><CountUp to={2} /> min</>, l: t("to find your future clients", "pour trouver vos futurs clients") },
   ];
   return (
-    <section className="bg-[#F8FAFC] px-5 py-16 sm:px-6">
-      <div className="mx-auto grid max-w-5xl gap-4 sm:grid-cols-3">
+    <section className="bg-[#F8FAFC] px-5 pb-12 pt-4 sm:px-6">
+      <div className="mx-auto grid max-w-4xl gap-3 sm:grid-cols-3">
         {stats.map((s, i) => (
-          <div key={i} className="rounded-2xl border border-[#EAECF0] bg-white px-6 py-8 text-center shadow-[0_10px_30px_-18px_rgba(15,23,42,0.15)]">
-            <div className="num text-[40px] font-bold leading-none tracking-[-0.02em] text-[#0F172A] sm:text-[46px]">{s.v}</div>
-            <div className="mt-3 text-[14px] text-[#64748B]">{s.l}</div>
+          <div key={i} className="rounded-xl border border-[#EAECF0] bg-white px-5 py-5 text-center shadow-[0_8px_24px_-18px_rgba(15,23,42,0.15)]">
+            <div className="num text-[28px] font-bold leading-none tracking-[-0.02em] text-[#0F172A] sm:text-[32px]">{s.v}</div>
+            <div className="mt-2 text-[13px] text-[#64748B]">{s.l}</div>
           </div>
         ))}
       </div>
