@@ -668,6 +668,73 @@ function HowItWorks() {
   );
 }
 
+// Before/after comparison — manual search vs LogLead (SiteScout-style).
+function Comparison() {
+  const t = useTr();
+  const bad = [
+    t("Scroll through hundreds of results one by one", "Faire défiler des centaines de résultats un par un"),
+    t("No way to filter who actually needs your service", "Aucun moyen de filtrer qui a vraiment besoin de vous"),
+    t("Copy-paste contact info into a spreadsheet", "Copier-coller les contacts dans un tableur"),
+    t("No scoring — every prospect looks the same", "Aucun scoring — tous les prospects se ressemblent"),
+    t("Hours of work to find 10 decent leads", "Des heures de travail pour 10 leads corrects"),
+    t("Cold outreach with no personalization", "De la prospection à froid sans personnalisation"),
+  ];
+  const good = [
+    t("Describe who you want — Scout finds them instantly", "Décrivez qui vous voulez — Scout les trouve instantanément"),
+    t("Every prospect filtered and scored 0-100 by AI", "Chaque prospect filtré et scoré de 0 à 100 par l'IA"),
+    t("Email and phone enriched automatically", "Email et téléphone enrichis automatiquement"),
+    t("Buying signals detected", "Signaux d'achat détectés"),
+    t("Pipeline organized by segment — never mixed up", "Pipeline organisé par segment — jamais mélangé"),
+    t("10 seconds to a list of 100+ qualified prospects", "10 secondes pour une liste de 100+ prospects qualifiés"),
+  ];
+  return (
+    <section className="bg-[#F8FAFC] px-5 py-24 sm:px-6">
+      <div className="mx-auto max-w-[1000px]">
+        <h2 className="v5-fade mx-auto max-w-3xl text-center text-[32px] font-bold leading-[1.15] tracking-[-0.02em] text-[#0F172A] sm:text-[46px]">
+          {t("You could spend hours searching manually", "Vous pouvez passer des heures à chercher à la main")}{" "}
+          <span className="v5-gradient-text underline decoration-[#0051FF]/30 underline-offset-4">{t("or 10 seconds on LogLead.", "ou 10 secondes sur LogLead.")}</span>
+        </h2>
+
+        <div className="mt-12 grid gap-5 md:grid-cols-2">
+          {/* Bad */}
+          <div className="v5-fade rounded-2xl border border-[#FECACA] bg-[#FEF2F2] p-7" style={{ animationDelay: "0.1s" }}>
+            <p className="text-[16px] font-semibold text-[#0F172A]">Google Maps</p>
+            <p className="mt-0.5 text-[13px] font-medium text-[#EF4444]">{t("Searching by hand", "La recherche à la main")}</p>
+            <ul className="mt-5 space-y-3.5">
+              {bad.map((b, i) => (
+                <li key={i} className="flex items-start gap-2.5 text-[14px] leading-relaxed text-[#374151]">
+                  <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#EF4444]/12 text-[11px] font-bold text-[#EF4444]">✕</span>{b}
+                </li>
+              ))}
+            </ul>
+          </div>
+          {/* Good */}
+          <div className="v5-fade rounded-2xl border border-[#BBF7D0] bg-[#F0FDF4] p-7" style={{ animationDelay: "0.18s" }}>
+            <p className="text-[16px] font-semibold text-[#0F172A]">LogLead</p>
+            <p className="mt-0.5 text-[13px] font-medium text-[#22C55E]">{t("Built to find your clients", "Conçu pour trouver vos clients")}</p>
+            <ul className="mt-5 space-y-3.5">
+              {good.map((g, i) => (
+                <li key={i} className="flex items-start gap-2.5 text-[14px] leading-relaxed text-[#374151]">
+                  <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#22C55E]/15 text-[11px] font-bold text-[#22C55E]">✓</span>{g}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* Bottom banner */}
+        <div className="v5-fade mt-5 flex flex-col items-center justify-between gap-4 rounded-xl border border-[#BBF7D0] bg-[#F0FDF4] px-7 py-5 sm:flex-row sm:text-left" style={{ animationDelay: "0.28s" }}>
+          <div className="text-center sm:text-left">
+            <p className="text-[15px] font-semibold text-[#0F172A]">{t("Searching manually gives you a list.", "Chercher à la main vous donne une liste.")}</p>
+            <p className="text-[13px] text-[#64748B]">{t("LogLead gives you clients.", "LogLead vous donne des clients.")}</p>
+          </div>
+          <Link href={SIGNUP} className={`${BTN} shrink-0 !px-5 !py-3 !text-[14px]`}>{t("Start finding clients →", "Trouver des clients →")}</Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function Faq() {
   const t = useTr();
   const faqs: [string, string][] = [
@@ -980,6 +1047,7 @@ export default function LandingV5() {
         <StatsStrip />
         <HowItWorks />
         <InteractiveDemo />
+        <Comparison />
         <Faq />
         <Footer />
       </div>
