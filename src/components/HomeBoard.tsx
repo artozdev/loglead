@@ -4,6 +4,8 @@ import Link from "next/link";
 import { Camera, ChevronRight, Loader2, Plus } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import type { Prospect, Search as SearchType } from "@/lib/types";
+import { useLocale } from "./LocaleProvider";
+import type { Locale } from "@/lib/i18n";
 
 // ---------------------------------------------------------------------------
 // Home dashboard — Waalaxy-like: metric cards + "À faire", activity chart,
@@ -15,13 +17,14 @@ const BLUE = "#0051FF";
 const AMBER = "#F59E0B";
 const RED = "#EF4444";
 
-function rel(iso: string) {
+function rel(iso: string, locale: Locale = "en") {
   const d = (Date.now() - new Date(iso).getTime()) / 86400000;
-  if (d < 1 / 24) return "à l'instant";
-  if (d < 1) return `il y a ${Math.max(1, Math.floor(d * 24))}h`;
-  if (d < 2) return "hier";
-  if (d < 7) return `il y a ${Math.floor(d)}j`;
-  return `il y a ${Math.floor(d / 7)} sem`;
+  const fr = locale === "fr";
+  if (d < 1 / 24) return fr ? "à l'instant" : "just now";
+  if (d < 1) return fr ? `il y a ${Math.max(1, Math.floor(d * 24))}h` : `${Math.max(1, Math.floor(d * 24))}h ago`;
+  if (d < 2) return fr ? "hier" : "yesterday";
+  if (d < 7) return fr ? `il y a ${Math.floor(d)}j` : `${Math.floor(d)}d ago`;
+  return fr ? `il y a ${Math.floor(d / 7)} sem` : `${Math.floor(d / 7)}w ago`;
 }
 
 function initials(s: string) {
@@ -64,7 +67,7 @@ function resizeToDataUrl(file: File, size: number): Promise<string> {
 
 // ----- Daily buckets for the activity chart -------------------------------
 type Bucket = { label: string; found: number; qualified: number };
-function buildDaily(prospects: Prospect[], days: number): Bucket[] {
+function buildDaily(prospects: Prospect[], days: number, locale: Locale = "en"): Bucket[] {
   const start = new Date();
   start.setHours(0, 0, 0, 0);
   const buckets: { t: number; found: number; qualified: number; d: Date }[] = [];
@@ -85,7 +88,7 @@ function buildDaily(prospects: Prospect[], days: number): Bucket[] {
     }
   }
   return buckets.map((b) => ({
-    label: `${b.d.toLocaleDateString("fr-FR", { weekday: "short" }).replace(".", "")} ${b.d.getDate()}`,
+    label: `${b.d.toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US", { weekday: "short" }).replace(".", "")} ${b.d.getDate()}`,
     found: b.found,
     qualified: b.qualified,
   }));
@@ -116,7 +119,8 @@ function Sparkline({ data, color }: { data: number[]; color: string }) {
 }
 
 // ----- Activity chart ------------------------------------------------------
-function ActivityChart({ buckets }: { buckets: Bucket[] }) {
+function ActivityChart({ buckets, locale = "en" }: { buckets: Bucket[]; locale?: Locale }) {
+  const tr = (en: string, fr: string) => (locale === "fr" ? fr : en);
   const [hover, setHover] = useState<number | null>(null);
   const W = 760, H = 210, padL = 26, padR = 12, padT = 12, padB = 26;
   const n = buckets.length;
@@ -169,8 +173,8 @@ function ActivityChart({ buckets }: { buckets: Bucket[] }) {
       {hover !== null && (
         <div className="pointer-events-none absolute top-2 rounded-lg border border-line bg-surface px-2.5 py-1.5 text-[11px] shadow-md" style={{ left: `calc(${(x(hover) / W) * 100}% - 40px)` }}>
           <div className="font-medium text-ink">{buckets[hover].label}</div>
-          <div className="mt-0.5 flex items-center gap-1.5 text-muted"><span className="h-1.5 w-1.5 rounded-full" style={{ background: BLUE }} />{buckets[hover].found} trouvés</div>
-          <div className="flex items-center gap-1.5 text-muted"><span className="h-1.5 w-1.5 rounded-full" style={{ background: GREEN }} />{buckets[hover].qualified} qualifiés</div>
+          <div className="mt-0.5 flex items-center gap-1.5 text-muted"><span className="h-1.5 w-1.5 rounded-full" style={{ background: BLUE }} />{buckets[hover].found} {tr("found", "trouvés")}</div>
+          <div className="flex items-center gap-1.5 text-muted"><span className="h-1.5 w-1.5 rounded-full" style={{ background: GREEN }} />{buckets[hover].qualified} {tr("qualified", "qualifiés")}</div>
         </div>
       )}
     </div>
@@ -199,6 +203,8 @@ export default function HomeBoard({
   searches: SearchType[];
   avatarUrl?: string | null;
 }) {
+  const { locale } = useLocale();
+  const tr = (en: string, fr: string) => (locale === "fr" ? fr : en);
   const [days, setDays] = useState(7);
   const [avatar, setAvatar] = useState<string | null>(avatarUrl);
   const [avatarBusy, setAvatarBusy] = useState(false);
@@ -219,8 +225,8 @@ export default function HomeBoard({
     } catch { /* ignore */ } finally { setAvatarBusy(false); }
   }
   const hour = new Date().getHours();
-  const greet = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
-  const date = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+  const greet = hour < 12 ? tr("Good morning", "Bonjour") : hour < 18 ? tr("Good afternoon", "Bon après-midi") : tr("Good evening", "Bonsoir");
+  const date = new Date().toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US", { weekday: "long", month: "long", day: "numeric" });
 
   const empty = prospects.length === 0 && searches.length === 0;
 
@@ -236,8 +242,8 @@ export default function HomeBoard({
   }).length;
   const qChange = qPrev ? Math.round(((q7 - qPrev) / qPrev) * 100) : q7 > 0 ? 100 : 0;
 
-  const daily7 = useMemo(() => buildDaily(prospects, 7), [prospects]);
-  const buckets = useMemo(() => buildDaily(prospects, days), [prospects, days]);
+  const daily7 = useMemo(() => buildDaily(prospects, 7, locale), [prospects, locale]);
+  const buckets = useMemo(() => buildDaily(prospects, days, locale), [prospects, days, locale]);
   const rangeFound = buckets.reduce((s, b) => s + b.found, 0);
 
   const foundSpark = daily7.map((b) => b.found);
@@ -247,9 +253,9 @@ export default function HomeBoard({
   const todoAll = prospects.filter((p) => p.stage !== "converted" && p.stage !== "archived");
   const todo = [...todoAll].sort((a, b) => b.fitScore - a.fitScore).slice(0, 5);
   function todoAction(p: Prospect): { label: string; cls: string; note?: string; dot?: string } {
-    if (p.contactStatus === "replied" || p.lastReplyReceived) return { label: "Répondre", cls: "text-primary" };
-    if (p.contactStatus === "message_sent" || p.lastMessageSentAt) return { label: "Relancer", cls: "text-[#F59E0B]", dot: RED, note: "Le prospect est en phase de suivi" };
-    return { label: "Vérifier", cls: "text-muted", note: "Le prospect est en phase de découverte" };
+    if (p.contactStatus === "replied" || p.lastReplyReceived) return { label: tr("Reply", "Répondre"), cls: "text-primary" };
+    if (p.contactStatus === "message_sent" || p.lastMessageSentAt) return { label: tr("Follow up", "Relancer"), cls: "text-[#F59E0B]", dot: RED, note: tr("Prospect is in follow-up", "Le prospect est en phase de suivi") };
+    return { label: tr("Review", "Vérifier"), cls: "text-muted", note: tr("Prospect is in discovery", "Le prospect est en phase de découverte") };
   }
 
   // Hot prospects
@@ -257,17 +263,17 @@ export default function HomeBoard({
 
   const metrics: { label: string; icon: string; value: React.ReactNode; sub: React.ReactNode; spark: number[]; color: string; badge?: { text: string; ok: boolean } }[] = [
     {
-      label: "Prospects trouvés", icon: "🔭", value: empty ? "—" : total,
-      sub: <>7 derniers jours</>, spark: foundSpark, color: GREEN,
+      label: tr("Prospects found", "Prospects trouvés"), icon: "🔭", value: empty ? "—" : total,
+      sub: <>{tr("Last 7 days", "7 derniers jours")}</>, spark: foundSpark, color: GREEN,
     },
     {
-      label: "Taux de qualification", icon: "✦", value: empty ? "—" : <>{qualifyRate}<span className="text-[18px] font-semibold text-muted">%</span></>,
-      sub: `${qualifyRate}% de taux de qualification`, spark: qualSpark, color: GREEN,
+      label: tr("Qualification rate", "Taux de qualification"), icon: "✦", value: empty ? "—" : <>{qualifyRate}<span className="text-[18px] font-semibold text-muted">%</span></>,
+      sub: tr(`${qualifyRate}% qualification rate`, `${qualifyRate}% de taux de qualification`), spark: qualSpark, color: GREEN,
       badge: { text: `${qualifyRate}%`, ok: qualifyRate >= 60 },
     },
     {
-      label: "Prospects qualifiés", icon: "✦", value: empty ? "—" : qualifiedAll.length,
-      sub: <><span style={{ color: qChange >= 0 ? GREEN : RED }} className="font-semibold">{qChange >= 0 ? "+" : ""}{qChange}%</span> vs 7j précédents</>,
+      label: tr("Qualified prospects", "Prospects qualifiés"), icon: "✦", value: empty ? "—" : qualifiedAll.length,
+      sub: <><span style={{ color: qChange >= 0 ? GREEN : RED }} className="font-semibold">{qChange >= 0 ? "+" : ""}{qChange}%</span> {tr("vs previous 7d", "vs 7j précédents")}</>,
       spark: qualSpark, color: BLUE,
     },
   ];
@@ -280,8 +286,8 @@ export default function HomeBoard({
           <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onPickAvatar} />
           <button
             onClick={() => fileRef.current?.click()}
-            title="Changer la photo de profil"
-            aria-label="Changer la photo de profil"
+            title={tr("Change profile photo", "Changer la photo de profil")}
+            aria-label={tr("Change profile photo", "Changer la photo de profil")}
             className="group relative h-12 w-12 shrink-0 overflow-hidden rounded-full border border-line bg-surface-hover transition hover:opacity-90"
           >
             {avatar ? (
@@ -300,8 +306,8 @@ export default function HomeBoard({
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Link href="/logagent" className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-2 text-[13px] font-medium text-ink transition hover:bg-surface-hover"><span>🔭</span> New Scout search</Link>
-          <Link href="/logagent" className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-2 text-[13px] font-medium text-ink transition hover:bg-surface-hover"><span>⚔️</span> Find competitor clients</Link>
+          <Link href="/logagent" className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-2 text-[13px] font-medium text-ink transition hover:bg-surface-hover"><span>🔭</span> {tr("New Scout search", "Nouvelle recherche Scout")}</Link>
+          <Link href="/logagent" className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-2 text-[13px] font-medium text-ink transition hover:bg-surface-hover"><span>⚔️</span> {tr("Find competitor clients", "Trouver les clients des concurrents")}</Link>
         </div>
       </div>
 
@@ -326,22 +332,22 @@ export default function HomeBoard({
           {!empty && (
             <div className="rounded-xl border border-line bg-surface p-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="flex items-center gap-1.5 text-[13px] font-semibold text-ink"><span>🔭</span> Activité de prospection</p>
+                <p className="flex items-center gap-1.5 text-[13px] font-semibold text-ink"><span>🔭</span> {tr("Prospecting activity", "Activité de prospection")}</p>
                 <select value={days} onChange={(e) => setDays(Number(e.target.value))} className="cursor-pointer rounded-lg border border-line bg-canvas px-2.5 py-1.5 text-[12px] font-medium text-ink outline-none">
-                  <option value={7}>7 derniers jours</option>
-                  <option value={30}>30 derniers jours</option>
-                  <option value={90}>3 mois</option>
-                  <option value={365}>Cette année</option>
+                  <option value={7}>{tr("Last 7 days", "7 derniers jours")}</option>
+                  <option value={30}>{tr("Last 30 days", "30 derniers jours")}</option>
+                  <option value={90}>{tr("3 months", "3 mois")}</option>
+                  <option value={365}>{tr("This year", "Cette année")}</option>
                 </select>
               </div>
               <div className="mt-2 flex items-start justify-between">
                 <p className="num text-[32px] font-bold leading-none text-ink">{rangeFound}</p>
                 <div className="flex flex-col gap-1 text-[12px] text-muted">
-                  <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full" style={{ background: BLUE }} /> Prospects trouvés</span>
-                  <span className="flex items-center gap-1.5"><span className="inline-block h-0 w-4 border-t-2 border-dashed" style={{ borderColor: GREEN }} /> Prospects qualifiés</span>
+                  <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full" style={{ background: BLUE }} /> {tr("Prospects found", "Prospects trouvés")}</span>
+                  <span className="flex items-center gap-1.5"><span className="inline-block h-0 w-4 border-t-2 border-dashed" style={{ borderColor: GREEN }} /> {tr("Qualified prospects", "Prospects qualifiés")}</span>
                 </div>
               </div>
-              <div className="mt-3"><ActivityChart buckets={buckets} /></div>
+              <div className="mt-3"><ActivityChart buckets={buckets} locale={locale} /></div>
             </div>
           )}
         </div>
@@ -349,11 +355,11 @@ export default function HomeBoard({
         {/* À faire */}
         <div className="flex flex-col rounded-xl border border-line bg-surface p-4 lg:col-span-1">
           <div className="flex items-center justify-between">
-            <p className="flex items-center gap-1.5 text-[13px] font-semibold text-ink"><span>✦</span> À faire</p>
+            <p className="flex items-center gap-1.5 text-[13px] font-semibold text-ink"><span>✦</span> {tr("To do", "À faire")}</p>
             <span className="rounded-full bg-ink px-2 py-0.5 text-[11px] font-semibold text-canvas">{todoAll.length}</span>
           </div>
           {todo.length === 0 ? (
-            <p className="mt-4 text-[12px] text-muted">Rien à traiter pour le moment.</p>
+            <p className="mt-4 text-[12px] text-muted">{tr("Nothing to handle right now.", "Rien à traiter pour le moment.")}</p>
           ) : (
             <div className="mt-2 flex flex-1 flex-col">
               {todo.map((p) => {
@@ -370,7 +376,7 @@ export default function HomeBoard({
                   </Link>
                 );
               })}
-              {todoAll.length > todo.length && <p className="mt-auto pt-3 text-[12px] text-faint">··· + {todoAll.length - todo.length} autres</p>}
+              {todoAll.length > todo.length && <p className="mt-auto pt-3 text-[12px] text-faint">··· + {todoAll.length - todo.length} {tr("more", "autres")}</p>}
             </div>
           )}
         </div>
@@ -379,9 +385,9 @@ export default function HomeBoard({
       {empty ? (
         <div className="mt-4 rounded-xl border border-line bg-surface px-6 py-16 text-center">
           <div className="text-[34px]">🔭</div>
-          <h2 className="mt-3 font-display text-[19px] font-semibold text-ink">Your agent is ready.</h2>
-          <p className="mx-auto mt-2 max-w-sm text-[14px] leading-relaxed text-muted">Describe your ideal prospect and Scout will find them across LinkedIn, Google Maps and the web.</p>
-          <Link href="/logagent" className="btn-primary mx-auto mt-6 !py-2 text-[13px]">→ Start your first search</Link>
+          <h2 className="mt-3 font-display text-[19px] font-semibold text-ink">{tr("Your agent is ready.", "Ton agent est prêt.")}</h2>
+          <p className="mx-auto mt-2 max-w-sm text-[14px] leading-relaxed text-muted">{tr("Describe your ideal prospect and Scout will find them across LinkedIn, Google Maps and the web.", "Décris ton prospect idéal et Scout le trouvera sur LinkedIn, Google Maps et le web.")}</p>
+          <Link href="/logagent" className="btn-primary mx-auto mt-6 !py-2 text-[13px]">{tr("→ Start your first search", "→ Lance ta première recherche")}</Link>
         </div>
       ) : (
           /* Row 3 — recent searches + hot prospects */
@@ -389,11 +395,11 @@ export default function HomeBoard({
             {/* Recent searches */}
             <div className="rounded-xl border border-line bg-surface p-5 lg:col-span-3">
               <div className="flex items-center justify-between">
-                <p className="flex items-center gap-1.5 text-[13px] font-semibold text-ink"><span>🔭</span> Dernières recherches</p>
-                <Link href="/logagent" className="inline-flex items-center gap-1 rounded-lg border border-line px-2.5 py-1.5 text-[12px] font-medium text-ink transition hover:bg-surface-hover"><Plus size={13} /> Nouvelle</Link>
+                <p className="flex items-center gap-1.5 text-[13px] font-semibold text-ink"><span>🔭</span> {tr("Recent searches", "Dernières recherches")}</p>
+                <Link href="/logagent" className="inline-flex items-center gap-1 rounded-lg border border-line px-2.5 py-1.5 text-[12px] font-medium text-ink transition hover:bg-surface-hover"><Plus size={13} /> {tr("New", "Nouvelle")}</Link>
               </div>
               {searches.length === 0 ? (
-                <p className="mt-4 text-[13px] text-muted">Aucune recherche. <Link href="/logagent" className="text-primary hover:underline">Lance ta première recherche →</Link></p>
+                <p className="mt-4 text-[13px] text-muted">{tr("No searches yet.", "Aucune recherche.")} <Link href="/logagent" className="text-primary hover:underline">{tr("Start your first search →", "Lance ta première recherche →")}</Link></p>
               ) : (
                 <div className="mt-2">
                   {searches.map((s) => {
@@ -402,7 +408,7 @@ export default function HomeBoard({
                       <Link key={s.id} href={`/logagent?q=${encodeURIComponent(s.query)}`} className="group flex items-center gap-3 border-b border-line py-3 last:border-b-0">
                         <div className="min-w-0 flex-1">
                           <div className="truncate text-[13px] font-medium text-ink">“{s.title || s.query}”</div>
-                          <div className="mt-0.5 text-[12px] text-muted">{s.totalResults} prospects · {rate}% qualifiés · {rel(s.createdAt)}</div>
+                          <div className="mt-0.5 text-[12px] text-muted">{s.totalResults} {tr("prospects", "prospects")} · {rate}% {tr("qualified", "qualifiés")} · {rel(s.createdAt, locale)}</div>
                         </div>
                         <ChevronRight size={15} className="shrink-0 text-faint transition group-hover:text-primary" />
                       </Link>
@@ -415,11 +421,11 @@ export default function HomeBoard({
             {/* Hot prospects */}
             <div className="rounded-xl border border-line bg-surface p-5 lg:col-span-2">
               <div className="flex items-center justify-between">
-                <p className="flex items-center gap-1.5 text-[13px] font-semibold text-ink"><span>🔥</span> Prospects chauds</p>
-                <Link href="/leads" className="text-[12px] font-medium text-primary hover:underline">Voir tous →</Link>
+                <p className="flex items-center gap-1.5 text-[13px] font-semibold text-ink"><span>🔥</span> {tr("Hot prospects", "Prospects chauds")}</p>
+                <Link href="/leads" className="text-[12px] font-medium text-primary hover:underline">{tr("View all →", "Voir tous →")}</Link>
               </div>
               {hot.length === 0 ? (
-                <p className="mt-4 text-[13px] text-muted">Aucun prospect chaud pour l&apos;instant.</p>
+                <p className="mt-4 text-[13px] text-muted">{tr("No hot prospects yet.", "Aucun prospect chaud pour l'instant.")}</p>
               ) : (
                 <div className="mt-2">
                   {hot.map((p) => {
@@ -434,7 +440,7 @@ export default function HomeBoard({
                             {role && <span className="truncate text-[12px] text-muted">· {role}</span>}
                             <span className="ml-auto flex shrink-0 items-center gap-1 text-[12px] font-semibold text-ink"><span className="h-2 w-2 rounded-full" style={{ background: scoreColor(p.fitScore) }} />{p.fitScore}</span>
                           </div>
-                          {p.signalDescription && <div className="mt-0.5 truncate text-[12px] text-muted">Signal : {p.signalDescription}</div>}
+                          {p.signalDescription && <div className="mt-0.5 truncate text-[12px] text-muted">{tr("Signal", "Signal")}: {p.signalDescription}</div>}
                         </div>
                         <ChevronRight size={15} className="mt-1 shrink-0 text-faint transition group-hover:text-primary" />
                       </Link>
