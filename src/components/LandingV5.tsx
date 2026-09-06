@@ -690,9 +690,12 @@ function Comparison() {
   return (
     <section className="bg-[#F8FAFC] px-5 py-24 sm:px-6">
       <div className="mx-auto max-w-[1000px]">
-        <h2 className="v5-fade mx-auto max-w-3xl text-center text-[32px] font-bold leading-[1.15] tracking-[-0.02em] text-[#0F172A] sm:text-[46px]">
+        <div className="v5-fade flex justify-center">
+          <span className={EY}><span className="text-[#0085FF]">✦</span> {t("Why LogLead?", "Pourquoi LogLead ?")}</span>
+        </div>
+        <h2 className="v5-fade mx-auto mt-5 max-w-3xl text-center text-[32px] font-bold leading-[1.15] tracking-[-0.02em] text-[#0F172A] sm:text-[46px]">
           {t("You could spend hours searching manually", "Vous pouvez passer des heures à chercher à la main")}{" "}
-          <span className="v5-gradient-text underline decoration-[#0051FF]/30 underline-offset-4">{t("or 10 seconds on LogLead.", "ou 10 secondes sur LogLead.")}</span>
+          <span className="v5-gradient-text">{t("or 10 seconds on LogLead", "ou 10 secondes sur LogLead")}</span>
         </h2>
 
         <div className="mt-12 grid gap-5 md:grid-cols-2">
@@ -1019,18 +1022,17 @@ function InteractiveDemo() {
 function StatsStrip() {
   const t = useTr();
   const stats = [
-    { v: <CountUp to={6} />, l: t("data sources", "sources de données") },
-    { v: <><CountUp to={68} />%</>, l: t("avg qualify rate", "taux de qualification moyen") },
-    { v: <><CountUp to={50} />+</>, l: t("prospects / night", "prospects / nuit") },
-    { v: <>€<CountUp to={59} /></>, l: t("per month", "par mois") },
+    { v: <><CountUp to={150} prefix="+" />K</>, l: t("prospects found", "prospects trouvés") },
+    { v: <><CountUp to={10} />+</>, l: t("hours saved / week", "heures gagnées / semaine") },
+    { v: <><CountUp to={2} /> min</>, l: t("to find your future clients", "pour trouver vos futurs clients") },
   ];
   return (
-    <section className="border-y border-[#E2E8F0] bg-[#F8FAFC] px-5 py-12 sm:px-6">
-      <div className="mx-auto grid max-w-4xl grid-cols-2 gap-6 text-center sm:grid-cols-4">
+    <section className="bg-[#F8FAFC] px-5 py-16 sm:px-6">
+      <div className="mx-auto grid max-w-5xl gap-4 sm:grid-cols-3">
         {stats.map((s, i) => (
-          <div key={i}>
-            <div className="num text-[32px] font-bold text-[#0F172A] sm:text-[38px]">{s.v}</div>
-            <div className="mt-1 text-[13px] text-[#64748B]">{s.l}</div>
+          <div key={i} className="rounded-2xl border border-[#EAECF0] bg-white px-6 py-8 text-center shadow-[0_10px_30px_-18px_rgba(15,23,42,0.15)]">
+            <div className="num text-[40px] font-bold leading-none tracking-[-0.02em] text-[#0F172A] sm:text-[46px]">{s.v}</div>
+            <div className="mt-3 text-[14px] text-[#64748B]">{s.l}</div>
           </div>
         ))}
       </div>
