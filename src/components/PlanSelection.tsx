@@ -35,26 +35,6 @@ export default function PlanSelection() {
     }
   }
 
-  // Free offer → grant 200 one-time credits and enter the dashboard.
-  async function startFree() {
-    if (busy) return;
-    setBusy("free");
-    setError(null);
-    try {
-      const res = await fetch("/api/onboarding/plan", { method: "POST" });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error ?? "Impossible de démarrer l'offre gratuite.");
-        setBusy(null);
-        return;
-      }
-      window.location.href = "/dashboard?free_started=1";
-    } catch {
-      setError("Impossible de démarrer l'offre gratuite. Réessaie.");
-      setBusy(null);
-    }
-  }
-
   // €/mo shown; annual applies a 20% discount visually.
   const price = (p: PlanCard) =>
     billing === "annual" ? Math.round(p.priceMonthly * 0.8) : p.priceMonthly;
@@ -68,7 +48,7 @@ export default function PlanSelection() {
           Choisis ton plan
         </h1>
         <p className="mt-2 text-center text-[15px] text-slate-500">
-          Commence gratuitement avec 100 crédits — ou passe à un plan payant quand tu veux.
+          Ta première recherche est prête. Choisis un plan pour voir tes résultats.
         </p>
 
         {/* Billing toggle */}
@@ -144,21 +124,9 @@ export default function PlanSelection() {
           })}
         </div>
 
-        {/* Free offer */}
-        <div className="mt-6 flex w-full max-w-md flex-col items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50/60 px-5 py-4 text-center">
-          <p className="text-[14px] font-semibold text-slate-900">Juste tester ? Commence gratuitement</p>
-          <p className="text-[13px] text-slate-500">
-            100 crédits offerts, sans carte bancaire. Ils expirent une fois épuisés — tu passes à un plan quand tu veux.
-          </p>
-          <button
-            onClick={startFree}
-            disabled={busy !== null}
-            className="mt-1 inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-50 disabled:opacity-60"
-          >
-            {busy === "free" ? <Loader2 size={16} className="animate-spin" /> : null}
-            Continuer en gratuit →
-          </button>
-        </div>
+        <p className="mt-6 text-center text-[13px] text-slate-500">
+          Essai 7 jours gratuit sur tous les plans · Sans carte bancaire · Annulable à tout moment
+        </p>
       </div>
     </div>
   );
