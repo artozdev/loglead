@@ -722,13 +722,9 @@ function Comparison() {
           </div>
         </div>
 
-        {/* Bottom banner */}
-        <div className="v5-fade mt-5 flex flex-col items-center justify-between gap-4 rounded-xl border border-[#BBF7D0] bg-[#F0FDF4] px-7 py-5 sm:flex-row sm:text-left" style={{ animationDelay: "0.28s" }}>
-          <div className="text-center sm:text-left">
-            <p className="text-[15px] font-semibold text-[#0F172A]">{t("Searching manually gives you a list.", "Chercher à la main vous donne une liste.")}</p>
-            <p className="text-[13px] text-[#64748B]">{t("LogLead gives you clients.", "LogLead vous donne des clients.")}</p>
-          </div>
-          <Link href={SIGNUP} className={`${BTN} shrink-0 !px-5 !py-3 !text-[14px]`}>{t("Start finding clients →", "Trouver des clients →")}</Link>
+        {/* CTA */}
+        <div className="v5-fade mt-10 flex justify-center" style={{ animationDelay: "0.28s" }}>
+          <Link href={SIGNUP} className={`${BTN} !px-7 !py-3.5 !text-[15px]`}>{t("Get started", "Commencer")}</Link>
         </div>
       </div>
     </section>
