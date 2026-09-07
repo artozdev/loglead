@@ -213,7 +213,7 @@ function Hero() {
   }
 
   return (
-    <section className="relative -mt-[72px] overflow-hidden px-5 pb-28 pt-[184px] sm:px-6">
+    <section className="relative -mt-[72px] overflow-hidden px-5 pb-12 pt-[184px] sm:px-6">
       {/* Hero background image (dark navy → blue → white gradient) */}
       <div
         aria-hidden
@@ -996,12 +996,12 @@ function StatsStrip() {
     { v: <><CountUp to={2} /> min</>, l: t("to find your future clients", "pour trouver vos futurs clients") },
   ];
   return (
-    <section className="bg-[#F8FAFC] px-5 pb-12 pt-4 sm:px-6">
+    <section className="bg-[#F8FAFC] px-5 pb-8 pt-0 sm:px-6">
       <div className="mx-auto grid max-w-4xl gap-3 sm:grid-cols-3">
         {stats.map((s, i) => (
-          <div key={i} className="rounded-xl border border-[#EAECF0] bg-white px-5 py-5 text-center shadow-[0_8px_24px_-18px_rgba(15,23,42,0.15)]">
+          <div key={i} className="rounded-xl border border-[#EAECF0] bg-white px-5 py-4 text-center shadow-[0_8px_24px_-18px_rgba(15,23,42,0.15)]">
             <div className="num text-[28px] font-bold leading-none tracking-[-0.02em] text-[#0F172A] sm:text-[32px]">{s.v}</div>
-            <div className="mt-2 text-[13px] text-[#64748B]">{s.l}</div>
+            <div className="mt-1.5 text-[13px] text-[#64748B]">{s.l}</div>
           </div>
         ))}
       </div>
