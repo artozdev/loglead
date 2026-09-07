@@ -694,10 +694,10 @@ function Comparison() {
         <div className="mt-12 grid items-stretch gap-5 md:grid-cols-2">
           {/* Google Maps — white card */}
           <div className="v5-fade flex flex-col rounded-3xl border border-[#E9EDF2] bg-white p-6 shadow-[0_20px_60px_-30px_rgba(15,23,42,0.18)] sm:p-8" style={{ animationDelay: "0.1s" }}>
-            <p className="text-[18px] font-semibold text-[#0F172A]">Google Maps</p>
-            <div className="mt-5 overflow-hidden rounded-2xl border border-[#EEF1F5] bg-[#F8FAFC]">
+            <p className="flex h-8 items-center text-[18px] font-semibold text-[#0F172A]">Google Maps</p>
+            <div className="mt-5 flex items-center justify-center overflow-hidden rounded-2xl border border-[#EEF1F5] bg-white p-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/i1.svg" alt="" className="h-[230px] w-full object-cover" />
+              <img src="/i1.svg" alt="" className="max-h-[240px] w-full object-contain" />
             </div>
             <div className="my-6 border-t border-dashed border-[#E2E8F0]" />
             <ul className="space-y-4">
@@ -710,12 +710,14 @@ function Comparison() {
           </div>
           {/* LogLead — black card */}
           <div className="v5-fade flex flex-col rounded-3xl bg-[#0A0C0B] p-6 shadow-[0_24px_70px_-28px_rgba(0,0,0,0.55)] sm:p-8" style={{ animationDelay: "0.18s" }}>
-            <p className="flex items-center gap-2 text-[18px] font-semibold text-white">
-              <span className="text-[#64748B]">{t("With", "Avec")}</span> LogLead
-            </p>
-            <div className="mt-5 overflow-hidden rounded-2xl bg-black/40">
+            <p className="flex h-8 items-center gap-2 text-[18px] font-semibold text-white">
+              <span className="text-white/60">{t("With", "Avec")}</span>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/i2.svg" alt="" className="h-[230px] w-full object-cover" />
+              <img src="/loglead-logo-dark.svg" alt="LogLead" className="h-6 w-auto" />
+            </p>
+            <div className="mt-5 flex items-center justify-center overflow-hidden rounded-2xl bg-white p-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/i2.svg" alt="" className="max-h-[240px] w-full object-contain" />
             </div>
             <div className="my-6 border-t border-dashed border-white/15" />
             <ul className="space-y-4">
