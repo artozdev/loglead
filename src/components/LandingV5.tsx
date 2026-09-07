@@ -671,17 +671,13 @@ function Comparison() {
   const bad = [
     t("Scroll through hundreds of results one by one", "Faire défiler des centaines de résultats un par un"),
     t("No way to filter who actually needs your service", "Aucun moyen de filtrer qui a vraiment besoin de vous"),
-    t("Copy-paste contact info into a spreadsheet", "Copier-coller les contacts dans un tableur"),
     t("No scoring — every prospect looks the same", "Aucun scoring — tous les prospects se ressemblent"),
     t("Hours of work to find 10 decent leads", "Des heures de travail pour 10 leads corrects"),
-    t("Cold outreach with no personalization", "De la prospection à froid sans personnalisation"),
   ];
   const good = [
     t("Describe who you want — Scout finds them instantly", "Décrivez qui vous voulez — Scout les trouve instantanément"),
     t("Every prospect filtered and scored 0-100 by AI", "Chaque prospect filtré et scoré de 0 à 100 par l'IA"),
     t("Email and phone enriched automatically", "Email et téléphone enrichis automatiquement"),
-    t("Buying signals detected", "Signaux d'achat détectés"),
-    t("Pipeline organized by segment — never mixed up", "Pipeline organisé par segment — jamais mélangé"),
     t("10 seconds to a list of 100+ qualified prospects", "10 secondes pour une liste de 100+ prospects qualifiés"),
   ];
   return (
@@ -695,36 +691,42 @@ function Comparison() {
           <span className="v5-gradient-text">{t("or 10 seconds on LogLead", "ou 10 secondes sur LogLead")}</span>
         </h2>
 
-        <div className="mt-12 grid gap-5 md:grid-cols-2">
-          {/* Bad */}
-          <div className="v5-fade rounded-2xl border border-[#FECACA] bg-[#FEF2F2] p-7" style={{ animationDelay: "0.1s" }}>
-            <p className="text-[16px] font-semibold text-[#0F172A]">Google Maps</p>
-            <p className="mt-0.5 text-[13px] font-medium text-[#EF4444]">{t("Searching by hand", "La recherche à la main")}</p>
-            <ul className="mt-5 space-y-3.5">
+        <div className="mt-12 grid items-stretch gap-5 md:grid-cols-2">
+          {/* Google Maps — white card */}
+          <div className="v5-fade flex flex-col rounded-3xl border border-[#E9EDF2] bg-white p-6 shadow-[0_20px_60px_-30px_rgba(15,23,42,0.18)] sm:p-8" style={{ animationDelay: "0.1s" }}>
+            <p className="text-[18px] font-semibold text-[#0F172A]">Google Maps</p>
+            <div className="mt-5 overflow-hidden rounded-2xl border border-[#EEF1F5] bg-[#F8FAFC]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/i1.svg" alt="" className="h-[230px] w-full object-cover" />
+            </div>
+            <div className="my-6 border-t border-dashed border-[#E2E8F0]" />
+            <ul className="space-y-4">
               {bad.map((b, i) => (
-                <li key={i} className="flex items-start gap-2.5 text-[14px] leading-relaxed text-[#374151]">
-                  <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#EF4444]/12 text-[11px] font-bold text-[#EF4444]">✕</span>{b}
+                <li key={i} className="flex items-start gap-3 text-[14px] leading-relaxed text-[#374151] sm:text-[15px]">
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#FEE2E2] text-[11px] font-bold text-[#EF4444]">✕</span>{b}
                 </li>
               ))}
             </ul>
           </div>
-          {/* Good */}
-          <div className="v5-fade rounded-2xl border border-[#BBF7D0] bg-[#F0FDF4] p-7" style={{ animationDelay: "0.18s" }}>
-            <p className="text-[16px] font-semibold text-[#0F172A]">LogLead</p>
-            <p className="mt-0.5 text-[13px] font-medium text-[#22C55E]">{t("Built to find your clients", "Conçu pour trouver vos clients")}</p>
-            <ul className="mt-5 space-y-3.5">
+          {/* LogLead — black card */}
+          <div className="v5-fade flex flex-col rounded-3xl bg-[#0A0C0B] p-6 shadow-[0_24px_70px_-28px_rgba(0,0,0,0.55)] sm:p-8" style={{ animationDelay: "0.18s" }}>
+            <p className="flex items-center gap-2 text-[18px] font-semibold text-white">
+              <span className="text-[#64748B]">{t("With", "Avec")}</span> LogLead
+            </p>
+            <div className="mt-5 overflow-hidden rounded-2xl bg-black/40">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/i2.svg" alt="" className="h-[230px] w-full object-cover" />
+            </div>
+            <div className="my-6 border-t border-dashed border-white/15" />
+            <ul className="space-y-4">
               {good.map((g, i) => (
-                <li key={i} className="flex items-start gap-2.5 text-[14px] leading-relaxed text-[#374151]">
-                  <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#22C55E]/15 text-[11px] font-bold text-[#22C55E]">✓</span>{g}
+                <li key={i} className="flex items-start gap-3 text-[14px] leading-relaxed text-white/85 sm:text-[15px]">
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#22C55E]/20 text-[11px] font-bold text-[#4ADE80]">✓</span>{g}
                 </li>
               ))}
             </ul>
+            <Link href={SIGNUP} className={`${BTN} mt-8 w-full !py-3`}>{t("Get started", "Commencer")}</Link>
           </div>
-        </div>
-
-        {/* CTA */}
-        <div className="v5-fade mt-10 flex justify-center" style={{ animationDelay: "0.28s" }}>
-          <Link href={SIGNUP} className={BTN}>{t("Get started", "Commencer")}</Link>
         </div>
       </div>
     </section>
