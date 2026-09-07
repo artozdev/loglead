@@ -695,7 +695,8 @@ export function AffiliateSection({ tone = "dark" }: { tone?: "light" | "dark" })
 export function PricingLanding({ tone = "dark" }: { tone?: "light" | "dark" }) {
   const dark = tone === "dark";
   const [annual, setAnnual] = useState(false);
-  const price = (p: number) => (p === 0 ? 0 : annual ? Math.round(p * 12 * 0.83) / 12 : p);
+  // Annual billing = 20% off the monthly price.
+  const price = (p: number) => (p === 0 ? 0 : annual ? Math.round(p * 0.8) : p);
   const plans = [
     { name: "Starter", price: 29, desc: "You're starting to generate leads on LinkedIn and want real results.", credits: "2,000 credits/month · 500 leads/month", features: ["Market Intelligence", "Post Generator", "Content Calendar", "Basic enrichment", "Email support", "6 months of history"] },
     { name: "Growth", price: 59, popular: true, desc: "You manage LinkedIn seriously and want a pipeline that grows every week.", credits: "5,000 credits/month · 2,000 leads/month", features: ["Everything in Starter", "Full enrichment (email + phone)", "Competitor tracking", "Buying signal detection", "Priority support", "1 year of history"] },
@@ -720,12 +721,15 @@ export function PricingLanding({ tone = "dark" }: { tone?: "light" | "dark" }) {
       <div className="mx-auto max-w-6xl">
         <SectionTitle badge="Pricing" title={<>Choose your plan.<br /><span className="text-[#0051FF]">Start for free.</span></>} sub="Stop letting opportunities slip by. Turn your LinkedIn visibility into growth." />
 
-        <Reveal className="mt-8 flex justify-center">
+        <Reveal className="mt-8 flex flex-col items-center gap-2">
           <div className={`inline-flex rounded-full border ${BORDER} ${SURFACE} p-1`}>
-            {[["Monthly", false], ["Annual · 2 months free", true]].map(([l, v]) => (
-              <button key={l as string} onClick={() => setAnnual(v as boolean)} className={`rounded-full px-4 py-1.5 text-[13px] font-medium transition ${annual === v ? "bg-[#0051FF] text-white" : MUTED}`}>{l as string}</button>
-            ))}
+            <button onClick={() => setAnnual(false)} className={`rounded-full px-4 py-1.5 text-[13px] font-medium transition ${!annual ? "bg-[#0051FF] text-white" : MUTED}`}>Monthly</button>
+            <button onClick={() => setAnnual(true)} className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[13px] font-medium transition ${annual ? "bg-[#0051FF] text-white" : MUTED}`}>
+              Annual
+              <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${annual ? "bg-white text-[#0051FF]" : "bg-[#16A34A]/15 text-[#16A34A]"}`}>−20%</span>
+            </button>
           </div>
+          <p className="text-[12px] font-semibold text-[#16A34A]">{annual ? "You're saving 20% with annual billing 🎉" : "Save 20% — switch to annual billing"}</p>
         </Reveal>
 
         {/* 3 plans */}
@@ -735,12 +739,16 @@ export function PricingLanding({ tone = "dark" }: { tone?: "light" | "dark" }) {
               {p.popular && <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-[#0051FF] px-3 py-1 text-[11px] font-semibold text-white">Recommended</span>}
               <p className={`text-[15px] font-bold ${FG}`}>{p.name}</p>
               <p className={`mt-1 text-[13px] leading-relaxed ${MUTED}`}>{p.desc}</p>
-              <p className={`mt-4 text-[30px] font-bold ${FG}`}>€{price(p.price) % 1 === 0 ? price(p.price) : price(p.price).toFixed(0)}<span className={`text-[13px] font-normal ${FAINT}`}>/month</span></p>
+              <p className={`mt-4 flex items-baseline gap-2 ${FG}`}>
+                <span className="text-[30px] font-bold">€{price(p.price)}<span className={`text-[13px] font-normal ${FAINT}`}>/month</span></span>
+                {annual && <span className={`text-[15px] font-medium line-through ${FAINT}`}>€{p.price}</span>}
+              </p>
+              {annual && <p className="mt-1 text-[12px] font-semibold text-[#16A34A]">−20% billed annually · €{p.price * 12 - price(p.price) * 12} saved/year</p>}
               <p className="mt-1 text-[12px] font-medium text-[#0051FF]">{p.credits}</p>
               <ul className={`mt-4 flex-1 space-y-2 text-[13px] ${MUTED}`}>
                 {p.features.map((f) => <li key={f} className="flex items-start gap-2"><span className="text-[#0051FF]">✓</span>{f}</li>)}
               </ul>
-              <Link href={SIGNUP} className={`${BTN_P} mt-6 w-full`}><Roll>Start 7-day trial</Roll></Link>
+              <Link href={SIGNUP} className={`${BTN_P} mt-6 w-full`}><Roll>Start</Roll></Link>
             </Reveal>
           ))}
         </div>
@@ -776,7 +784,7 @@ export function PricingLanding({ tone = "dark" }: { tone?: "light" | "dark" }) {
         </div>
 
         <div className="mt-12 flex flex-col items-center gap-3">
-          <Link href={SIGNUP} className={BTN_P}><Roll>Start your 7-day trial</Roll></Link>
+          <Link href={SIGNUP} className={BTN_P}><Roll>Start</Roll></Link>
           <p className="text-[12px] text-[#6A7690]">No credit card · Cancel anytime · Setup in 2 minutes</p>
         </div>
       </div>
