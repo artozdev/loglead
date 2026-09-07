@@ -708,22 +708,22 @@ function Comparison() {
               ))}
             </ul>
           </div>
-          {/* LogLead — black card */}
-          <div className="v5-fade flex flex-col rounded-3xl bg-[#0A0C0B] p-6 shadow-[0_24px_70px_-28px_rgba(0,0,0,0.55)] sm:p-8" style={{ animationDelay: "0.18s" }}>
-            <p className="flex h-8 items-center gap-2 text-[18px] font-semibold text-white">
-              <span className="text-white/60">{t("With", "Avec")}</span>
+          {/* LogLead — white card */}
+          <div className="v5-fade flex flex-col rounded-3xl border border-[#E9EDF2] bg-white p-6 shadow-[0_20px_60px_-30px_rgba(15,23,42,0.18)] sm:p-8" style={{ animationDelay: "0.18s" }}>
+            <p className="flex h-8 items-center gap-2 text-[18px] font-semibold text-[#0F172A]">
+              <span className="text-[#94A3B8]">{t("With", "Avec")}</span>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/loglead-logo-dark.svg" alt="LogLead" className="h-6 w-auto" />
+              <img src="/loglead-logo.svg" alt="LogLead" className="h-6 w-auto" />
             </p>
-            <div className="mt-5 flex items-center justify-center overflow-hidden rounded-2xl bg-white p-3">
+            <div className="mt-5 flex items-center justify-center overflow-hidden rounded-2xl border border-[#EEF1F5] bg-white p-1.5">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/i2.svg" alt="" className="max-h-[240px] w-full object-contain" />
+              <img src="/i2.svg" alt="" className="max-h-[300px] w-full object-contain" />
             </div>
-            <div className="my-6 border-t border-dashed border-white/15" />
+            <div className="my-6 border-t border-dashed border-[#E2E8F0]" />
             <ul className="space-y-4">
               {good.map((g, i) => (
-                <li key={i} className="flex items-start gap-3 text-[14px] leading-relaxed text-white/85 sm:text-[15px]">
-                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#22C55E]/20 text-[11px] font-bold text-[#4ADE80]">✓</span>{g}
+                <li key={i} className="flex items-start gap-3 text-[14px] leading-relaxed text-[#374151] sm:text-[15px]">
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#DCFCE7] text-[11px] font-bold text-[#16A34A]">✓</span>{g}
                 </li>
               ))}
             </ul>
