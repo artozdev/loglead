@@ -14,7 +14,7 @@ import { LangProvider, useLang, useTr } from "./lpLang";
 type Tr = ReturnType<typeof useTr>;
 
 const SIGNUP = "/signup";
-const BTN = "inline-flex items-center justify-center gap-2 rounded-[10px] bg-gradient-to-br from-[#0051FF] to-[#0085FF] px-7 py-3.5 text-[15px] font-semibold text-white shadow-[0_0_20px_#0051FF40] transition hover:-translate-y-0.5 hover:shadow-[0_0_36px_#0051FF70]";
+const BTN = "inline-flex items-center justify-center gap-2 rounded-[10px] bg-gradient-to-br from-[#0051FF] to-[#0085FF] px-5 py-2.5 text-[14px] font-semibold text-white shadow-[0_0_20px_#0051FF40] transition hover:-translate-y-0.5 hover:shadow-[0_0_36px_#0051FF70]";
 const EY ="inline-flex items-center gap-2 rounded-full border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-1 text-[12px] font-medium text-[#475569]";
 
 // A hover dropdown nav menu. Trigger inherits the nav text color; the panel is
@@ -724,7 +724,7 @@ function Comparison() {
 
         {/* CTA */}
         <div className="v5-fade mt-10 flex justify-center" style={{ animationDelay: "0.28s" }}>
-          <Link href={SIGNUP} className={`${BTN} !px-7 !py-3.5 !text-[15px]`}>{t("Get started", "Commencer")}</Link>
+          <Link href={SIGNUP} className={BTN}>{t("Get started", "Commencer")}</Link>
         </div>
       </div>
     </section>
@@ -1004,7 +1004,7 @@ function InteractiveDemo() {
         </div>
 
         <div className="mt-6 text-center">
-          <Link href={SIGNUP} className={`${BTN} !px-6 !py-3`}>{t("Run your own search →", "Lancer votre propre recherche →")}</Link>
+          <Link href={SIGNUP} className={BTN}>{t("Run your own search →", "Lancer votre propre recherche →")}</Link>
         </div>
       </div>
     </section>
