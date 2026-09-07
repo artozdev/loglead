@@ -19,27 +19,6 @@ const EY ="inline-flex items-center gap-2 rounded-full border border-[#E2E8F0] b
 
 // A hover dropdown nav menu. Trigger inherits the nav text color; the panel is
 // always a white card with dark links.
-function NavMenu({ label, items, cls }: { label: string; items: [string, string][]; cls: string }) {
-  return (
-    <div className="group relative">
-      <button className={`inline-flex items-center gap-1 ${cls}`}>
-        {label}
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="transition group-hover:rotate-180"><path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-      </button>
-      <div className="invisible absolute left-1/2 top-full z-50 -translate-x-1/2 pt-3 opacity-0 transition duration-150 group-hover:visible group-hover:opacity-100">
-        <div className="min-w-[230px] rounded-2xl border border-[#E2E8F0] bg-white p-2 shadow-[0_16px_44px_-14px_rgba(15,23,42,0.25)]">
-          {items.map(([l, h]) =>
-            h.startsWith("#") ? (
-              <a key={l} href={h} className="block rounded-xl px-3 py-2 text-[13px] text-[#475569] transition hover:bg-[#F1F5F9] hover:text-[#0F172A]">{l}</a>
-            ) : (
-              <Link key={l} href={h} className="block rounded-xl px-3 py-2 text-[13px] text-[#475569] transition hover:bg-[#F1F5F9] hover:text-[#0F172A]">{l}</Link>
-            ),
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // Product mega-menu — 3 feature cards, each with a modern mini-mockup.
 function ProductMenu({ cls }: { cls: string }) {
@@ -152,16 +131,6 @@ export function Nav({ solid = false }: { solid?: boolean }) {
   const light = solid || scrolled;
   const linkCls = `transition ${light ? "hover:text-[#0F172A]" : "hover:text-white"}`;
 
-  const ressources: [string, string][] = [
-    ["LogLead vs Lemlist", "/vs/loglead-vs-lemlist"],
-    ["LogLead vs Apollo", "/vs/loglead-vs-apollo"],
-    ["LogLead vs Taplio", "/vs/loglead-vs-taplio"],
-    ["LogLead vs Clay", "/vs/loglead-vs-clay"],
-    [t("Affiliate program", "Programme d'affiliation"), "/affiliate"],
-    [t("Privacy", "Confidentialité"), "/privacy"],
-    [t("Terms", "CGU"), "/terms"],
-  ];
-
   return (
     <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${light ? "border-b border-[#E2E8F0] bg-[#FFFFFFEE] backdrop-blur-xl" : "border-b border-transparent"}`}>
       <nav className="mx-auto flex h-[72px] max-w-6xl items-center justify-between px-5 sm:px-6">
@@ -173,7 +142,6 @@ export function Nav({ solid = false }: { solid?: boolean }) {
           <ProductMenu cls={linkCls} />
           <SolutionMenu cls={linkCls} />
           <Link href="/pricing" className={linkCls}>{t("Pricing", "Tarifs")}</Link>
-          <NavMenu label={t("Resources", "Ressources")} items={ressources} cls={linkCls} />
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -798,7 +766,6 @@ export function Footer({ showCta = true }: { showCta?: boolean }) {
     { t: t("Company", "Entreprise"), links: [[t("About", "À propos"), "#"], ["Blog", "#"], [t("Careers", "Carrières"), "#"], ["Contact", "mailto:loglead@gmail.com"]] as [string, string][] },
     { t: t("Product", "Produit"), links: [["LogAgent", "/logagent"], [t("Leads Pipeline", "Pipeline Leads"), "/leads"], [t("Pricing", "Tarifs"), "/pricing"], [t("Changelog", "Nouveautés"), "#"]] as [string, string][] },
     { t: t("Solutions", "Solutions"), links: [[t("Web agencies", "Agences web"), "/for/agencies"], [t("Sales teams", "Commerciaux"), "/for/sales"], [t("Freelancers", "Freelances"), "/for/freelancers"], [t("Founders", "Fondateurs"), "/for/founders"]] as [string, string][] },
-    { t: t("Resources", "Ressources"), links: [[t("Help Center", "Centre d'aide"), "#"], ["Documentation", "#"], [t("Templates", "Modèles"), "#"], [t("Guides", "Guides"), "#"]] as [string, string][] },
     { t: t("Legal", "Légal"), links: [[t("Privacy", "Confidentialité"), "/privacy"], [t("Terms", "CGU"), "/terms"], [t("Cookie settings", "Cookies"), "#"], [t("Legal notice", "Mentions légales"), "#"]] as [string, string][] },
     { t: t("Community", "Communauté"), links: [[t("Affiliate", "Affiliation"), "/affiliate"], [t("Become a partner", "Devenir partenaire"), "#"], [t("Hire an expert", "Recruter un expert"), "#"]] as [string, string][] },
   ];
@@ -826,7 +793,7 @@ export function Footer({ showCta = true }: { showCta?: boolean }) {
         <div className={`px-4 sm:px-6 ${showCta ? "" : "pt-24"}`}>
           <div className="mx-auto max-w-6xl rounded-t-[36px] bg-white px-8 pb-14 pt-14 sm:px-12">
             <div>
-              <div className="grid gap-8 sm:grid-cols-3 lg:grid-cols-7">
+              <div className="grid gap-8 sm:grid-cols-3 lg:grid-cols-6">
                 <div className="lg:col-span-1">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src="/loglead-logo.svg" alt="LogLead" className="h-7 w-auto" />
