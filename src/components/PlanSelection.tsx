@@ -94,6 +94,7 @@ export default function PlanSelection() {
                   <span className="text-[34px] font-bold leading-none text-slate-900">€{price(p)}</span>
                   <span className="text-[14px] text-slate-500">/mo</span>
                 </div>
+                <p className="mt-1 text-[11px] text-slate-400">TVA 20% incluse</p>
                 <div className="mt-4 rounded-xl bg-slate-50 px-3 py-2.5 text-[13px]">
                   <p className="font-semibold text-slate-900">{p.monthly.toLocaleString("fr-FR")} crédits/mois</p>
                   <p className="text-slate-500">Renouvelés chaque mois</p>
@@ -125,7 +126,7 @@ export default function PlanSelection() {
         </div>
 
         <p className="mt-6 text-center text-[13px] text-slate-500">
-          Essai 7 jours gratuit sur tous les plans · Sans carte bancaire · Annulable à tout moment
+          Prix TTC · TVA 20% incluse · Les entreprises peuvent renseigner leur n° de TVA au paiement · Annulable à tout moment
         </p>
       </div>
     </div>

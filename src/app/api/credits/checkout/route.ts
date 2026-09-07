@@ -59,11 +59,18 @@ export async function POST(req: Request) {
               tax_code: process.env.STRIPE_TAX_CODE || "txcd_10103001",
             },
             unit_amount: amount, // 1 credit = 1 cent
+            // Displayed price is VAT-inclusive (TTC): VAT is extracted, not added.
+            tax_behavior: "inclusive",
           },
           quantity: 1,
         },
       ],
       mode: "payment",
+      // Stripe Tax computes VAT from the customer's billing country (France 20%;
+      // EU businesses with a VAT number are exempt; unregistered countries = 0).
+      automatic_tax: { enabled: true },
+      billing_address_collection: "required",
+      tax_id_collection: { enabled: true },
       success_url: `${appUrl}/dashboard?credits_purchased=${amount}`,
       cancel_url: `${appUrl}/dashboard?credits_cancelled=true`,
       metadata: { workspace_id: ctx.workspace.id, credits: String(amount), type: "credit_topup" },

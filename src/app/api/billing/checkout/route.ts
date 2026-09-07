@@ -55,10 +55,19 @@ export async function POST(req: Request) {
             },
             unit_amount: subscriptionAmountCents(plan, billing),
             recurring: { interval: billing === "annual" ? "year" : "month" },
+            // Displayed prices are VAT-inclusive (TTC): Stripe extracts the VAT
+            // from this amount rather than adding it on top.
+            tax_behavior: "inclusive",
           },
           quantity: 1,
         },
       ],
+      // Stripe Tax computes the right VAT from the customer's billing country
+      // (France 20%; EU businesses with a VAT number are reverse-charged/exempt;
+      // countries where LogLead isn't tax-registered get 0). No manual logic.
+      automatic_tax: { enabled: true },
+      billing_address_collection: "required",
+      tax_id_collection: { enabled: true },
       success_url: `${appUrl}/dashboard?subscribed=${plan}`,
       cancel_url: `${appUrl}/pricing?checkout=cancelled`,
       metadata: {

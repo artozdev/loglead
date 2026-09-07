@@ -744,7 +744,8 @@ export function PricingLanding({ tone = "dark" }: { tone?: "light" | "dark" }) {
                 {annual && <span className={`text-[15px] font-medium line-through ${FAINT}`}>€{p.price}</span>}
               </p>
               {annual && <p className="mt-1 text-[12px] font-semibold text-[#16A34A]">−20% billed annually · €{p.price * 12 - price(p.price) * 12} saved/year</p>}
-              <p className="mt-1 text-[12px] font-medium text-[#0051FF]">{p.credits}</p>
+              <p className={`mt-1 text-[11px] ${FAINT}`}>VAT included · Invoiced {annual ? "annually" : "monthly"}</p>
+              <p className="mt-2 text-[12px] font-medium text-[#0051FF]">{p.credits}</p>
               <ul className={`mt-4 flex-1 space-y-2 text-[13px] ${MUTED}`}>
                 {p.features.map((f) => <li key={f} className="flex items-start gap-2"><span className="text-[#0051FF]">✓</span>{f}</li>)}
               </ul>
@@ -752,6 +753,10 @@ export function PricingLanding({ tone = "dark" }: { tone?: "light" | "dark" }) {
             </Reveal>
           ))}
         </div>
+
+        <p className="mx-auto mt-6 max-w-xl text-center text-[14px] text-[#64748B]">
+          All prices include 20% VAT. Businesses can add their VAT number at checkout.
+        </p>
 
         {/* How it works — get-started process in 3 steps */}
         <div className="mt-28 text-center">
