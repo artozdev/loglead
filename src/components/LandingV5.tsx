@@ -642,9 +642,14 @@ function HowItWorks() {
         <div className="mx-auto w-full max-w-6xl">
           <span className={EY}><span className="text-[#0085FF]">✦</span> {t("How it works", "Comment ça marche")}</span>
           <div key={`h-${active}`} className="v5-fade">
-            <h2 className="mt-4 max-w-3xl text-[28px] font-bold leading-[1.12] tracking-[-0.02em] text-[#0F172A] sm:text-[40px]">
+            <div className="mt-4 flex items-center gap-2.5">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-[#0051FF] to-[#0085FF] text-[13px] font-bold text-white shadow-[0_6px_16px_-6px_rgba(0,81,255,0.7)]">{active + 1}</span>
+              <span className="text-[13px] font-semibold uppercase tracking-[0.14em] text-[#0051FF]">{steps[active].rail}</span>
+            </div>
+            <h2 className="mt-3 max-w-3xl text-[28px] font-bold leading-[1.12] tracking-[-0.02em] text-[#0F172A] sm:text-[40px]">
               {steps[active].title}
             </h2>
+            <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-[#64748B] sm:text-[16px]">{steps[active].sub}</p>
           </div>
           <div className="mt-8 grid items-center gap-8 lg:mt-10 lg:grid-cols-[190px_1fr] lg:gap-12">
             {/* Left rail */}
