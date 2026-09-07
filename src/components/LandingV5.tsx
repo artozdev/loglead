@@ -643,7 +643,7 @@ function HowItWorks() {
           <span className={EY}><span className="text-[#0085FF]">✦</span> {t("How it works", "Comment ça marche")}</span>
           <div key={`h-${active}`} className="v5-fade">
             <h2 className="mt-4 max-w-3xl text-[28px] font-bold leading-[1.12] tracking-[-0.02em] text-[#0F172A] sm:text-[40px]">
-              {steps[active].title} <span className="text-[#94A3B8]">{steps[active].sub}</span>
+              {steps[active].title}
             </h2>
           </div>
           <div className="mt-8 grid items-center gap-8 lg:mt-10 lg:grid-cols-[190px_1fr] lg:gap-12">
