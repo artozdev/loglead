@@ -37,7 +37,8 @@ export async function POST(req: Request) {
       // Paid plan activated: set plan + grant this month's credits.
       const plan = s.metadata.plan as Plan;
       const monthly = parseInt(s.metadata.monthly_credits ?? "0", 10);
-      await workspaces.activateSubscription(workspaceId, plan, monthly);
+      // s.id (the Checkout session id) dedups against the return-page confirmation.
+      await workspaces.activateSubscription(workspaceId, plan, monthly, s.id);
     } else if (workspaceId) {
       // Credit top-up (one-time). Idempotent on payment_intent.
       const amount = parseInt(s.metadata?.credits ?? "0", 10);

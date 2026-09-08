@@ -437,10 +437,17 @@ export const workspaces = {
   },
   // Activate a paid subscription after a successful Stripe payment: set the
   // plan, its monthly quota, add this month's credits and schedule renewal.
-  async activateSubscription(id: string, plan: Plan, monthlyCredits: number) {
+  // Idempotent on `dedupKey` (the Stripe Checkout session id): both the webhook
+  // and the server-side return confirmation call this for the same payment, so
+  // the second call must NOT add the monthly credits a second time.
+  async activateSubscription(id: string, plan: Plan, monthlyCredits: number, dedupKey?: string) {
     const db = await read();
     const ws = db.workspaces.find((w) => w.id === id);
     if (!ws) return undefined;
+    // Already processed this checkout session → no-op (prevents double credits).
+    if (dedupKey && db.creditTransactions.some((tx) => tx.workspaceId === id && tx.stripePaymentIntent === dedupKey)) {
+      return ws;
+    }
     const renew = new Date();
     renew.setMonth(renew.getMonth() + 1);
     const next = (ws.credits ?? 0) + monthlyCredits;
@@ -462,6 +469,7 @@ export const workspaces = {
       action: `subscribe_${plan}`,
       credits: monthlyCredits,
       amountEur: null,
+      stripePaymentIntent: dedupKey ?? null,
       balanceAfter: next,
       createdAt: now(),
     });
