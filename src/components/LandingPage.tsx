@@ -693,101 +693,108 @@ export function AffiliateSection({ tone = "dark" }: { tone?: "light" | "dark" })
 // ----- Pricing (dark marketing page) ---------------------------------------
 
 export function PricingLanding({ tone = "dark" }: { tone?: "light" | "dark" }) {
+  const t = useTr();
   const dark = tone === "dark";
   const [annual, setAnnual] = useState(false);
   // Annual billing = 20% off the monthly price.
   const price = (p: number) => (p === 0 ? 0 : annual ? Math.round(p * 0.8) : p);
   const plans = [
-    { name: "Starter", price: 29, desc: "You're starting to generate leads on LinkedIn and want real results.", credits: "2,000 credits/month · 500 leads/month", features: ["Market Intelligence", "Post Generator", "Content Calendar", "Basic enrichment", "Email support", "6 months of history"] },
-    { name: "Growth", price: 59, popular: true, desc: "You manage LinkedIn seriously and want a pipeline that grows every week.", credits: "5,000 credits/month · 2,000 leads/month", features: ["Everything in Starter", "Full enrichment (email + phone)", "Competitor tracking", "Buying signal detection", "Priority support", "1 year of history"] },
-    { name: "Pro", price: 99, desc: "Your product is serious. You want AI to run your growth.", credits: "10,000 credits/month · Unlimited leads", features: ["Everything in Growth", "AI Growth Partner [Beta]", "5 workspaces", "Dedicated support", "3 years of history"] },
+    {
+      name: "Starter", price: 29,
+      desc: t("You're starting to generate leads and want real results.", "Tu commences à générer des leads et tu veux de vrais résultats."),
+      credits: t("2,000 credits/month · 500 leads/month", "2 000 crédits/mois · 500 leads/mois"),
+      features: [t("Market Intelligence", "Market Intelligence"), t("Post Generator", "Générateur de posts"), t("Content Calendar", "Calendrier éditorial"), t("Basic enrichment", "Enrichissement basique"), t("Email support", "Support email"), t("6 months of history", "6 mois d'historique")],
+    },
+    {
+      name: "Growth", price: 59, popular: true,
+      desc: t("You prospect seriously and want a pipeline that grows every week.", "Tu prospectes sérieusement et veux un pipeline qui grossit chaque semaine."),
+      credits: t("5,000 credits/month · 2,000 leads/month", "5 000 crédits/mois · 2 000 leads/mois"),
+      features: [t("Everything in Starter", "Tout Starter"), t("Full enrichment (email + phone)", "Enrichissement complet (email + téléphone)"), t("Competitor tracking", "Suivi des concurrents"), t("Buying-signal detection", "Détection des signaux d'achat"), t("Priority support", "Support prioritaire"), t("1 year of history", "1 an d'historique")],
+    },
+    {
+      name: "Pro", price: 99,
+      desc: t("You're serious. You want AI to run your growth.", "Tu es sérieux. Tu veux que l'IA pilote ta croissance."),
+      credits: t("10,000 credits/month · Unlimited leads", "10 000 crédits/mois · Leads illimités"),
+      features: [t("Everything in Growth", "Tout Growth"), t("AI Growth Partner [Beta]", "Partenaire IA [Beta]"), t("5 workspaces", "5 espaces de travail"), t("Dedicated support", "Support dédié"), t("3 years of history", "3 ans d'historique")],
+    },
   ];
-  // Feature matrix — order matches the plans array (Starter / Growth / Pro).
-  const compare: { label: string; vals: (string | boolean)[] }[] = [
-    { label: "Monthly credits", vals: ["2,000", "5,000", "10,000"] },
-    { label: "Leads / month", vals: ["500", "2,000", "Unlimited"] },
-    { label: "Enrichment", vals: ["Basic", "Email + phone", "Email + phone"] },
-    { label: "Competitor tracking", vals: [false, true, true] },
-    { label: "Buying-signal detection", vals: [false, true, true] },
-    { label: "AI Growth Partner", vals: [false, false, "Beta"] },
-    { label: "Workspaces", vals: ["1", "1", "5"] },
-    { label: "History", vals: ["6 months", "1 year", "3 years"] },
-    { label: "Support", vals: ["Email", "Priority", "Dedicated"] },
+  const reviews = [
+    { name: "Lucas M.", role: t("Sales Director", "Directeur commercial"), text: t("In two weeks we found more qualified prospects than in a whole quarter by hand. The scoring saves us a huge amount of time.", "En deux semaines on a trouvé plus de prospects qualifiés qu'en un trimestre à la main. Le scoring nous fait gagner un temps fou.") },
+    { name: "Camille D.", role: t("Web agency founder", "Fondatrice d'agence web"), text: t("Scout finds exactly the kind of clients we target. We signed 3 agencies in one month.", "Scout trouve exactement le type de clients qu'on cible. On a signé 3 agences en un mois.") },
+    { name: "Thomas R.", role: t("Growth freelancer", "Freelance growth"), text: t("I describe my ideal client and LogLead hands me an enriched list with email and phone. Impressive.", "Je décris mon client idéal, LogLead me sort une liste enrichie avec email et téléphone. Bluffant.") },
+    { name: "Sarah L.", role: t("Head of Sales", "Head of Sales"), text: t("No more copy-pasting into a spreadsheet. Everything is scored, organized by segment, ready to contact.", "Fini le copier-coller dans un tableur. Tout est scoré, organisé par segment, prêt à contacter.") },
+    { name: "Marc V.", role: t("B2B consultant", "Consultant B2B"), text: t("The buying signals let me reach out at the right moment. My reply rate doubled.", "Les signaux d'achat détectés m'ont permis de contacter au bon moment. Mon taux de réponse a doublé.") },
+    { name: "Julie P.", role: t("Startup CEO", "CEO de startup"), text: t("It's like having a full-time SDR. The pipeline fills up on its own.", "C'est comme avoir un SDR à plein temps. Le pipeline se remplit tout seul.") },
   ];
+  const initials = (n: string) => n.split(" ").map((x) => x[0]).join("").slice(0, 2).toUpperCase();
   return (
     <section className={`${dark ? "lp-dark" : "lp-light"} px-5 pt-20 pb-8 sm:px-6`}>
       <div className="mx-auto max-w-6xl">
-        <SectionTitle badge="Pricing" title={<>Choose your plan.<br /><span className="text-[#0051FF]">Start for free.</span></>} sub="Stop letting opportunities slip by. Turn your LinkedIn visibility into growth." />
+        <SectionTitle badge={t("Pricing", "Tarifs")} title={<>{t("Choose your plan.", "Choisis ton plan.")}<br /><span className="text-[#0051FF]">{t("Start for free.", "Commence gratuitement.")}</span></>} sub={t("Stop letting opportunities slip by. Turn your prospecting into growth.", "Arrête de laisser filer les opportunités. Transforme ta prospection en croissance.")} />
 
         <Reveal className="mt-8 flex flex-col items-center gap-2">
           <div className={`inline-flex rounded-full border ${BORDER} ${SURFACE} p-1`}>
-            <button onClick={() => setAnnual(false)} className={`rounded-full px-4 py-1.5 text-[13px] font-medium transition ${!annual ? "bg-[#0051FF] text-white" : MUTED}`}>Monthly</button>
+            <button onClick={() => setAnnual(false)} className={`rounded-full px-4 py-1.5 text-[13px] font-medium transition ${!annual ? "bg-[#0051FF] text-white" : MUTED}`}>{t("Monthly", "Mensuel")}</button>
             <button onClick={() => setAnnual(true)} className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[13px] font-medium transition ${annual ? "bg-[#0051FF] text-white" : MUTED}`}>
-              Annual
+              {t("Annual", "Annuel")}
               <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${annual ? "bg-white text-[#0051FF]" : "bg-[#16A34A]/15 text-[#16A34A]"}`}>−20%</span>
             </button>
           </div>
-          <p className="text-[12px] font-semibold text-[#16A34A]">{annual ? "You're saving 20% with annual billing 🎉" : "Save 20% — switch to annual billing"}</p>
+          <p className="text-[12px] font-semibold text-[#16A34A]">{annual ? t("You're saving 20% with annual billing 🎉", "Tu économises 20% en facturation annuelle 🎉") : t("Save 20% — switch to annual billing", "Économise 20% — passe en facturation annuelle")}</p>
         </Reveal>
 
         {/* 3 plans */}
         <div className="mt-10 grid gap-4 lg:grid-cols-3">
           {plans.map((p, i) => (
             <Reveal key={p.name} delay={i * 80} className={`relative flex flex-col rounded-[20px] border p-6 ${p.popular ? "border-2 border-[#0051FF]" : `${BORDER} ${CARD}`}`} style={p.popular ? { background: dark ? "linear-gradient(180deg,#0D2060,#0A0A0A)" : "linear-gradient(180deg,#EAF1FF,#FFFFFF)", boxShadow: "0 0 60px #0051FF20" } : undefined}>
-              {p.popular && <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-[#0051FF] px-3 py-1 text-[11px] font-semibold text-white">Recommended</span>}
+              {p.popular && <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-[#0051FF] px-3 py-1 text-[11px] font-semibold text-white">{t("Recommended", "Recommandé")}</span>}
               <p className={`text-[15px] font-bold ${FG}`}>{p.name}</p>
               <p className={`mt-1 text-[13px] leading-relaxed ${MUTED}`}>{p.desc}</p>
               <p className={`mt-4 flex items-baseline gap-2 ${FG}`}>
-                <span className="text-[30px] font-bold">€{price(p.price)}<span className={`text-[13px] font-normal ${FAINT}`}>/month</span></span>
+                <span className="text-[30px] font-bold">€{price(p.price)}<span className={`text-[13px] font-normal ${FAINT}`}>{t("/month", "/mois")}</span></span>
                 {annual && <span className={`text-[15px] font-medium line-through ${FAINT}`}>€{p.price}</span>}
               </p>
-              {annual && <p className="mt-1 text-[12px] font-semibold text-[#16A34A]">−20% billed annually · €{p.price * 12 - price(p.price) * 12} saved/year</p>}
-              <p className={`mt-1 text-[11px] ${FAINT}`}>VAT included · Invoiced {annual ? "annually" : "monthly"}</p>
+              {annual && <p className="mt-1 text-[12px] font-semibold text-[#16A34A]">{t("−20% billed annually · ", "−20% en annuel · ")}€{p.price * 12 - price(p.price) * 12}{t(" saved/year", " économisés/an")}</p>}
+              <p className={`mt-1 text-[11px] ${FAINT}`}>{t("VAT included · Invoiced ", "TVA incluse · Facturé ")}{annual ? t("annually", "annuellement") : t("monthly", "mensuellement")}</p>
               <p className="mt-2 text-[12px] font-medium text-[#0051FF]">{p.credits}</p>
               <ul className={`mt-4 flex-1 space-y-2 text-[13px] ${MUTED}`}>
                 {p.features.map((f) => <li key={f} className="flex items-start gap-2"><span className="text-[#0051FF]">✓</span>{f}</li>)}
               </ul>
-              <Link href={SIGNUP} className={`${BTN_P} mt-6 w-full`}><Roll>Start</Roll></Link>
+              <Link href={SIGNUP} className={`${BTN_P} mt-6 w-full`}><Roll>{t("Start", "Commencer")}</Roll></Link>
             </Reveal>
           ))}
         </div>
 
-        <p className="mx-auto mt-6 max-w-xl text-center text-[14px] text-[#64748B]">
-          All prices include 20% VAT. Businesses can add their VAT number at checkout.
+        <p className={`mx-auto mt-6 max-w-xl text-center text-[14px] ${MUTED}`}>
+          {t("All prices include 20% VAT. Businesses can add their VAT number at checkout.", "Tous les prix incluent 20% de TVA. Les entreprises peuvent renseigner leur n° de TVA au paiement.")}
         </p>
 
-        {/* Plan comparison table */}
+        {/* Reviews */}
         <div className="mt-24">
-          <h3 className={`text-center text-[24px] font-extrabold tracking-[-0.03em] sm:text-[30px] ${FG}`}>Compare plans</h3>
-          <div className="mt-8 overflow-x-auto">
-            <table className="w-full min-w-[560px] border-collapse text-left">
-              <thead>
-                <tr>
-                  <th className={`w-[34%] py-3 pr-4 text-[13px] font-semibold ${MUTED}`}>Features</th>
-                  {plans.map((p) => (
-                    <th key={p.name} className={`px-4 py-3 text-center text-[14px] font-bold ${p.popular ? "text-[#0051FF]" : FG}`}>{p.name}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {compare.map((row) => (
-                  <tr key={row.label} className={`border-t ${BORDER}`}>
-                    <td className={`py-3 pr-4 text-[13px] ${MUTED}`}>{row.label}</td>
-                    {row.vals.map((v, ci) => (
-                      <td key={ci} className={`px-4 py-3 text-center text-[13px] font-medium ${FG}`}>
-                        {typeof v === "boolean" ? (v ? <span className="text-[#16A34A]">✓</span> : <span className={FAINT}>—</span>) : v}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="text-center">
+            <span className="inline-flex rounded-full bg-[#0051FF15] px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.08em] text-[#0051FF]">{t("Reviews", "Avis clients")}</span>
+            <h3 className={`mt-4 text-[28px] font-extrabold tracking-[-0.035em] sm:text-[34px] ${FG}`}>{t("+50 professionals already use LogLead", "+50 professionnels ont déjà adopté LogLead")}</h3>
+          </div>
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {reviews.map((r, i) => (
+              <Reveal key={r.name} delay={i * 70} className={`flex flex-col rounded-2xl border ${BORDER} ${CARD} p-6`}>
+                <div className="flex gap-0.5 text-[15px] text-[#F59E0B]" aria-label="5/5">★★★★★</div>
+                <p className={`mt-3 flex-1 text-[14px] leading-relaxed ${MUTED}`}>“{r.text}”</p>
+                <div className="mt-5 flex items-center gap-3">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#0051FF] text-[12px] font-bold text-white">{initials(r.name)}</span>
+                  <div>
+                    <p className={`text-[13px] font-semibold ${FG}`}>{r.name}</p>
+                    <p className={`text-[12px] ${FAINT}`}>{r.role}</p>
+                  </div>
+                </div>
+              </Reveal>
+            ))}
           </div>
         </div>
 
         <div className="mt-14 flex flex-col items-center gap-3">
-          <Link href={SIGNUP} className={BTN_P}><Roll>Start</Roll></Link>
-          <p className="text-[12px] text-[#6A7690]">No credit card · Cancel anytime · Setup in 2 minutes</p>
+          <Link href={SIGNUP} className={BTN_P}><Roll>{t("Start", "Commencer")}</Roll></Link>
+          <p className={`text-[12px] ${FAINT}`}>{t("No credit card · Cancel anytime · Setup in 2 minutes", "Sans carte bancaire · Annulable à tout moment · Prêt en 2 minutes")}</p>
         </div>
       </div>
     </section>
