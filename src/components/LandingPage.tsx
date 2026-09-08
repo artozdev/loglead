@@ -760,34 +760,59 @@ export function PricingLanding({ tone = "dark" }: { tone?: "light" | "dark" }) {
         <Reveal className="mt-8 flex flex-col items-center gap-2">
           <div className={`inline-flex rounded-full border ${BORDER} ${SURFACE} p-1`}>
             <button onClick={() => setAnnual(false)} className={`rounded-full px-4 py-1.5 text-[13px] font-medium transition ${!annual ? "bg-[#0051FF] text-white" : MUTED}`}>{t("Monthly", "Mensuel")}</button>
-            <button onClick={() => setAnnual(true)} className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[13px] font-medium transition ${annual ? "bg-[#0051FF] text-white" : MUTED}`}>
+            <button onClick={() => setAnnual(true)} className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[13px] font-medium transition ${annual ? "bg-[#0051FF] text-white" : MUTED}`}>
               {t("Annual", "Annuel")}
-              <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${annual ? "bg-white text-[#0051FF]" : "bg-[#16A34A]/15 text-[#16A34A]"}`}>−20%</span>
+              <span className="rounded-full bg-gradient-to-r from-[#0051FF] to-[#0085FF] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">−20% {t("OFF", "DE RÉDUCTION")}</span>
             </button>
           </div>
-          <p className="text-[12px] font-semibold text-[#16A34A]">{annual ? t("You're saving 20% with annual billing 🎉", "Tu économises 20% en facturation annuelle 🎉") : t("Save 20% — switch to annual billing", "Économise 20% — passe en facturation annuelle")}</p>
+          <p className="text-[12px] font-semibold text-[#0051FF]">{annual ? t("You're saving 20% with annual billing 🎉", "Tu économises 20% en facturation annuelle 🎉") : t("Save 20% — switch to annual billing", "Économise 20% — passe en facturation annuelle")}</p>
         </Reveal>
 
-        {/* 3 plans */}
-        <div className="mt-10 grid gap-4 lg:grid-cols-3">
-          {plans.map((p, i) => (
-            <Reveal key={p.name} delay={i * 80} className={`relative flex flex-col rounded-[20px] border p-6 ${p.popular ? "border-2 border-[#0051FF]" : `${BORDER} ${CARD}`}`} style={p.popular ? { background: dark ? "linear-gradient(180deg,#0D2060,#0A0A0A)" : "linear-gradient(180deg,#EAF1FF,#FFFFFF)", boxShadow: "0 0 60px #0051FF20" } : undefined}>
-              {p.popular && <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-[#0051FF] px-3 py-1 text-[11px] font-semibold text-white">{t("Recommended", "Recommandé")}</span>}
-              <p className={`text-[15px] font-bold ${FG}`}>{p.name}</p>
-              <p className={`mt-1 text-[13px] leading-relaxed ${MUTED}`}>{p.desc}</p>
-              <p className={`mt-4 flex items-baseline gap-2 ${FG}`}>
-                <span className="text-[30px] font-bold">€{price(p.price)}<span className={`text-[13px] font-normal ${FAINT}`}>{t("/month", "/mois")}</span></span>
-                {annual && <span className={`text-[15px] font-medium line-through ${FAINT}`}>€{p.price}</span>}
-              </p>
-              {annual && <p className="mt-1 text-[12px] font-semibold text-[#16A34A]">{t("−20% billed annually · ", "−20% en annuel · ")}€{p.price * 12 - price(p.price) * 12}{t(" saved/year", " économisés/an")}</p>}
-              <p className={`mt-1 text-[11px] ${FAINT}`}>{t("VAT included · Invoiced ", "TVA incluse · Facturé ")}{annual ? t("annually", "annuellement") : t("monthly", "mensuellement")}</p>
-              <p className="mt-2 text-[12px] font-medium text-[#0051FF]">{p.credits}</p>
-              <ul className={`mt-4 flex-1 space-y-2 text-[13px] ${MUTED}`}>
-                {p.features.map((f) => <li key={f} className="flex items-start gap-2"><span className="text-[#0051FF]">✓</span>{f}</li>)}
-              </ul>
-              <Link href={SIGNUP} className={`${BTN_P} mt-6 w-full`}><Roll>{t("Start", "Commencer")}</Roll></Link>
-            </Reveal>
-          ))}
+        {/* 3 plans — Growth (popular) is raised and framed as the special offer */}
+        <div className="mt-12 grid items-start gap-5 lg:grid-cols-3">
+          {plans.map((p, i) => {
+            const saved = p.price * 12 - price(p.price) * 12;
+            const banner = annual
+              ? t("SPECIAL ANNUAL OFFER · −20% OFF", "OFFRE SPÉCIALE ANNUELLE · −20% DE RÉDUCTION")
+              : t("Most popular", "Le plus populaire");
+            const cta = p.popular && annual
+              ? t("Claim the annual offer", "Réclamez l'offre annuelle")
+              : t("Start", "Commencer");
+            const inner = (
+              <>
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className={`text-[16px] font-bold ${FG}`}>{p.name}</p>
+                  {annual && saved > 0 && (
+                    <span className="rounded-full bg-[#0051FF]/10 px-2 py-0.5 text-[11px] font-bold text-[#0051FF]">{t("Save", "Économisez")} €{saved}{t("/yr", "/an")}</span>
+                  )}
+                </div>
+                <p className={`mt-1 text-[13px] leading-relaxed ${MUTED}`}>{p.desc}</p>
+                <p className={`mt-4 flex items-baseline gap-2 ${FG}`}>
+                  {annual && <span className={`text-[18px] font-medium line-through ${FAINT}`}>€{p.price}</span>}
+                  <span className="text-[34px] font-extrabold leading-none">€{price(p.price)}</span>
+                </p>
+                <p className={`mt-1 text-[12px] ${FAINT}`}>{annual ? t("/month, billed annually", "/mois, facturé annuellement") : t("/month", "/mois")} · {t("VAT incl.", "TVA incl.")}</p>
+                <p className="mt-3 text-[12px] font-medium text-[#0051FF]">{p.credits}</p>
+                <ul className={`mt-4 flex-1 space-y-2 text-[13px] ${MUTED}`}>
+                  {p.features.map((f) => <li key={f} className="flex items-start gap-2"><span className="mt-0.5 text-[#0051FF]">✓</span>{f}</li>)}
+                </ul>
+                <Link href={SIGNUP} className={`${BTN_P} mt-6 w-full`}><Roll>{cta}</Roll></Link>
+              </>
+            );
+            if (p.popular) {
+              return (
+                <Reveal key={p.name} delay={i * 80} className="relative">
+                  <div className="overflow-hidden rounded-[24px] bg-gradient-to-b from-[#0051FF] to-[#0085FF] p-[3px] shadow-[0_34px_80px_-30px_rgba(0,81,255,0.7)] md:-translate-y-6">
+                    <div className="px-5 py-2.5 text-center text-[11px] font-bold uppercase tracking-[0.05em] text-white">{banner}</div>
+                    <div className={`flex flex-col rounded-[21px] ${dark ? "bg-[#0A0A0A]" : "bg-white"} p-6`}>{inner}</div>
+                  </div>
+                </Reveal>
+              );
+            }
+            return (
+              <Reveal key={p.name} delay={i * 80} className={`flex flex-col rounded-[24px] border ${BORDER} ${CARD} p-6`}>{inner}</Reveal>
+            );
+          })}
         </div>
 
         {/* Reviews */}
