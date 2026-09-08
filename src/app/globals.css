@@ -513,6 +513,21 @@ body {
     transform: translateX(-50%);
   }
 }
+
+/* Vertical testimonial marquee: content is duplicated, so -50% loops seamlessly. */
+@keyframes lp-marquee-up {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-50%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [style*="lp-marquee-up"] {
+    animation: none !important;
+  }
+}
 .lp-marquee {
   animation: lp-marquee 28s linear infinite;
 }

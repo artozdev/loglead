@@ -790,10 +790,6 @@ export function PricingLanding({ tone = "dark" }: { tone?: "light" | "dark" }) {
           ))}
         </div>
 
-        <p className={`mx-auto mt-6 max-w-xl text-center text-[14px] ${MUTED}`}>
-          {t("All prices include 20% VAT. Businesses can add their VAT number at checkout.", "Tous les prix incluent 20% de TVA. Les entreprises peuvent renseigner leur n° de TVA au paiement.")}
-        </p>
-
         {/* Reviews */}
         <div className="mt-24">
           <div className="flex flex-col items-center text-center">
@@ -802,20 +798,39 @@ export function PricingLanding({ tone = "dark" }: { tone?: "light" | "dark" }) {
               {t("+50 professionals", "+50 professionnels")}<br />{t("already use LogLead", "ont déjà adopté LogLead")}
             </h3>
           </div>
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {reviews.map((r, i) => (
-              <Reveal key={r.name} delay={i * 70} className={`flex flex-col rounded-2xl border ${BORDER} ${CARD} p-6`}>
-                <div className="flex gap-0.5 text-[15px] text-[#F59E0B]" aria-label="5/5">★★★★★</div>
-                <p className={`mt-3 flex-1 text-[14px] leading-relaxed ${MUTED}`}>“{r.text}”</p>
-                <div className="mt-5 flex items-center gap-3">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#0051FF] text-[12px] font-bold text-white">{initials(r.name)}</span>
-                  <div>
-                    <p className={`text-[13px] font-semibold ${FG}`}>{r.name}</p>
-                    <p className={`text-[12px] ${FAINT}`}>{r.role}</p>
+          {/* Vertical marquee — columns scroll up slowly and loop seamlessly */}
+          <div
+            className="relative mt-10 h-[520px] overflow-hidden"
+            style={{
+              maskImage: "linear-gradient(to bottom, transparent, #000 11%, #000 89%, transparent)",
+              WebkitMaskImage: "linear-gradient(to bottom, transparent, #000 11%, #000 89%, transparent)",
+            }}
+          >
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {[0, 1, 2].map((col) => {
+                const items = [...reviews.slice(col * 2), ...reviews.slice(0, col * 2)];
+                const dur = [46, 56, 50][col];
+                return (
+                  <div key={col} className={col === 1 ? "hidden sm:block" : col === 2 ? "hidden lg:block" : ""}>
+                    <div className="flex flex-col gap-4" style={{ animation: `lp-marquee-up ${dur}s linear infinite` }}>
+                      {[...items, ...items].map((r, i) => (
+                        <div key={`${col}-${i}`} className={`flex flex-col rounded-2xl border ${BORDER} ${CARD} p-6`}>
+                          <div className="flex gap-0.5 text-[15px] text-[#F59E0B]" aria-label="5/5">★★★★★</div>
+                          <p className={`mt-3 text-[14px] leading-relaxed ${MUTED}`}>“{r.text}”</p>
+                          <div className="mt-5 flex items-center gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#0051FF] text-[12px] font-bold text-white">{initials(r.name)}</span>
+                            <div>
+                              <p className={`text-[13px] font-semibold ${FG}`}>{r.name}</p>
+                              <p className={`text-[12px] ${FAINT}`}>{r.role}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              </Reveal>
-            ))}
+                );
+              })}
+            </div>
           </div>
         </div>
 
