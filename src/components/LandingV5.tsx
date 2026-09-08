@@ -1079,17 +1079,17 @@ function PromoBar() {
   }, []);
   if (closed) return null;
   return (
-    <div className="relative z-[60] flex items-center justify-center gap-3 overflow-hidden bg-gradient-to-r from-[#0051FF] to-[#0085FF] px-10 py-2.5 text-center text-[13px] font-medium text-white">
-      <span aria-hidden>🔥</span>
+    <div className="relative z-[60] flex items-center justify-center gap-2.5 overflow-hidden bg-gradient-to-r from-[#0051FF] to-[#0085FF] px-9 py-1.5 text-center text-[12px] font-medium text-white">
+      <span aria-hidden className="text-[11px]">🔥</span>
       <span className="font-semibold">{t("Limited offer: −20% on all annual plans", "Offre limitée : −20% sur tous les plans en annuel")}</span>
-      <Link href="/pricing" className="group inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-[12px] font-bold text-[#0051FF] shadow-sm transition hover:bg-[#EAF1FF]">
+      <Link href="/pricing" className="group inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-0.5 text-[11px] font-bold text-[#0051FF] shadow-sm transition hover:bg-[#EAF1FF]">
         {t("See pricing", "Découvrir les prix")}
         <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
       </Link>
       <button
         onClick={() => { setClosed(true); try { localStorage.setItem("ll_promo_closed", "1"); } catch { /* ignore */ } }}
         aria-label={t("Dismiss", "Fermer")}
-        className="absolute right-3 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-white/80 transition hover:bg-white/15 hover:text-white"
+        className="absolute right-2.5 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full text-[11px] text-white/80 transition hover:bg-white/15 hover:text-white"
       >
         ✕
       </button>
