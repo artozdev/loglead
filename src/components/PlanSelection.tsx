@@ -1,15 +1,38 @@
 "use client";
 
 import { Check, Loader2, Star } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Logo from "./Logo";
 import { PLAN_CARDS, type PlanCard } from "@/lib/credits";
 import type { Plan } from "@/lib/types";
 
 export default function PlanSelection() {
+  const router = useRouter();
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
   const [busy, setBusy] = useState<Plan | null>(null);
+  const [freeBusy, setFreeBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Escape hatch: continue on the free tier (100 one-time credits) so the user
+  // is never trapped behind the paid-plan wall — unlocks the dashboard.
+  async function startFree() {
+    if (busy || freeBusy) return;
+    setFreeBusy(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/onboarding/plan", { method: "POST" });
+      if (!res.ok) {
+        setError("Impossible de continuer. Réessaie.");
+        setFreeBusy(false);
+        return;
+      }
+      router.push("/dashboard");
+    } catch {
+      setError("Impossible de continuer. Réessaie.");
+      setFreeBusy(false);
+    }
+  }
 
   // Paid plan → Stripe subscription checkout (redirect to Stripe / demo).
   async function subscribe(plan: Plan) {
@@ -125,9 +148,19 @@ export default function PlanSelection() {
           })}
         </div>
 
-        <p className="mt-6 text-center text-[13px] text-slate-500">
-          Prix TTC · TVA 20% incluse · Les entreprises peuvent renseigner leur n° de TVA au paiement · Annulable à tout moment
-        </p>
+        <div className="mt-6 flex flex-col items-center gap-3">
+          <button
+            onClick={startFree}
+            disabled={freeBusy || busy !== null}
+            className="inline-flex items-center gap-2 text-[14px] font-medium text-slate-500 underline-offset-4 transition hover:text-slate-800 hover:underline disabled:opacity-60"
+          >
+            {freeBusy && <Loader2 size={15} className="animate-spin" />}
+            Continuer gratuitement (100 crédits) →
+          </button>
+          <p className="text-center text-[13px] text-slate-500">
+            Prix TTC · TVA 20% incluse · Les entreprises peuvent renseigner leur n° de TVA au paiement · Annulable à tout moment
+          </p>
+        </div>
       </div>
     </div>
   );
