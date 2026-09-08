@@ -762,7 +762,15 @@ export function PricingLanding({ tone = "dark" }: { tone?: "light" | "dark" }) {
             <button onClick={() => setAnnual(false)} className={`rounded-full px-4 py-1.5 text-[13px] font-medium transition ${!annual ? "bg-[#0051FF] text-white" : MUTED}`}>{t("Monthly", "Mensuel")}</button>
             <button onClick={() => setAnnual(true)} className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[13px] font-medium transition ${annual ? "bg-[#0051FF] text-white" : MUTED}`}>
               {t("Annual", "Annuel")}
-              <span className="rounded-full bg-gradient-to-r from-[#0051FF] to-[#0085FF] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">−20% {t("OFF", "DE RÉDUCTION")}</span>
+              <span className="relative inline-flex overflow-hidden rounded-full bg-gradient-to-r from-[#0051FF] to-[#0085FF] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+                <span
+                  aria-hidden
+                  data-shine
+                  className="pointer-events-none absolute inset-y-0 -inset-x-2"
+                  style={{ background: "linear-gradient(100deg, transparent 30%, rgba(255,255,255,0.85) 50%, transparent 70%)", animation: "lp-shine 2.4s ease-in-out infinite" }}
+                />
+                <span className="relative">−20% {t("OFF", "DE RÉDUCTION")}</span>
+              </span>
             </button>
           </div>
           <p className="text-[12px] font-semibold text-[#0051FF]">{annual ? t("You're saving 20% with annual billing 🎉", "Tu économises 20% en facturation annuelle 🎉") : t("Save 20% — switch to annual billing", "Économise 20% — passe en facturation annuelle")}</p>

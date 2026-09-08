@@ -523,6 +523,25 @@ body {
     transform: translateY(-50%);
   }
 }
+
+/* White light sweeping left→right across the discount pill, then repeats. */
+@keyframes lp-shine {
+  0% {
+    transform: translateX(-130%) skewX(-18deg);
+  }
+  55% {
+    transform: translateX(230%) skewX(-18deg);
+  }
+  100% {
+    transform: translateX(230%) skewX(-18deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-shine] {
+    animation: none !important;
+    opacity: 0;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   [style*="lp-marquee-up"] {
     animation: none !important;
