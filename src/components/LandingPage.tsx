@@ -100,10 +100,35 @@ function LogoMark({ dark = false }: { dark?: boolean }) {
   );
 }
 
-export function SectionTitle({ badge, title, sub, className = "" }: { badge?: string; title: React.ReactNode; sub?: React.ReactNode; className?: string }) {
+// Small line-icon set for section eyebrows (14px, stroke = currentColor).
+export function EIcon({ name }: { name: "spark" | "tag" | "star" | "help" }) {
+  const paths: Record<string, React.ReactNode> = {
+    spark: <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z" />,
+    tag: <><path d="M20.6 13.4l-7.2 7.2a2 2 0 01-2.8 0L2 12V2h10l8.6 8.6a2 2 0 010 2.8z" /><circle cx="7" cy="7" r="1.2" /></>,
+    star: <path d="M12 2.5l2.9 5.9 6.5.95-4.7 4.6 1.1 6.45L12 17.9l-5.8 3-1.1-6.45L.4 9.85l6.5-.95L12 2.5z" />,
+    help: <><circle cx="12" cy="12" r="9.5" /><path d="M9.2 9.2a3 3 0 015.7 1c0 2-2.9 2.6-2.9 4" /><circle cx="12" cy="17" r="0.6" fill="currentColor" /></>,
+  };
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill={name === "spark" || name === "star" ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      {paths[name]}
+    </svg>
+  );
+}
+
+// Modern eyebrow pill (rounded, subtle border/surface, small blue icon + label).
+export function Eyebrow({ icon, children, className = "" }: { icon: "spark" | "tag" | "star" | "help"; children: React.ReactNode; className?: string }) {
+  return (
+    <span className={`inline-flex items-center gap-1.5 rounded-full border ${BORDER} ${SURFACE} px-3 py-1 text-[12px] font-semibold ${MUTED} ${className}`}>
+      <span className="text-[#0051FF]"><EIcon name={icon} /></span>
+      {children}
+    </span>
+  );
+}
+
+export function SectionTitle({ badge, icon = "spark", title, sub, className = "" }: { badge?: string; icon?: "spark" | "tag" | "star" | "help"; title: React.ReactNode; sub?: React.ReactNode; className?: string }) {
   return (
     <Reveal className={`mx-auto max-w-2xl text-center ${className}`}>
-      {badge && <span className="mb-4 inline-flex rounded-full bg-[#0051FF10] px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.08em] text-[#0051FF]">{badge}</span>}
+      {badge && <div className="mb-4 flex justify-center"><Eyebrow icon={icon}>{badge}</Eyebrow></div>}
       <h2 className={`text-[32px] font-extrabold leading-[1.03] tracking-[-0.04em] sm:text-[46px] ${FG}`}>{title}</h2>
       {sub && <p className={`mt-4 text-[17px] leading-relaxed ${MUTED}`}>{sub}</p>}
     </Reveal>
@@ -566,7 +591,7 @@ export function FAQ({ items, badge = "FAQ", title, tone = "dark" }: { items?: [s
       <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:gap-16">
         {/* Left — heading (static, not sticky) */}
         <Reveal>
-          <p className="text-[13px] font-semibold tracking-wide text-[#0051FF]">[ {badge} ]</p>
+          <Eyebrow icon="help">{badge}</Eyebrow>
           <h2 className={`mt-4 text-[28px] font-extrabold leading-[1.05] tracking-[-0.035em] sm:text-[36px] ${FG}`}>{heading}</h2>
           <p className={`mt-5 max-w-sm text-[15px] leading-relaxed ${MUTED}`}>
             {t("Can't find the answer to your question? Reach us by ", "Vous ne trouvez pas la réponse à votre question ? Contactez-nous en ")}
@@ -730,7 +755,7 @@ export function PricingLanding({ tone = "dark" }: { tone?: "light" | "dark" }) {
   return (
     <section className={`${dark ? "lp-dark" : "lp-light"} px-5 pt-20 pb-8 sm:px-6`}>
       <div className="mx-auto max-w-6xl">
-        <SectionTitle badge={t("Pricing", "Tarifs")} title={<>{t("Choose your plan.", "Choisis ton plan.")}<br /><span className="text-[#0051FF]">{t("Start for free.", "Commence gratuitement.")}</span></>} sub={t("Stop letting opportunities slip by. Turn your prospecting into growth.", "Arrête de laisser filer les opportunités. Transforme ta prospection en croissance.")} />
+        <SectionTitle icon="tag" badge={t("Pricing", "Tarifs")} title={<>{t("Choose your plan.", "Choisis ton plan.")}<br /><span className="text-[#0051FF]">{t("Start for free.", "Commence gratuitement.")}</span></>} sub={t("Stop letting opportunities slip by. Turn your prospecting into growth.", "Arrête de laisser filer les opportunités. Transforme ta prospection en croissance.")} />
 
         <Reveal className="mt-8 flex flex-col items-center gap-2">
           <div className={`inline-flex rounded-full border ${BORDER} ${SURFACE} p-1`}>
@@ -771,9 +796,11 @@ export function PricingLanding({ tone = "dark" }: { tone?: "light" | "dark" }) {
 
         {/* Reviews */}
         <div className="mt-24">
-          <div className="text-center">
-            <span className="inline-flex rounded-full bg-[#0051FF15] px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.08em] text-[#0051FF]">{t("Reviews", "Avis clients")}</span>
-            <h3 className={`mt-4 text-[28px] font-extrabold tracking-[-0.035em] sm:text-[34px] ${FG}`}>{t("+50 professionals already use LogLead", "+50 professionnels ont déjà adopté LogLead")}</h3>
+          <div className="flex flex-col items-center text-center">
+            <Eyebrow icon="star">{t("Reviews", "Avis clients")}</Eyebrow>
+            <h3 className={`mt-4 text-[28px] font-extrabold leading-[1.1] tracking-[-0.035em] sm:text-[36px] ${FG}`}>
+              {t("+50 professionals", "+50 professionnels")}<br />{t("already use LogLead", "ont déjà adopté LogLead")}
+            </h3>
           </div>
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {reviews.map((r, i) => (
