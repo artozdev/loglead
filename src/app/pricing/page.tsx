@@ -22,7 +22,7 @@ export default function PricingPage() {
       <div className="min-h-screen bg-white font-sans antialiased">
         <Nav solid />
         <PricingLanding tone="light" />
-        <FAQ badge="FAQ" tone="light" />
+        <FAQ badge="FAQ" tone="light" variant="pricing" />
         <Footer showCta={false} />
       </div>
     </LangProvider>

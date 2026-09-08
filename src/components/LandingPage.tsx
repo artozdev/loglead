@@ -573,8 +573,17 @@ function Testimonials() {
 
 // ----- FAQ (shared) --------------------------------------------------------
 
-export function FAQ({ items, badge = "FAQ", title, tone = "dark" }: { items?: [string, string][]; badge?: string; title?: string; tone?: "light" | "dark" }) {
+export function FAQ({ items, badge = "FAQ", title, tone = "dark", variant = "general" }: { items?: [string, string][]; badge?: string; title?: string; tone?: "light" | "dark"; variant?: "general" | "pricing" }) {
   const t = useTr();
+  const PRICING: [string, string][] = [
+    [t("What exactly is a credit?", "C'est quoi un crédit exactement ?"), t("Credits are the fuel for every AI action: finding a prospect (5), enriching an email (20), enriching a full profile (35), sending a message (10), asking the AI agent (10). Your dashboard logs every credit spent, in detail.", "Les crédits alimentent chaque action IA : trouver un prospect (5), enrichir un email (20), enrichir un profil complet (35), envoyer un message (10), interroger l'agent IA (10). Ton tableau de bord détaille chaque crédit dépensé.")],
+    [t("What happens if I run out of credits?", "Que se passe-t-il si je tombe à court de crédits ?"), t("Nothing breaks. You get a heads-up when you're running low, and you can top up (500 credits = €5) or upgrade your plan at any time — no surprise cuts.", "Rien ne s'arrête. Tu es prévenu quand ton solde est bas, et tu peux recharger (500 crédits = 5 €) ou changer d'offre à tout moment — sans coupure surprise.")],
+    [t("Do unused credits expire?", "Les crédits non utilisés expirent-ils ?"), t("Your plan's monthly credits roll over for one month. Credits you buy on top never expire — they stay in your balance until you use them.", "Les crédits mensuels de ton offre se reportent sur un mois. Les crédits achetés en plus n'expirent jamais — ils restent dans ton solde jusqu'à utilisation.")],
+    [t("What's the difference between monthly and annual?", "Quelle différence entre mensuel et annuel ?"), t("Annual billing gives you 20% off — you pay once for the year at −20%. Monthly is billed each month with no commitment. You can switch between the two anytime.", "La facturation annuelle t'offre 20% de réduction — tu paies l'année en une fois à −20%. Le mensuel est facturé chaque mois, sans engagement. Tu peux passer de l'un à l'autre quand tu veux.")],
+    [t("Are prices VAT included?", "Les prix sont-ils TTC ?"), t("Yes — all prices are shown VAT included (20%). Businesses can enter their VAT number at checkout to be reverse-charged where applicable.", "Oui — tous les prix sont affichés TTC (TVA 20% incluse). Les entreprises peuvent renseigner leur n° de TVA au paiement pour l'autoliquidation le cas échéant.")],
+    [t("Can I change or cancel my plan?", "Puis-je changer ou annuler mon offre ?"), t("Anytime. Upgrades apply immediately (prorated for the current period); downgrades take effect at the next renewal. Cancel in one click from Settings → Subscription — no commitment.", "À tout moment. Les montées en gamme s'appliquent immédiatement (au prorata de la période) ; les baisses prennent effet au renouvellement suivant. Annule en un clic depuis Réglages → Abonnement — sans engagement.")],
+    [t("Is there a free option?", "Y a-t-il une offre gratuite ?"), t("Yes — start free with 100 credits, no credit card required. Upgrade to a paid plan whenever you're ready to scale.", "Oui — commence gratuitement avec 100 crédits, sans carte bancaire. Passe à une offre payante quand tu es prêt à passer à l'échelle.")],
+  ];
   const DEFAULT: [string, string][] = [
     [t("What is LogLead exactly?", "C'est quoi LogLead exactement ?"), t("LogLead is an AI-powered growth engine for B2B companies. It analyzes your LinkedIn market, finds qualified prospects, generates content that attracts them and turns every interaction into a sales opportunity — from one unified platform.", "LogLead est un moteur de croissance IA pour les entreprises B2B. Il analyse votre marché LinkedIn, trouve des prospects qualifiés, génère le contenu qui les attire et transforme chaque interaction en opportunité commerciale — depuis une seule plateforme.")],
     [t("Why is it focused on LinkedIn?", "Pourquoi se concentrer sur LinkedIn ?"), t("LinkedIn is where B2B decisions happen. 80% of B2B social media leads come from LinkedIn. We go deep on one channel rather than shallow on many — so you get real results, not average performance everywhere.", "C'est sur LinkedIn que se prennent les décisions B2B. 80% des leads B2B issus des réseaux viennent de LinkedIn. On va en profondeur sur un canal plutôt qu'en surface sur plusieurs — pour de vrais résultats.")],
@@ -583,7 +592,7 @@ export function FAQ({ items, badge = "FAQ", title, tone = "dark" }: { items?: [s
     [t("What happens when my trial credits run out?", "Que se passe-t-il quand mes crédits d'essai sont épuisés ?"), t("You'll be prompted to choose a plan. 500 additional credits cost €5 — or you can upgrade to a plan with a higher monthly credit allowance. Your data and leads are always preserved.", "On vous invite à choisir une offre. 500 crédits supplémentaires coûtent 5 € — ou vous passez à une offre avec un quota mensuel plus élevé. Vos données et prospects sont toujours conservés.")],
     [t("Can I cancel anytime?", "Puis-je annuler à tout moment ?"), t("Yes, no commitment. Cancel from Settings → Subscription in one click. Your data is kept for 30 days after cancellation.", "Oui, sans engagement. Annulez depuis Réglages → Abonnement en un clic. Vos données sont conservées 30 jours après l'annulation.")],
   ];
-  const qa = items ?? DEFAULT;
+  const qa = items ?? (variant === "pricing" ? PRICING : DEFAULT);
   const heading = title ?? t("Frequently asked questions", "Les questions fréquentes");
   const [open, setOpen] = useState<number | null>(0);
   return (
@@ -599,15 +608,18 @@ export function FAQ({ items, badge = "FAQ", title, tone = "dark" }: { items?: [s
           </p>
         </Reveal>
 
-        {/* Right — accordion */}
-        <Reveal delay={80}>
+        {/* Right — accordion (card style) */}
+        <Reveal delay={80} className="space-y-3">
           {qa.map(([q, a], i) => {
             const isOpen = open === i;
             return (
-              <div key={i} className="border-b border-dashed border-[color:var(--lp-border)]">
-                <button onClick={() => setOpen(isOpen ? null : i)} className="flex w-full items-center justify-between gap-4 py-5 text-left">
-                  <span className={`text-[16px] font-medium ${FG}`}>{q}</span>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`shrink-0 text-[color:var(--lp-muted)] transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}><path d="M6 9l6 6 6-6" /></svg>
+              <div
+                key={i}
+                className={`rounded-2xl border px-5 transition-colors duration-200 ${isOpen ? "border-[#0051FF40] bg-[color:var(--lp-card)] shadow-[0_16px_40px_-24px_rgba(0,81,255,0.35)]" : "border-[color:var(--lp-border)] hover:border-[#0051FF40]"}`}
+              >
+                <button onClick={() => setOpen(isOpen ? null : i)} aria-expanded={isOpen} className="flex w-full items-center justify-between gap-4 py-4 text-left">
+                  <span className={`text-[15px] font-semibold sm:text-[16px] ${FG}`}>{q}</span>
+                  <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[16px] font-medium transition ${isOpen ? "bg-[#0051FF] text-white" : "border border-[color:var(--lp-border)] text-[color:var(--lp-muted)]"}`}>{isOpen ? "−" : "+"}</span>
                 </button>
                 <div className="grid transition-all duration-300 ease-out" style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}>
                   <div className="overflow-hidden"><p className={`pb-5 text-[14px] leading-relaxed ${MUTED}`}>{a}</p></div>
