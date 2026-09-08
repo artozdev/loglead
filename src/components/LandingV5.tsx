@@ -722,7 +722,7 @@ function Reviews() {
   ];
   const initials = (n: string) => n.split(" ").map((x) => x[0]).join("").slice(0, 2).toUpperCase();
   return (
-    <section className="bg-white px-5 py-24 sm:px-6">
+    <section className="bg-[#F8FAFC] px-5 py-24 sm:px-6">
       <div className="mx-auto max-w-[1000px]">
         <div className="flex flex-col items-center text-center">
           <span className={EY}><span className="text-[#F59E0B]">★</span> {t("Reviews", "Avis clients")}</span>
@@ -780,7 +780,7 @@ function Faq() {
   ];
   const [open, setOpen] = useState(0);
   return (
-    <section id="faq" className="scroll-mt-24 px-5 py-24 sm:px-6">
+    <section id="faq" className="scroll-mt-24 bg-[#F8FAFC] px-5 py-24 sm:px-6">
       <div className="mx-auto max-w-3xl">
         <div className="text-center">
           <h2 className="text-[34px] font-bold tracking-[-0.02em] text-[#0F172A] sm:text-[44px]">{t("Need more answers?", "Besoin de plus de réponses ?")}</h2>
@@ -981,7 +981,7 @@ function InteractiveDemo() {
   const scoreColor = (n: number) => (n > 80 ? "#10B981" : n >= 60 ? "#F59E0B" : "#EF4444");
 
   return (
-    <section className="px-5 py-24 sm:px-6">
+    <section className="bg-[#F8FAFC] px-5 py-24 sm:px-6">
       <div ref={rootRef} className="mx-auto max-w-4xl">
         <div className="text-center">
           <span className={EY}><span className="text-[#0085FF]">✦</span> {t("Live demo", "Démo en direct")}</span>
