@@ -39,6 +39,11 @@ export async function POST(req: Request) {
   }
 
   // ----- Real Stripe Checkout (subscription) -----
+  // Stripe Tax (automatic VAT) requires the origin address / SIRET to be set up
+  // in the Stripe Dashboard first. Until that's done, enabling automatic_tax
+  // makes session creation FAIL — which would trap users on /onboarding/plan.
+  // So it's opt-in: set STRIPE_TAX_ENABLED=true once Stripe Tax is configured.
+  const taxEnabled = process.env.STRIPE_TAX_ENABLED === "true";
   try {
     const stripe = new Stripe(secret);
     const session = await stripe.checkout.sessions.create({
@@ -57,7 +62,7 @@ export async function POST(req: Request) {
             recurring: { interval: billing === "annual" ? "year" : "month" },
             // Displayed prices are VAT-inclusive (TTC): Stripe extracts the VAT
             // from this amount rather than adding it on top.
-            tax_behavior: "inclusive",
+            ...(taxEnabled ? { tax_behavior: "inclusive" as const } : {}),
           },
           quantity: 1,
         },
@@ -65,10 +70,17 @@ export async function POST(req: Request) {
       // Stripe Tax computes the right VAT from the customer's billing country
       // (France 20%; EU businesses with a VAT number are reverse-charged/exempt;
       // countries where LogLead isn't tax-registered get 0). No manual logic.
-      automatic_tax: { enabled: true },
-      billing_address_collection: "required",
-      tax_id_collection: { enabled: true },
-      success_url: `${appUrl}/dashboard?subscribed=${plan}`,
+      ...(taxEnabled
+        ? {
+            automatic_tax: { enabled: true },
+            billing_address_collection: "required" as const,
+            tax_id_collection: { enabled: true },
+          }
+        : {}),
+      // Return through the plan page with the session id so we can confirm the
+      // payment server-side (fallback if the Stripe webhook isn't received) and
+      // flip planChosen before landing on the dashboard — avoids a redirect loop.
+      success_url: `${appUrl}/onboarding/plan?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/pricing?checkout=cancelled`,
       metadata: {
         workspace_id: ctx.workspace.id,

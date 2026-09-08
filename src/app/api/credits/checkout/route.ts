@@ -44,6 +44,9 @@ export async function POST(req: Request) {
   }
 
   // ----- Real Stripe Checkout -----
+  // Stripe Tax is opt-in (see billing/checkout): enabling automatic_tax before
+  // the Stripe Dashboard origin address is set breaks session creation.
+  const taxEnabled = process.env.STRIPE_TAX_ENABLED === "true";
   try {
     const stripe = new Stripe(secret);
     const session = await stripe.checkout.sessions.create({
@@ -60,7 +63,7 @@ export async function POST(req: Request) {
             },
             unit_amount: amount, // 1 credit = 1 cent
             // Displayed price is VAT-inclusive (TTC): VAT is extracted, not added.
-            tax_behavior: "inclusive",
+            ...(taxEnabled ? { tax_behavior: "inclusive" as const } : {}),
           },
           quantity: 1,
         },
@@ -68,9 +71,13 @@ export async function POST(req: Request) {
       mode: "payment",
       // Stripe Tax computes VAT from the customer's billing country (France 20%;
       // EU businesses with a VAT number are exempt; unregistered countries = 0).
-      automatic_tax: { enabled: true },
-      billing_address_collection: "required",
-      tax_id_collection: { enabled: true },
+      ...(taxEnabled
+        ? {
+            automatic_tax: { enabled: true },
+            billing_address_collection: "required" as const,
+            tax_id_collection: { enabled: true },
+          }
+        : {}),
       success_url: `${appUrl}/dashboard?credits_purchased=${amount}`,
       cancel_url: `${appUrl}/dashboard?credits_cancelled=true`,
       metadata: { workspace_id: ctx.workspace.id, credits: String(amount), type: "credit_topup" },
