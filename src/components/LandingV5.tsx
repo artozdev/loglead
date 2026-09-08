@@ -708,6 +708,64 @@ function Comparison() {
   );
 }
 
+function Reviews() {
+  const t = useTr();
+  const reviews = [
+    { name: "Lucas M.", role: t("Sales Director", "Directeur commercial"), text: t("In two weeks we found more qualified prospects than in a whole quarter by hand. The scoring saves us a huge amount of time.", "En deux semaines on a trouvé plus de prospects qualifiés qu'en un trimestre à la main. Le scoring nous fait gagner un temps fou.") },
+    { name: "Camille D.", role: t("Web agency founder", "Fondatrice d'agence web"), text: t("Scout finds exactly the kind of clients we target. We signed 3 agencies in one month.", "Scout trouve exactement le type de clients qu'on cible. On a signé 3 agences en un mois.") },
+    { name: "Thomas R.", role: t("Growth freelancer", "Freelance growth"), text: t("I describe my ideal client and LogLead hands me an enriched list with email and phone. Impressive.", "Je décris mon client idéal, LogLead me sort une liste enrichie avec email et téléphone. Bluffant.") },
+    { name: "Sarah L.", role: t("Head of Sales", "Head of Sales"), text: t("No more copy-pasting into a spreadsheet. Everything is scored, organized by segment, ready to contact.", "Fini le copier-coller dans un tableur. Tout est scoré, organisé par segment, prêt à contacter.") },
+    { name: "Marc V.", role: t("B2B consultant", "Consultant B2B"), text: t("The buying signals let me reach out at the right moment. My reply rate doubled.", "Les signaux d'achat détectés m'ont permis de contacter au bon moment. Mon taux de réponse a doublé.") },
+    { name: "Julie P.", role: t("Startup CEO", "CEO de startup"), text: t("It's like having a full-time SDR. The pipeline fills up on its own.", "C'est comme avoir un SDR à plein temps. Le pipeline se remplit tout seul.") },
+  ];
+  const initials = (n: string) => n.split(" ").map((x) => x[0]).join("").slice(0, 2).toUpperCase();
+  return (
+    <section className="bg-white px-5 py-24 sm:px-6">
+      <div className="mx-auto max-w-[1000px]">
+        <div className="flex flex-col items-center text-center">
+          <span className={EY}><span className="text-[#F59E0B]">★</span> {t("Reviews", "Avis clients")}</span>
+          <h2 className="mt-5 text-[32px] font-bold leading-[1.1] tracking-[-0.02em] text-[#0F172A] sm:text-[44px]">
+            {t("+50 professionals", "+50 professionnels")}<br />{t("already use LogLead", "ont déjà adopté LogLead")}
+          </h2>
+        </div>
+        <div
+          className="relative mt-12 h-[520px] overflow-hidden"
+          style={{
+            maskImage: "linear-gradient(to bottom, transparent, #000 11%, #000 89%, transparent)",
+            WebkitMaskImage: "linear-gradient(to bottom, transparent, #000 11%, #000 89%, transparent)",
+          }}
+        >
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {[0, 1, 2].map((col) => {
+              const items = [...reviews.slice(col * 2), ...reviews.slice(0, col * 2)];
+              const dur = [46, 56, 50][col];
+              return (
+                <div key={col} className={col === 1 ? "hidden sm:block" : col === 2 ? "hidden lg:block" : ""}>
+                  <div className="flex flex-col gap-4" style={{ animation: `lp-marquee-up ${dur}s linear infinite` }}>
+                    {[...items, ...items].map((r, i) => (
+                      <div key={`${col}-${i}`} className="flex flex-col rounded-2xl border border-[#EAECF0] bg-white p-6 shadow-[0_10px_30px_-20px_rgba(15,23,42,0.15)]">
+                        <div className="flex gap-0.5 text-[15px] text-[#F59E0B]" aria-label="5/5">★★★★★</div>
+                        <p className="mt-3 text-[14px] leading-relaxed text-[#475569]">“{r.text}”</p>
+                        <div className="mt-5 flex items-center gap-3">
+                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#0051FF] text-[12px] font-bold text-white">{initials(r.name)}</span>
+                          <div>
+                            <p className="text-[13px] font-semibold text-[#0F172A]">{r.name}</p>
+                            <p className="text-[12px] text-[#94A3B8]">{r.role}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function Faq() {
   const t = useTr();
   const faqs: [string, string][] = [
@@ -1019,6 +1077,7 @@ export default function LandingV5() {
         <HowItWorks />
         <InteractiveDemo />
         <Comparison />
+        <Reviews />
         <Faq />
         <Footer />
       </div>
