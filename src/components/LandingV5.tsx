@@ -52,7 +52,7 @@ function ProductMenu({ cls }: { cls: string }) {
         {t("Product", "Produit")}
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="transition group-hover:rotate-180"><path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
       </button>
-      <div className="invisible absolute -left-44 top-full z-50 pt-3 opacity-0 transition duration-150 group-hover:visible group-hover:opacity-100">
+      <div className="invisible absolute left-0 top-full z-50 pt-3 opacity-0 transition duration-150 group-hover:visible group-hover:opacity-100">
         <div className="w-[960px] max-w-[calc(100vw-2rem)] rounded-2xl border border-[#E2E8F0] bg-white p-3 shadow-[0_16px_44px_-14px_rgba(15,23,42,0.25)]">
           <div className="grid grid-cols-3 gap-3">
             {products.map((p) => (
@@ -134,14 +134,16 @@ export function Nav({ solid = false }: { solid?: boolean }) {
   return (
     <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${light ? "border-b border-[#E2E8F0] bg-[#FFFFFFEE] backdrop-blur-xl" : "border-b border-transparent"}`}>
       <nav className="mx-auto flex h-[72px] max-w-6xl items-center justify-between px-5 sm:px-6">
-        <Link href="/" aria-label="LogLead">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={light ? "/loglead-logo.svg" : "/loglead-logo-dark.svg"} alt="LogLead" className="h-7 w-auto" />
-        </Link>
-        <div className={`hidden items-center gap-7 text-[14px] lg:flex ${light ? "text-[#475569]" : "text-white/85"}`}>
-          <ProductMenu cls={linkCls} />
-          <SolutionMenu cls={linkCls} />
-          <Link href="/pricing" className={linkCls}>{t("Pricing", "Tarifs")}</Link>
+        <div className="flex items-center gap-8">
+          <Link href="/" aria-label="LogLead">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={light ? "/loglead-logo.svg" : "/loglead-logo-dark.svg"} alt="LogLead" className="h-7 w-auto" />
+          </Link>
+          <div className={`hidden items-center gap-7 text-[14px] lg:flex ${light ? "text-[#475569]" : "text-white/85"}`}>
+            <ProductMenu cls={linkCls} />
+            <SolutionMenu cls={linkCls} />
+            <Link href="/pricing" className={linkCls}>{t("Pricing", "Tarifs")}</Link>
+          </div>
         </div>
         <div className="flex items-center gap-3">
           <button
