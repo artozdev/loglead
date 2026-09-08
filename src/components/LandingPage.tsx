@@ -702,19 +702,17 @@ export function PricingLanding({ tone = "dark" }: { tone?: "light" | "dark" }) {
     { name: "Growth", price: 59, popular: true, desc: "You manage LinkedIn seriously and want a pipeline that grows every week.", credits: "5,000 credits/month · 2,000 leads/month", features: ["Everything in Starter", "Full enrichment (email + phone)", "Competitor tracking", "Buying signal detection", "Priority support", "1 year of history"] },
     { name: "Pro", price: 99, desc: "Your product is serious. You want AI to run your growth.", credits: "10,000 credits/month · Unlimited leads", features: ["Everything in Growth", "AI Growth Partner [Beta]", "5 workspaces", "Dedicated support", "3 years of history"] },
   ];
-  const steps = [
-    {
-      n: "01", title: "Create your account", desc: "Sign up in 30 seconds. No credit card, no setup, no sales call.",
-      icon: <path d="M16 11a4 4 0 100-8 4 4 0 000 8zM6 21v-1a5 5 0 015-5h1M17.5 15.5v5M20 18h-5" />,
-    },
-    {
-      n: "02", title: "Choose your plan", desc: "7 days of full access to test everything — decide once you've seen the results.",
-      icon: <path d="M3 7l9-4 9 4-9 4-9-4zM3 12l9 4 9-4M3 17l9 4 9-4" />,
-    },
-    {
-      n: "03", title: "Launch your growth", desc: "Real prospects, signals and content from day one. LogLead runs the engine.",
-      icon: <path d="M3 17l6-6 4 4 8-8M15 7h6v6" />,
-    },
+  // Feature matrix — order matches the plans array (Starter / Growth / Pro).
+  const compare: { label: string; vals: (string | boolean)[] }[] = [
+    { label: "Monthly credits", vals: ["2,000", "5,000", "10,000"] },
+    { label: "Leads / month", vals: ["500", "2,000", "Unlimited"] },
+    { label: "Enrichment", vals: ["Basic", "Email + phone", "Email + phone"] },
+    { label: "Competitor tracking", vals: [false, true, true] },
+    { label: "Buying-signal detection", vals: [false, true, true] },
+    { label: "AI Growth Partner", vals: [false, false, "Beta"] },
+    { label: "Workspaces", vals: ["1", "1", "5"] },
+    { label: "History", vals: ["6 months", "1 year", "3 years"] },
+    { label: "Support", vals: ["Email", "Priority", "Dedicated"] },
   ];
   return (
     <section className={`${dark ? "lp-dark" : "lp-light"} px-5 pt-20 pb-8 sm:px-6`}>
@@ -758,37 +756,36 @@ export function PricingLanding({ tone = "dark" }: { tone?: "light" | "dark" }) {
           All prices include 20% VAT. Businesses can add their VAT number at checkout.
         </p>
 
-        {/* How it works — get-started process in 3 steps */}
-        <div className="mt-28 text-center">
-          <span className="inline-flex rounded-full bg-[#0051FF15] px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.08em] text-[#0051FF]">How it works</span>
-          <h3 className={`mt-4 text-[28px] font-extrabold tracking-[-0.035em] sm:text-[36px] ${FG}`}>From signup to pipeline<br className="hidden sm:block" /> in minutes.</h3>
-          <p className={`mx-auto mt-3 max-w-md text-[15px] leading-relaxed ${MUTED}`}>Three steps. No credit card. You only decide once you&apos;ve seen the results.</p>
+        {/* Plan comparison table */}
+        <div className="mt-24">
+          <h3 className={`text-center text-[24px] font-extrabold tracking-[-0.03em] sm:text-[30px] ${FG}`}>Compare plans</h3>
+          <div className="mt-8 overflow-x-auto">
+            <table className="w-full min-w-[560px] border-collapse text-left">
+              <thead>
+                <tr>
+                  <th className={`w-[34%] py-3 pr-4 text-[13px] font-semibold ${MUTED}`}>Features</th>
+                  {plans.map((p) => (
+                    <th key={p.name} className={`px-4 py-3 text-center text-[14px] font-bold ${p.popular ? "text-[#0051FF]" : FG}`}>{p.name}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {compare.map((row) => (
+                  <tr key={row.label} className={`border-t ${BORDER}`}>
+                    <td className={`py-3 pr-4 text-[13px] ${MUTED}`}>{row.label}</td>
+                    {row.vals.map((v, ci) => (
+                      <td key={ci} className={`px-4 py-3 text-center text-[13px] font-medium ${FG}`}>
+                        {typeof v === "boolean" ? (v ? <span className="text-[#16A34A]">✓</span> : <span className={FAINT}>—</span>) : v}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
-        <div className="relative mt-16 grid gap-5 lg:grid-cols-3">
-          {/* connecting path behind the cards (desktop) */}
-          <div aria-hidden className="pointer-events-none absolute inset-x-[16%] top-9 hidden h-px bg-gradient-to-r from-[#0051FF00] via-[#0051FF66] to-[#0051FF00] lg:block" />
-          {steps.map((s, i) => (
-            <Reveal key={s.n} delay={i * 100} className="group relative">
-              {/* arrow between cards (desktop) */}
-              {i < steps.length - 1 && (
-                <span aria-hidden className="absolute -right-3.5 top-9 z-10 hidden -translate-y-1/2 text-[#0051FF] lg:block">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
-                </span>
-              )}
-              <div className={`flex h-full flex-col items-center rounded-2xl border ${BORDER} ${CARD} px-6 pb-7 pt-8 text-center transition duration-300 hover:-translate-y-1 hover:border-[#0051FF60] hover:shadow-[0_24px_60px_-30px_rgba(0,81,255,0.7)]`}>
-                <span className="relative flex h-[72px] w-[72px] items-center justify-center rounded-2xl text-white shadow-[0_14px_36px_-10px_rgba(0,81,255,0.7)]" style={{ background: "linear-gradient(135deg,#0051FF,#00A3FF)" }}>
-                  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{s.icon}</svg>
-                  <span className={`absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full border border-[#0051FF40] text-[11px] font-bold text-[#0051FF] ${dark ? "bg-[#0A0A0A]" : "bg-white"}`}>{s.n}</span>
-                </span>
-                <p className={`mt-5 text-[17px] font-bold ${FG}`}>{s.title}</p>
-                <p className={`mt-2 text-[13px] leading-relaxed ${MUTED}`}>{s.desc}</p>
-              </div>
-            </Reveal>
-          ))}
-        </div>
-
-        <div className="mt-12 flex flex-col items-center gap-3">
+        <div className="mt-14 flex flex-col items-center gap-3">
           <Link href={SIGNUP} className={BTN_P}><Roll>Start</Roll></Link>
           <p className="text-[12px] text-[#6A7690]">No credit card · Cancel anytime · Setup in 2 minutes</p>
         </div>
