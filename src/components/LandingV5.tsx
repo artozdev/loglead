@@ -1069,39 +1069,10 @@ function StatsStrip() {
   );
 }
 
-// Top announcement bar — landing page only. Promotes the annual −20% offer with
-// a clear link to pricing. Dismissible (remembered in localStorage).
-function PromoBar() {
-  const t = useTr();
-  const [closed, setClosed] = useState(false);
-  useEffect(() => {
-    try { if (localStorage.getItem("ll_promo_closed") === "1") setClosed(true); } catch { /* ignore */ }
-  }, []);
-  if (closed) return null;
-  return (
-    <div className="relative z-[60] flex items-center justify-center gap-2.5 overflow-hidden bg-gradient-to-r from-[#0051FF] to-[#0085FF] px-9 py-1.5 text-center text-[12px] font-medium text-white">
-      <span aria-hidden className="text-[11px]">🔥</span>
-      <span className="font-semibold">{t("Limited offer: −20% on all annual plans", "Offre limitée : −20% sur tous les plans en annuel")}</span>
-      <Link href="/pricing" className="group inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-0.5 text-[11px] font-bold text-[#0051FF] shadow-sm transition hover:bg-[#EAF1FF]">
-        {t("See pricing", "Découvrir les prix")}
-        <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
-      </Link>
-      <button
-        onClick={() => { setClosed(true); try { localStorage.setItem("ll_promo_closed", "1"); } catch { /* ignore */ } }}
-        aria-label={t("Dismiss", "Fermer")}
-        className="absolute right-2.5 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full text-[11px] text-white/80 transition hover:bg-white/15 hover:text-white"
-      >
-        ✕
-      </button>
-    </div>
-  );
-}
-
 export default function LandingV5() {
   return (
     <LangProvider>
       <div className="min-h-screen bg-[#FFFFFF] font-sans antialiased">
-        <PromoBar />
         <Nav />
         <Hero />
         <StatsStrip />
