@@ -3,8 +3,10 @@ import { redirect } from "next/navigation";
 import JsonLd from "@/components/JsonLd";
 import LandingV5 from "@/components/LandingV5";
 import { getCurrentUser } from "@/lib/auth";
+import { profiles } from "@/lib/db";
 import { softwareApplicationSchema } from "@/lib/schema";
 import { SITE } from "@/lib/seo.config";
+import { getActiveWorkspace } from "@/lib/workspace";
 
 export const metadata: Metadata = {
   title: "LogLead — Your AI Sales Agent for B2B",
@@ -28,9 +30,17 @@ export default async function Home({
 }) {
   const sp = await searchParams;
   const user = await getCurrentUser();
-  // Logged-in users go to the app — unless ?preview is passed, so the landing
-  // stays reviewable without logging out.
-  if (user && sp.preview === undefined) redirect("/dashboard");
+  // Only users who FINISHED onboarding (profile + a chosen plan) are sent to the
+  // app. Users who left mid-onboarding stay on the landing when they come back —
+  // they resume via the "Commencer" button (which routes them to /onboarding).
+  // ?preview keeps the landing reviewable without logging out.
+  if (user && sp.preview === undefined) {
+    const ws = await getActiveWorkspace(user);
+    const profile = ws ? await profiles.findByWorkspace(ws.id) : null;
+    const onboarded = Boolean(profile) && Boolean(ws?.planChosen);
+    if (onboarded) redirect("/dashboard");
+    // else: onboarding not finished → show the landing page.
+  }
   return (
     <>
       <JsonLd data={softwareApplicationSchema()} />
