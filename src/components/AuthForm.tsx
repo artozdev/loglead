@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import GoogleAuthButton from "./GoogleAuthButton";
 import Logo from "./Logo";
 
 export default function AuthForm({
@@ -60,7 +61,9 @@ export default function AuthForm({
           </p>
         </div>
 
-        <form onSubmit={onSubmit} className="card space-y-4">
+        <div className="card">
+          <GoogleAuthButton mode={mode} />
+          <form onSubmit={onSubmit} className="space-y-4">
           {notice && (
             <p className="rounded-lg bg-success/5 px-3 py-2 text-sm text-success">
               {notice}
@@ -118,7 +121,8 @@ export default function AuthForm({
                 ? "Créer mon compte"
                 : "Se connecter"}
           </button>
-        </form>
+          </form>
+        </div>
 
         <p className="mt-6 text-center text-sm text-muted">
           {isSignup ? (
