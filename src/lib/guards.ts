@@ -1,6 +1,7 @@
 import "server-only";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { getCurrentUser } from "./auth";
+import { COOKIE_NAME, getCurrentUser } from "./auth";
 import { profiles } from "./db";
 import type { Profile, User, Workspace } from "./types";
 import { getActiveWorkspace } from "./workspace";
@@ -9,8 +10,15 @@ import { getActiveWorkspace } from "./workspace";
 
 export async function requireUser(): Promise<User> {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
-  return user;
+  if (user) return user;
+  // No valid user. If a stale session cookie is still present (e.g. the account
+  // was removed, or the session is a leftover "ghost"), clear it via /logout so
+  // the person lands cleanly on the site instead of getting stuck bouncing to
+  // /login with a cookie that can never resolve. A genuinely logged-out visitor
+  // (no cookie) is sent to /login to sign in.
+  const store = await cookies();
+  if (store.get(COOKIE_NAME)?.value) redirect("/logout");
+  redirect("/login");
 }
 
 export async function requireWorkspace(): Promise<{
