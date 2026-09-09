@@ -3,7 +3,7 @@
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { supabaseBrowser } from "@/lib/supabase-browser";
+import { hasGoogleAuth, supabaseBrowser } from "@/lib/supabase-browser";
 
 // OAuth return page. Supabase (implicit flow) drops the access token in the URL
 // hash; we read it client-side, hand it to /api/auth/google to mint the app's
@@ -13,6 +13,12 @@ export default function AuthCallbackPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Google auth not configured (no public Supabase env) → never touch the
+    // browser client (createClient would throw). Send them to the login form.
+    if (!hasGoogleAuth()) {
+      router.replace("/login");
+      return;
+    }
     let done = false;
     const supabase = supabaseBrowser();
 
