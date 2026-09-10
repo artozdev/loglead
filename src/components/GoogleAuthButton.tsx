@@ -7,9 +7,16 @@ import { hasGoogleAuth, supabaseBrowser } from "@/lib/supabase-browser";
 // Google sign-in / sign-up. Kicks off Supabase OAuth (Google) and returns to
 // /auth/callback, which exchanges the identity for the app's own session cookie.
 // Renders nothing when Google auth isn't configured, so the email form still works.
-export default function GoogleAuthButton({ mode }: { mode: "login" | "signup" }) {
+export default function GoogleAuthButton({
+  mode,
+  lang = "en",
+}: {
+  mode: "login" | "signup";
+  lang?: "en" | "fr";
+}) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const t = (en: string, fr: string) => (lang === "fr" ? fr : en);
 
   if (!hasGoogleAuth()) return null;
 
@@ -27,12 +34,12 @@ export default function GoogleAuthButton({ mode }: { mode: "login" | "signup" })
       });
       if (error) {
         setLoading(false);
-        setError("Connexion Google impossible. Réessaie.");
+        setError(t("Google sign-in failed. Try again.", "Connexion Google impossible. Réessaie."));
       }
       // On success the browser navigates to Google — keep loading = true.
     } catch {
       setLoading(false);
-      setError("Connexion Google impossible. Réessaie.");
+      setError(t("Google sign-in failed. Try again.", "Connexion Google impossible. Réessaie."));
     }
   }
 
@@ -55,15 +62,15 @@ export default function GoogleAuthButton({ mode }: { mode: "login" | "signup" })
           </svg>
         )}
         {loading
-          ? "Redirection…"
+          ? t("Redirecting…", "Redirection…")
           : mode === "signup"
-            ? "S'inscrire avec Google"
-            : "Continuer avec Google"}
+            ? t("Sign up with Google", "S'inscrire avec Google")
+            : t("Continue with Google", "Continuer avec Google")}
       </button>
       {error && <p className="mt-2 text-center text-xs text-danger">{error}</p>}
       <div className="mt-4 flex items-center gap-3 text-xs text-muted">
         <span className="h-px flex-1 bg-line" />
-        <span>ou avec ton email</span>
+        <span>{t("or with your email", "ou avec ton email")}</span>
         <span className="h-px flex-1 bg-line" />
       </div>
     </div>
