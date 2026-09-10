@@ -78,7 +78,7 @@ export default function AuthForm({
     <div className="relative flex min-h-screen items-center justify-center bg-gradient-to-b from-gray-50 to-white px-4">
       {/* Language toggle — top right, with flags */}
       <div className="absolute right-4 top-4 flex items-center gap-1 rounded-full border border-line bg-surface p-0.5 text-[12px] font-semibold">
-        {([["en", "🇬🇧", "EN"], ["fr", "🇫🇷", "FR"]] as const).map(([l, flag, code]) => (
+        {([["en", "🇺🇸", "EN"], ["fr", "🇫🇷", "FR"]] as const).map(([l, flag, code]) => (
           <button
             key={l}
             type="button"
