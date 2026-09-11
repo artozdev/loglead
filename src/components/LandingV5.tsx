@@ -161,6 +161,25 @@ export function Nav({ solid = false }: { solid?: boolean }) {
   );
 }
 
+// Hero title word that auto-cycles through the platforms LogLead searches,
+// rising up from the bottom each change. CSS-only animation (no framer-motion).
+function PlatformCycler() {
+  const t = useTr();
+  const platforms = ["LinkedIn", "Google Maps", "Instagram", "Facebook", "TikTok", "Reddit", t("the Web", "le Web")];
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setI((p) => (p + 1) % platforms.length), 2000);
+    return () => clearInterval(id);
+  }, [platforms.length]);
+  return (
+    <span className="inline-flex h-[1.15em] items-center justify-center overflow-hidden align-bottom">
+      <span key={i} className="v5-gradient-text-light whitespace-nowrap" style={{ animation: "v5-word-in 0.42s cubic-bezier(0.25,0.46,0.45,0.94) both" }}>
+        {platforms[i]}
+      </span>
+    </span>
+  );
+}
+
 function Hero() {
   const t = useTr();
   const [query, setQuery] = useState("");
@@ -227,8 +246,10 @@ function Hero() {
 
       <div className="relative mx-auto max-w-3xl text-center">
         <Reveal>
-          <h1 className="mx-auto max-w-2xl text-[32px] font-bold leading-[1.06] tracking-[-0.03em] text-white drop-shadow-[0_2px_20px_rgba(0,0,0,0.25)] sm:text-[48px] lg:text-[54px]">
-            {t("Find your ideal clients", "Trouvez vos clients idéaux")}<br /><span className="v5-gradient-text-light">{t("before your competitors do.", "avant vos concurrents.")}</span>
+          <h1 className="mx-auto flex max-w-2xl flex-col items-center text-[32px] font-bold leading-[1.12] tracking-[-0.03em] text-white drop-shadow-[0_2px_20px_rgba(0,0,0,0.25)] sm:text-[48px] lg:text-[54px]">
+            <span>{t("Find your ideal clients on", "Trouvez vos clients idéaux sur")}</span>
+            <PlatformCycler />
+            <span>{t("in under 2 min.", "en moins de 2 min.")}</span>
           </h1>
         </Reveal>
         <Reveal delay={120}>
