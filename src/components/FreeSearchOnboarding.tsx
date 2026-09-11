@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Lock, Search } from "lucide-react";
+import { ArrowRight, Lock, Mail, Phone, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import Logo from "./Logo";
@@ -199,6 +199,9 @@ function Searching({ t }: { t: (en: string, fr: string) => string }) {
 function scoreColor(s: number) {
   return s > 85 ? "#22C55E" : s >= 70 ? "#F59E0B" : "#8B9EC4";
 }
+function initials(name: string) {
+  return name.split(" ").filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+}
 
 function ResultsStep({ t, r, onUnlock }: { t: (en: string, fr: string) => string; r: Results; onUnlock: () => void }) {
   return (
@@ -212,83 +215,80 @@ function ResultsStep({ t, r, onUnlock }: { t: (en: string, fr: string) => string
         <p className="mx-auto mt-2 max-w-md text-[14px] text-[#8B9EC4]">“{r.query}”</p>
       </div>
 
-      {/* Unlocked cards */}
-      <div className="mt-8 space-y-4">
+      {/* Prospect list */}
+      <div className="fs-rise mt-8 overflow-hidden rounded-2xl border border-[#1E2D4A] bg-[#0D1526]" style={{ animationDelay: "0.08s" }}>
+        {/* List toolbar */}
+        <div className="flex items-center justify-between border-b border-[#151F33] px-4 py-3 text-[12px]">
+          <span className="font-semibold text-[#8B9EC4]">{t("Prospects", "Prospects")}</span>
+          <span className="text-[#4A5980]">
+            {t(`${r.visible.length} unlocked · ${r.lockedCount} locked`, `${r.visible.length} débloqués · ${r.lockedCount} verrouillés`)}
+          </span>
+        </div>
+
+        {/* Unlocked rows */}
         {r.visible.map((p, i) => (
-          <div key={i} className="fs-rise rounded-[14px] border border-[#1E2D4A] bg-[#0D1526] p-5" style={{ animationDelay: `${0.1 + i * 0.12}s` }}>
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-[16px] font-semibold text-[#F0F4FF]">{p.company}</p>
-                <p className="mt-0.5 text-[13px] text-[#8B9EC4]">📍 {p.city}</p>
+          <button
+            key={i}
+            onClick={onUnlock}
+            className="fs-rise group flex w-full items-center gap-3 border-b border-[#151F33] px-4 py-3.5 text-left transition hover:bg-[#111C31]"
+            style={{ animationDelay: `${0.12 + i * 0.1}s` }}
+          >
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#1E2D4A] to-[#0D1526] text-[12px] font-bold text-[#8B9EC4]">
+              {initials(p.company)}
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <span className="truncate text-[14px] font-semibold text-[#F0F4FF]">{p.company}</span>
+                <span className="shrink-0 text-[12px] text-[#4A5980]">· {p.city}</span>
               </div>
-              <span className="flex shrink-0 items-center gap-1.5 text-[14px] font-bold" style={{ color: scoreColor(p.score) }}>
-                <span className="h-2.5 w-2.5 rounded-full" style={{ background: scoreColor(p.score) }} /> {p.score}
-              </span>
-            </div>
-            {p.signals.length > 0 && (
-              <div className="mt-4">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-[#4A5980]">{t("Signals detected", "Signaux détectés")}</p>
-                <ul className="mt-1.5 space-y-1">
-                  {p.signals.map((s, j) => (
-                    <li key={j} className="flex items-center gap-2 text-[13px] text-[#C9D6EF]">⚠️ {s}</li>
-                  ))}
-                </ul>
+              <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                {p.signals.slice(0, 2).map((s, j) => (
+                  <span key={j} className="rounded-md bg-[#F59E0B]/12 px-1.5 py-0.5 text-[11px] font-medium text-[#FBBF24]">{s}</span>
+                ))}
+                <span className="text-[11px] text-[#4A5980]">· {p.source}</span>
               </div>
-            )}
-            <div className="mt-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-[#4A5980]">{t("Why this prospect", "Pourquoi ce prospect")}</p>
-              <p className="mt-1.5 text-[13px] leading-relaxed text-[#8B9EC4]">“{p.why}”</p>
             </div>
-            <p className="mt-3 text-[12px] text-[#4A5980]">{t("Source", "Source")} : {p.source}</p>
-
-            <div className="my-4 h-px bg-[#1E2D4A]" />
-            {/* Locked contact fields — visible format, masked value */}
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {[
-                [t("Email", "Email"), "••••••@••••••.fr"],
-                [t("Phone", "Téléphone"), "+33 6 •• •• •• ••"],
-                [t("Decision maker", "Décideur"), "J••• D•••••"],
-                ["LinkedIn", "linkedin.com/••••••"],
-              ].map(([label, masked]) => (
-                <div key={label} className="flex items-center gap-2 text-[13px] text-[#4A5980]">
-                  <Lock size={13} className="shrink-0" />
-                  <span className="w-[92px] shrink-0 text-[#8B9EC4]">{label}</span>
-                  <span className="truncate font-mono">{masked}</span>
-                </div>
+            {/* Locked contact indicators */}
+            <div className="hidden items-center gap-1.5 sm:flex">
+              {[Mail, Phone].map((Icon, k) => (
+                <span key={k} className="flex items-center gap-1 rounded-md border border-[#1E2D4A] bg-[#0A1120] px-1.5 py-1 text-[#4A5980]">
+                  <Icon size={12} /> <Lock size={10} />
+                </span>
               ))}
+              <span className="flex items-center gap-1 rounded-md border border-[#1E2D4A] bg-[#0A1120] px-1.5 py-1 text-[10px] font-bold text-[#4A5980]">in <Lock size={10} /></span>
             </div>
-            <button
-              onClick={onUnlock}
-              className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-[#0051FF66] bg-[#162035] px-4 py-2.5 text-[13px] font-medium text-[#8B9EC4] transition hover:text-[#F0F4FF]"
-            >
-              <Lock size={13} /> {t("Unlock this prospect", "Débloquer ce prospect")} <ArrowRight size={14} />
-            </button>
-          </div>
+            {/* Score */}
+            <span className="flex shrink-0 items-center gap-1.5 text-[13px] font-bold tabular-nums" style={{ color: scoreColor(p.score) }}>
+              <span className="h-2 w-2 rounded-full" style={{ background: scoreColor(p.score) }} /> {p.score}
+            </span>
+          </button>
         ))}
-      </div>
 
-      {/* Locked / blurred cards to show volume */}
-      {r.lockedCount > 0 && (
-        <div className="relative mt-4">
-          <div className="space-y-4">
-            {[0, 1, 2].map((i) => (
-              <div key={i} className="select-none rounded-[14px] border border-[#1E2D4A] bg-[#0D1526] p-5 opacity-60 blur-[4px]">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="h-4 w-40 rounded bg-[#1E2D4A]" />
-                    <div className="mt-2 h-3 w-24 rounded bg-[#162035]" />
+        {/* Locked / blurred rows to show volume */}
+        {r.lockedCount > 0 && (
+          <div className="relative">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="flex select-none items-center gap-3 border-b border-[#151F33] px-4 py-3.5 opacity-60 blur-[3px] last:border-b-0">
+                <span className="h-9 w-9 shrink-0 rounded-lg bg-[#1E2D4A]" />
+                <div className="min-w-0 flex-1">
+                  <div className="h-3.5 w-40 rounded bg-[#1E2D4A]" />
+                  <div className="mt-2 flex gap-1.5">
+                    <div className="h-3 w-24 rounded bg-[#162035]" />
+                    <div className="h-3 w-16 rounded bg-[#162035]" />
                   </div>
-                  <div className="h-4 w-10 rounded bg-[#1E2D4A]" />
                 </div>
-                <div className="mt-4 flex items-center gap-2 text-[13px] text-[#4A5980]">
-                  <Lock size={13} /> {t("Unlock to see signals and contact info", "Débloquez pour voir les signaux et les contacts")}
-                </div>
+                <div className="h-3.5 w-8 rounded bg-[#1E2D4A]" />
               </div>
             ))}
+            {/* Fade + unlock hint overlay */}
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 flex h-full flex-col justify-end bg-gradient-to-b from-transparent via-[#0D1526]/40 to-[#0D1526] pb-4 pt-16">
+              <button onClick={onUnlock} className="pointer-events-auto mx-auto flex items-center gap-2 rounded-full border border-[#0051FF66] bg-[#162035] px-4 py-2 text-[13px] font-medium text-[#C9D6EF] transition hover:text-white">
+                <Lock size={13} /> {t(`Unlock ${r.lockedCount} more prospects`, `Débloquer ${r.lockedCount} prospects de plus`)} <ArrowRight size={14} />
+              </button>
+            </div>
           </div>
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-[#050A14]" />
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Conversion block */}
       <div className="fs-rise mt-8 rounded-[20px] border border-[#0051FF66] bg-[#0D1526] p-6 shadow-[0_0_60px_rgba(0,81,255,0.15)] sm:p-8" style={{ animationDelay: "0.5s" }}>
