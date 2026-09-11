@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowUp, ChevronDown, Loader2, Plus, Search, Sparkles } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
 // LogAgent — the product's core: a conversational search engine. Left column =
@@ -37,11 +38,13 @@ const SOURCE_LABEL: Record<string, string> = {
   twitter: "X",
 };
 
-export default function LogAgent({ initialQuery = "" }: { initialQuery?: string }) {
+export default function LogAgent({ initialQuery = "", freeTrial = false }: { initialQuery?: string; freeTrial?: boolean }) {
+  const router = useRouter();
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState(initialQuery);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<SearchRow | null>(null);
+  const [freeDone, setFreeDone] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const started = messages.length > 0;
@@ -49,6 +52,34 @@ export default function LogAgent({ initialQuery = "" }: { initialQuery?: string 
   async function submit(q: string) {
     const query = q.trim();
     if (!query || busy) return;
+
+    // Free trial: one capped real search inside this same UI, then upgrade.
+    if (freeTrial) {
+      if (freeDone) { router.push("/onboarding/plan"); return; }
+      setInput("");
+      setBusy(true);
+      setMessages((m) => [...m, { role: "user", text: query }]);
+      try {
+        const res = await fetch("/api/onboarding/free-search", {
+          method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ query }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setMessages((m) => [...m, { role: "agent", text: data.error ?? "Une erreur est survenue." }]);
+          return;
+        }
+        const found: ProspectRow[] = data.prospects ?? [];
+        setMessages((m) => [...m, { role: "agent", text: found.length > 0 ? `● ${found.length} prospects trouvés — un avant-goût de ta recherche. Passe à un plan pour en trouver plus et débloquer leurs contacts.` : "Aucun résultat. Reformule ta recherche." }]);
+        setResult({ search: data.search ?? null, analysis: data.analysis, prospects: found });
+        setFreeDone(true);
+      } catch {
+        setMessages((m) => [...m, { role: "agent", text: "Connexion impossible. Réessaie." }]);
+      } finally {
+        setBusy(false);
+      }
+      return;
+    }
+
     setInput("");
     setBusy(true);
     setMessages((m) => [...m, { role: "user", text: query }]);
@@ -145,7 +176,17 @@ export default function LogAgent({ initialQuery = "" }: { initialQuery?: string 
             )}
           </div>
 
-          {/* Input — modern composer */}
+          {/* Free trial: after the one capped search, the composer becomes an upgrade CTA */}
+          {freeTrial && freeDone ? (
+            <div className="mt-3 rounded-2xl border border-primary/40 bg-surface p-4 text-center shadow-[0_10px_30px_-16px_rgba(15,23,42,0.25)]">
+              <p className="text-[14px] font-semibold text-ink">Débloque tout LogLead</p>
+              <p className="mt-1 text-[13px] leading-relaxed text-muted">Contacts (email + téléphone), recherches illimitées et de nouveaux prospects chaque semaine.</p>
+              <button onClick={() => router.push("/onboarding/plan")} className="mt-3 w-full rounded-xl bg-gradient-to-br from-primary to-[#0085FF] px-4 py-2.5 text-[14px] font-semibold text-white shadow-[0_8px_22px_-8px_rgba(0,81,255,0.7)] transition hover:brightness-110">
+                Voir les plans →
+              </button>
+            </div>
+          ) : (
+          /* Input — modern composer */
           <div className="mt-3 rounded-2xl border border-line bg-surface p-2.5 shadow-[0_10px_30px_-16px_rgba(15,23,42,0.25)]">
             <textarea
               ref={inputRef}
@@ -169,6 +210,7 @@ export default function LogAgent({ initialQuery = "" }: { initialQuery?: string 
               </button>
             </div>
           </div>
+          )}
         </div>
 
         {/* Right — canvas */}
@@ -179,7 +221,7 @@ export default function LogAgent({ initialQuery = "" }: { initialQuery?: string 
               <p className="mt-3 max-w-xs text-[14px]">{busy ? "Recherche en cours…" : "Les résultats de ta recherche apparaîtront ici."}</p>
             </div>
           ) : result.analysis.intent === "prospect_search" ? (
-            <ResultsPanel row={result} />
+            <ResultsPanel row={result} freeTrial={freeTrial} />
           ) : (
             <div className="mx-auto max-w-2xl px-6 py-8">
               <h2 className="font-display text-[18px] font-semibold text-ink">{result.analysis.title}</h2>
@@ -192,7 +234,7 @@ export default function LogAgent({ initialQuery = "" }: { initialQuery?: string 
   );
 }
 
-function ResultsPanel({ row }: { row: SearchRow }) {
+function ResultsPanel({ row, freeTrial = false }: { row: SearchRow; freeTrial?: boolean }) {
   const { analysis } = row;
   const c = analysis.criteria;
   const chips = [c.sector, c.jobTitle, c.location, c.signal, c.type].filter(Boolean) as string[];
@@ -240,8 +282,15 @@ function ResultsPanel({ row }: { row: SearchRow }) {
           </div>
         )}
       </div>
-      {row.prospects.length > 0 && (
+      {row.prospects.length > 0 && !freeTrial && (
         <p className="mt-3 text-[12px] text-muted">Retrouve ces prospects dans <a href="/leads" className="text-primary hover:underline">Leads</a> — scoring terminé.</p>
+      )}
+      {row.prospects.length > 0 && freeTrial && (
+        <div className="mt-4 flex flex-col items-center gap-2 rounded-xl border border-primary/40 bg-primary/[0.06] px-4 py-4 text-center">
+          <p className="text-[13px] font-semibold text-ink">🔒 Essai gratuit — contacts &amp; recherches illimitées verrouillés</p>
+          <p className="text-[12px] text-muted">Passe à un plan pour débloquer l&apos;email et le téléphone de chaque prospect et continuer à en trouver.</p>
+          <a href="/onboarding/plan" className="mt-1 rounded-lg bg-gradient-to-br from-primary to-[#0085FF] px-4 py-2 text-[13px] font-semibold text-white transition hover:brightness-110">Voir les plans →</a>
+        </div>
       )}
     </div>
   );

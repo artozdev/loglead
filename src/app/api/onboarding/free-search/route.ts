@@ -3,7 +3,7 @@ import { z } from "zod";
 import { analyzeSearchQuery, generatePreviewProspects, scoreProspects } from "@/lib/ai";
 import { hasApify, searchGooglePlaces, searchLinkedInJobs, searchSocial, type RawProspect } from "@/lib/apify";
 import { onboardingProgress, profiles, prospects, searches, workspaces } from "@/lib/db";
-import type { PreviewProspect, ProspectSignal } from "@/lib/types";
+import type { PreviewProspect, Prospect, ProspectSignal } from "@/lib/types";
 import { currentWorkspace } from "@/lib/workspace";
 
 export const runtime = "nodejs";
@@ -11,11 +11,13 @@ export const dynamic = "force-dynamic";
 
 const schema = z.object({ query: z.string().min(3).max(200) });
 
-// Free trial = a real but HARD-CAPPED taste of the product: one search only, a
-// handful of real prospects from a single source (keeps Apify/Claude spend tiny),
-// contact details locked. Wanting more → pick a plan. Falls back to a generated
-// preview when Apify isn't configured so the funnel always works.
+// Free trial = a real but HARD-CAPPED taste, run inside the LogAgent UI: one
+// search only, a handful of real prospects from a single source (keeps Apify /
+// Claude spend tiny), contacts locked. More requires a plan. Falls back to a
+// generated preview when Apify isn't configured so the funnel always works.
 const FREE_MAX = 3;
+
+type Row = { id: string; fitScore: number; companyName: string; companyDomain: string | null; signalDescription: string | null; companyLocation: string | null };
 
 export async function POST(req: Request) {
   const ctx = await currentWorkspace();
@@ -27,13 +29,7 @@ export async function POST(req: Request) {
   // One-shot: the free search runs the real (paid) pipeline exactly once per
   // account. A repeat call returns the stored preview — no extra Apify/Claude spend.
   if (ctx.workspace.freeSearchUsed && ctx.workspace.freeSearchPreview) {
-    const p = ctx.workspace.freeSearchPreview;
-    return NextResponse.json({
-      query: ctx.workspace.freeSearchQuery ?? query,
-      totalFound: ctx.workspace.freeSearchCount ?? p.length,
-      visible: p.slice(0, FREE_MAX),
-      lockedCount: 0,
-    });
+    return NextResponse.json(payloadFromPreview(ctx.workspace.freeSearchQuery ?? query, ctx.workspace.freeSearchPreview, ctx.workspace.freeSearchCount ?? 0, true));
   }
 
   // Ensure a minimal profile exists (used for scoring + to satisfy requireProfile).
@@ -49,11 +45,12 @@ export async function POST(req: Request) {
     });
   }
 
-  let totalFound = 0;
-  let preview: PreviewProspect[] = [];
+  let rows: Row[] = [];
+  let title = query.slice(0, 60);
+  let sources: string[] = [];
+  const preview: PreviewProspect[] = [];
 
   if (hasApify()) {
-    // ---- Real, capped search ----
     let analysis;
     try {
       analysis = await analyzeSearchQuery(query);
@@ -61,21 +58,13 @@ export async function POST(req: Request) {
       analysis = null;
     }
     if (analysis && analysis.intent === "prospect_search") {
+      title = analysis.title;
+      sources = analysis.sources;
       const search = await searches.create({
-        workspaceId: ctx.workspace.id,
-        query,
-        intent: analysis.intent,
-        criteria: analysis.criteria,
-        sources: analysis.sources,
-        title: analysis.title,
-        totalResults: 0,
-        qualifiedResults: 0,
-        creditsUsed: 0,
-        status: "running",
-        isFirstSearch: true,
+        workspaceId: ctx.workspace.id, query, intent: analysis.intent,
+        criteria: analysis.criteria, sources: analysis.sources, title: analysis.title,
+        totalResults: 0, qualifiedResults: 0, creditsUsed: 0, status: "running", isFirstSearch: true,
       });
-
-      // ONE source only, capped to FREE_MAX — the whole point is to keep spend low.
       const primary = analysis.sources[0] ?? "linkedin_jobs";
       const SOCIAL = new Set(["instagram", "tiktok", "facebook", "twitter"]);
       let raws: RawProspect[] = [];
@@ -87,7 +76,6 @@ export async function POST(req: Request) {
         raws = [];
       }
       raws = raws.slice(0, FREE_MAX);
-
       if (raws.length > 0) {
         const currentProfile = await profiles.findByWorkspace(ctx.workspace.id);
         const scores = currentProfile
@@ -96,10 +84,8 @@ export async function POST(req: Request) {
         for (let i = 0; i < raws.length; i++) {
           const r = raws[i];
           const s = scores[i] ?? { fitScore: 70, fitReasoning: "" };
-          const signals: ProspectSignal[] = r.signalDescription
-            ? [{ level: s.fitScore > 80 ? "hot" : "warm", text: r.signalDescription }]
-            : [];
-          await prospects.create({
+          const signals: ProspectSignal[] = r.signalDescription ? [{ level: s.fitScore > 80 ? "hot" : "warm", text: r.signalDescription }] : [];
+          const p: Prospect = await prospects.create({
             workspaceId: ctx.workspace.id, searchId: search.id,
             companyName: r.companyName, companyDomain: r.companyDomain,
             companyLocation: r.companyLocation, companySector: r.companySector,
@@ -109,45 +95,45 @@ export async function POST(req: Request) {
             fitScore: s.fitScore, fitReasoning: s.fitReasoning, signals,
             stage: s.fitScore > 80 ? "hot" : "new", inPipeline: false,
           });
-          preview.push({
-            company: r.companyName,
-            city: r.companyLocation ?? r.companySector ?? "",
-            score: s.fitScore,
-            signals: r.signalDescription ? [r.signalDescription] : [],
-            why: s.fitReasoning || "",
-            source: sourceLabel(r.source),
-          });
+          rows.push({ id: p.id, fitScore: p.fitScore, companyName: p.companyName, companyDomain: p.companyDomain ?? null, signalDescription: p.signalDescription ?? null, companyLocation: p.companyLocation ?? null });
+          preview.push({ company: p.companyName, city: p.companyLocation ?? "", score: p.fitScore, signals: p.signalDescription ? [p.signalDescription] : [], why: p.fitReasoning ?? "", source: p.source });
         }
-        totalFound = preview.length;
       }
-      await searches.update(search.id, ctx.workspace.id, {
-        status: "done", totalResults: totalFound, qualifiedResults: preview.filter((p) => p.score > 80).length, creditsUsed: 0,
-      });
+      await searches.update(search.id, ctx.workspace.id, { status: "done", totalResults: rows.length, qualifiedResults: rows.filter((p) => p.fitScore > 80).length, creditsUsed: 0 });
     }
   }
 
-  // Fallback (no Apify, or nothing found): representative preview so the funnel works.
-  if (preview.length === 0) {
+  // Fallback (no Apify / nothing found): representative preview.
+  if (rows.length === 0) {
     const gen = await generatePreviewProspects(query);
-    preview = gen.prospects.slice(0, FREE_MAX);
-    totalFound = preview.length;
+    for (const p of gen.prospects.slice(0, FREE_MAX)) {
+      rows.push({ id: cryptoId(), fitScore: p.score, companyName: p.company, companyDomain: null, signalDescription: p.signals[0] ?? null, companyLocation: p.city });
+      preview.push(p);
+    }
+    if (!sources.length) sources = ["google_maps"];
   }
 
-  await workspaces.setFreeSearch(ctx.workspace.id, { query, totalFound, prospects: preview });
+  await workspaces.setFreeSearch(ctx.workspace.id, { query, totalFound: rows.length, prospects: preview });
   await onboardingProgress.complete(ctx.workspace.id);
 
   return NextResponse.json({
-    query,
-    totalFound,
-    visible: preview.slice(0, FREE_MAX),
-    lockedCount: 0,
+    analysis: { intent: "prospect_search", title, sources, criteria: {} },
+    prospects: rows,
+    totalFound: rows.length,
+    freeTrial: true,
   });
 }
 
-function sourceLabel(src: string): string {
-  const map: Record<string, string> = {
-    google_maps: "Google Maps", linkedin_jobs: "LinkedIn", linkedin_company: "LinkedIn",
-    instagram: "Instagram", tiktok: "TikTok", facebook: "Facebook", twitter: "X / Twitter", reddit: "Reddit",
+function payloadFromPreview(query: string, preview: PreviewProspect[], totalFound: number, freeTrial: boolean) {
+  const rows: Row[] = preview.slice(0, FREE_MAX).map((p) => ({ id: cryptoId(), fitScore: p.score, companyName: p.company, companyDomain: null, signalDescription: p.signals[0] ?? null, companyLocation: p.city }));
+  return {
+    analysis: { intent: "prospect_search", title: query.slice(0, 60), sources: preview[0] ? [] : [], criteria: {} },
+    prospects: rows,
+    totalFound: totalFound || rows.length,
+    freeTrial,
   };
-  return map[src] ?? "Web";
+}
+
+function cryptoId() {
+  return "fp_" + Math.random().toString(36).slice(2, 10);
 }

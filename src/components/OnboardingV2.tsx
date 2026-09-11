@@ -85,7 +85,8 @@ export default function OnboardingV2({ firstName }: { firstName: string }) {
       });
       const d = await res.json();
       if (!res.ok) { setErr(d.error ?? "Une erreur est survenue."); setLaunching(false); return; }
-      router.push("/onboarding/plan");
+      // Free-trial generation happens next, inside the LogAgent UI.
+      router.push(`/onboarding/search?q=${encodeURIComponent(d.query ?? data.query ?? "")}`);
     } catch {
       setErr("Connexion impossible. Réessaie."); setLaunching(false);
     }
