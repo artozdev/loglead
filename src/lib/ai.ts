@@ -24,6 +24,7 @@ import {
   type LeadScoreWeights,
   type LeadSignals,
   type Platform,
+  type PreviewProspect,
   type Profile,
   type ProspectSource,
   type RecommendedAction,
@@ -357,6 +358,98 @@ export async function generateFirstSearchQuery(input: {
   } catch {
     return fallback;
   }
+}
+
+// ----- Free onboarding search: representative prospect preview --------------
+
+// Generates a realistic-looking preview of prospects for the free onboarding
+// search — NO scraping, NO credits. Returns a believable total plus a handful of
+// detailed cards (the first 3 are shown unlocked, the rest blurred). Falls back
+// to a deterministic sample (stable per query) in demo mode / on failure.
+export async function generatePreviewProspects(
+  query: string,
+): Promise<{ totalFound: number; prospects: PreviewProspect[] }> {
+  const fallback = () => previewFallback(query);
+  if (isDemoMode()) return fallback();
+  try {
+    const res = await callJSON<{ totalFound: number; prospects: PreviewProspect[] }>({
+      system:
+        "You generate a REALISTIC but FICTITIOUS preview of B2B prospects for a prospecting tool's onboarding, based on a search query. Return a believable totalFound between 24 and 80, and exactly 4 detailed prospects. Each prospect: a plausible company name that fits the query, its city, a fit score 60-97 (integer), 1-2 short buying signals (e.g. 'No website found', 'Google rating 3.4/5', 'Hiring a sales rep'), a one-line reason 'why this prospect', and a source among 'Google Maps','LinkedIn','Reddit','Instagram','Web directories'. Match the query's country/city and industry. Do NOT invent emails or phone numbers. Output language: match the query's language.",
+      user: `Search query: ${query}\n\nReturn a realistic preview (totalFound + 4 prospects).`,
+      schema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          totalFound: { type: "integer" },
+          prospects: {
+            type: "array",
+            items: {
+              type: "object",
+              additionalProperties: false,
+              properties: {
+                company: { type: "string" },
+                city: { type: "string" },
+                score: { type: "integer" },
+                signals: { type: "array", items: { type: "string" } },
+                why: { type: "string" },
+                source: { type: "string" },
+              },
+              required: ["company", "city", "score", "signals", "why", "source"],
+            },
+          },
+        },
+        required: ["totalFound", "prospects"],
+      },
+      model: GEN_MODEL,
+      temperature: 0.8,
+      maxTokens: 1500,
+    });
+    const prospects = (res.prospects ?? []).slice(0, 4).map((p) => ({
+      company: String(p.company || "").slice(0, 80),
+      city: String(p.city || "").slice(0, 60),
+      score: Math.max(50, Math.min(99, Math.round(p.score || 80))),
+      signals: (p.signals ?? []).slice(0, 2).map((s) => String(s).slice(0, 80)),
+      why: String(p.why || "").slice(0, 200),
+      source: String(p.source || "Google Maps").slice(0, 40),
+    }));
+    if (!prospects.length) return fallback();
+    const totalFound = Math.max(prospects.length + 20, Math.min(80, Math.round(res.totalFound || 42)));
+    return { totalFound, prospects };
+  } catch {
+    return fallback();
+  }
+}
+
+// Deterministic, believable sample when Claude isn't available. Stable per query.
+function previewFallback(query: string): { totalFound: number; prospects: PreviewProspect[] } {
+  const q = query.toLowerCase();
+  let h = 0;
+  for (let i = 0; i < query.length; i++) h = (h * 31 + query.charCodeAt(i)) >>> 0;
+  const cities = ["Toulouse", "Lyon", "Bordeaux", "Nantes", "Lille", "Marseille", "Paris", "Nice"];
+  const cityMatch = cities.find((c) => q.includes(c.toLowerCase()));
+  const city = cityMatch || cities[h % cities.length];
+  const isResto = /restaurant|resto|caf|bar|hotel|commerce|magasin|boutique/.test(q);
+  const isAgency = /agence|agency|studio|freelanc|consult/.test(q);
+  const names = isResto
+    ? ["Le Comptoir du Marché", "Bistrot des Halles", "La Table d'Or", "Chez Margaux"]
+    : isAgency
+      ? ["Pixel & Co", "Studio Novaé", "Atelier Lumen", "Growth Lab"]
+      : ["Novaé Solutions", "Atlas Group", "Studio Meridian", "Horizon Partners"];
+  const signalsPool = isResto
+    ? [["No website found", "Google rating 3.4/5 (47 reviews)"], ["Outdated menu online", "Google rating 3.1/5"], ["No online booking", "Weak social presence"], ["No website found", "Only 12 reviews"]]
+    : [["Hiring a sales rep", "No CRM detected"], ["Recently funded", "Growing headcount"], ["Weak social presence", "No blog"], ["Bad reviews trend", "No website found"]];
+  const sources = ["Google Maps", "LinkedIn", "Reddit", "Web directories"];
+  const prospects: PreviewProspect[] = names.map((company, i) => ({
+    company,
+    city,
+    score: 97 - ((h >> (i * 2)) % 28),
+    signals: signalsPool[i % signalsPool.length],
+    why: isResto
+      ? "Local business with weak digital presence and multiple signals of a commercial opportunity."
+      : "Company showing clear buying signals — a strong fit for your offer right now.",
+    source: sources[i % sources.length],
+  }));
+  return { totalFound: 32 + (h % 28), prospects };
 }
 
 // ----- LogAgent: score prospect candidates against the ICP + criteria -------

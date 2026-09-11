@@ -661,6 +661,13 @@ body {
 /* Cycling hero word: rises up from the bottom into place each time it changes.
    transform-only + inline-block so it never shifts the text baseline. */
 @keyframes v5-word-in { from { opacity: 0; transform: translateY(0.55em); } to { opacity: 1; transform: translateY(0); } }
+
+/* ----- Free onboarding search funnel animations ----- */
+@keyframes fs-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.55; } }
+@keyframes fs-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes fs-progress { from { width: 0; } to { width: 100%; } }
+@keyframes fs-pill { 0%,100% { transform: scale(1); } 50% { transform: scale(0.93); } }
+.fs-rise { animation: fs-rise 0.5s ease both; }
 .v5-gradient-text-light {
   background: linear-gradient(135deg, #8FC2FF, #E6F3FF);
   -webkit-background-clip: text;

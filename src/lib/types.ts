@@ -165,6 +165,23 @@ export type Workspace = {
   monthlyCreditsLimit?: number; // plan quota used for the header gauge ratio
   trialStartsAt?: string; // ISO — set when a plan is picked
   creditsRenewAt?: string; // ISO — next monthly renewal (trial end, then +1 month)
+  // ----- Free onboarding search (one representative preview per account) -----
+  freeSearchUsed?: boolean;
+  freeSearchQuery?: string;
+  freeSearchCount?: number; // real-looking total found (e.g. 47)
+  freeSearchPreview?: PreviewProspect[]; // the 3 unlocked cards, persisted
+  freeSearchAt?: string; // ISO
+};
+
+// A representative prospect shown in the free onboarding search (no scraping —
+// generated from the query so the user sees the product's power instantly).
+export type PreviewProspect = {
+  company: string;
+  city: string;
+  score: number; // 0-100
+  signals: string[]; // 1-2 short buying signals
+  why: string; // one-line "why this prospect"
+  source: string; // e.g. "Google Maps", "LinkedIn"
 };
 
 // One line in the credit ledger (add or consume). Positive = added.

@@ -30,6 +30,7 @@ import type {
   OnboardingProgress,
   PasswordReset,
   Plan,
+  PreviewProspect,
   Profile,
   Segment,
   SegmentType,
@@ -432,6 +433,26 @@ export const workspaces = {
         createdAt: now(),
       });
     }
+    await write(db);
+    return updated;
+  },
+  // Store the one-time free onboarding search preview (representative results).
+  async setFreeSearch(
+    id: string,
+    data: { query: string; totalFound: number; prospects: PreviewProspect[] },
+  ) {
+    const db = await read();
+    const ws = db.workspaces.find((w) => w.id === id);
+    if (!ws) return undefined;
+    const updated: Workspace = {
+      ...ws,
+      freeSearchUsed: true,
+      freeSearchQuery: data.query,
+      freeSearchCount: data.totalFound,
+      freeSearchPreview: data.prospects,
+      freeSearchAt: now(),
+    };
+    db.workspaces = db.workspaces.map((w) => (w.id === id ? updated : w));
     await write(db);
     return updated;
   },
