@@ -658,8 +658,9 @@ body {
 @keyframes v5-rise { 0%{opacity:0;transform:translateY(6px)} 100%{opacity:1;transform:translateY(0)} }
 .v5-rise { animation: v5-rise 0.5s ease both; }
 
-/* Cycling hero word: rises up from the bottom into place each time it changes. */
-@keyframes v5-word-in { from { opacity: 0; transform: translateY(0.9em); } to { opacity: 1; transform: translateY(0); } }
+/* Cycling hero word: rises up from the bottom into place each time it changes.
+   transform-only + inline-block so it never shifts the text baseline. */
+@keyframes v5-word-in { from { opacity: 0; transform: translateY(0.55em); } to { opacity: 1; transform: translateY(0); } }
 .v5-gradient-text-light {
   background: linear-gradient(135deg, #8FC2FF, #E6F3FF);
   -webkit-background-clip: text;

@@ -172,10 +172,12 @@ function PlatformCycler() {
     return () => clearInterval(id);
   }, [platforms.length]);
   return (
-    <span className="inline-flex h-[1.15em] min-w-[2.5em] translate-y-[0.22em] items-center justify-center overflow-hidden">
-      <span key={i} className="v5-gradient-text-light whitespace-nowrap" style={{ animation: "v5-word-in 0.42s cubic-bezier(0.25,0.46,0.45,0.94) both" }}>
-        {platforms[i]}
-      </span>
+    <span
+      key={i}
+      className="v5-gradient-text-light inline-block whitespace-nowrap align-baseline"
+      style={{ animation: "v5-word-in 0.42s cubic-bezier(0.25,0.46,0.45,0.94) both" }}
+    >
+      {platforms[i]}
     </span>
   );
 }
