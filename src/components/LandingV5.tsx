@@ -172,7 +172,7 @@ function PlatformCycler() {
     return () => clearInterval(id);
   }, [platforms.length]);
   return (
-    <span className="inline-flex h-[1.15em] items-center justify-center overflow-hidden align-bottom">
+    <span className="inline-flex h-[1.15em] min-w-[2.5em] translate-y-[0.22em] items-center justify-center overflow-hidden">
       <span key={i} className="v5-gradient-text-light whitespace-nowrap" style={{ animation: "v5-word-in 0.42s cubic-bezier(0.25,0.46,0.45,0.94) both" }}>
         {platforms[i]}
       </span>
@@ -246,10 +246,9 @@ function Hero() {
 
       <div className="relative mx-auto max-w-3xl text-center">
         <Reveal>
-          <h1 className="mx-auto flex max-w-2xl flex-col items-center text-[32px] font-bold leading-[1.12] tracking-[-0.03em] text-white drop-shadow-[0_2px_20px_rgba(0,0,0,0.25)] sm:text-[48px] lg:text-[54px]">
-            <span>{t("Find your ideal clients on", "Trouvez vos clients idéaux sur")}</span>
-            <PlatformCycler />
-            <span>{t("in under 2 min.", "en moins de 2 min.")}</span>
+          <h1 className="mx-auto max-w-3xl text-[27px] font-bold leading-[1.16] tracking-[-0.03em] text-white drop-shadow-[0_2px_20px_rgba(0,0,0,0.25)] sm:text-[42px] lg:text-[48px]">
+            {t("Find your ideal clients on", "Trouvez vos clients idéaux sur")}<br />
+            <PlatformCycler /> {t("in under 2 min.", "en moins de 2 min.")}
           </h1>
         </Reveal>
         <Reveal delay={120}>
