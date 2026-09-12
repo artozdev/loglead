@@ -75,54 +75,49 @@ export default function PlanSelection() {
         </p>
 
         {/* Billing toggle */}
-        <div className="mt-6 inline-flex items-center rounded-full border border-slate-200 bg-slate-50 p-1">
-          {(["monthly", "annual"] as const).map((b) => (
-            <button
-              key={b}
-              onClick={() => setBilling(b)}
-              className={`rounded-full px-4 py-1.5 text-[13px] font-medium transition ${
-                billing === b ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
-              }`}
-            >
-              {b === "monthly" ? "Monthly" : "Annual — save 20%"}
+        <div className="mt-6 flex flex-col items-center gap-2">
+          <div className="inline-flex rounded-full border border-slate-200 bg-slate-50 p-1">
+            <button onClick={() => setBilling("monthly")} className={`rounded-full px-4 py-1.5 text-[13px] font-medium transition ${billing === "monthly" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}>Mensuel</button>
+            <button onClick={() => setBilling("annual")} className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[13px] font-medium transition ${billing === "annual" ? "bg-[#0051FF] text-white" : "text-slate-500 hover:text-slate-700"}`}>
+              Annuel
+              <span className="relative inline-flex overflow-hidden rounded-full bg-gradient-to-r from-[#0051FF] to-[#0085FF] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+                <span aria-hidden data-shine className="pointer-events-none absolute inset-y-0 -inset-x-2" style={{ background: "linear-gradient(100deg, transparent 30%, rgba(255,255,255,0.85) 50%, transparent 70%)", animation: "lp-shine 2.4s ease-in-out infinite" }} />
+                <span className="relative">−20% DE RÉDUCTION</span>
+              </span>
             </button>
-          ))}
+          </div>
+          <p className="text-[12px] font-semibold text-[#16A34A]">{billing === "annual" ? "Tu économises 20% en facturation annuelle 🎉" : "Économise 20% — passe en facturation annuelle"}</p>
         </div>
 
         {error && (
           <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
         )}
 
-        {/* Plan cards */}
-        <div className="mt-8 grid w-full gap-4 md:grid-cols-3">
+        {/* Plan cards — Growth (popular) raised & framed as the special offer */}
+        <div className="mt-12 grid w-full items-start gap-5 md:grid-cols-3">
           {PLAN_CARDS.map((p) => {
             const popular = p.popular;
-            return (
-              <div
-                key={p.id}
-                className={`relative flex flex-col rounded-2xl border bg-white p-6 transition ${
-                  popular
-                    ? "border-[#0051FF] shadow-[0_8px_30px_rgba(0,81,255,0.12)] md:-translate-y-2"
-                    : "border-slate-200 hover:border-slate-300"
-                }`}
-              >
-                {popular && (
-                  <span className="absolute -top-3 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full bg-[#0051FF] px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">
-                    <Star size={12} fill="currentColor" /> Most popular
-                  </span>
-                )}
-
-                <p className="text-[12px] font-semibold uppercase tracking-wide text-slate-400">{p.name}</p>
-                <div className="mt-2 flex items-baseline gap-1">
-                  <span className="text-[34px] font-bold leading-none text-slate-900">€{price(p)}</span>
+            const saved = (p.priceMonthly - price(p)) * 12;
+            const banner = billing === "annual" ? "OFFRE SPÉCIALE ANNUELLE · −20% DE RÉDUCTION" : "LE PLUS POPULAIRE";
+            const cta = popular && billing === "annual" ? "Réclamez l'offre annuelle" : "Commencer";
+            const inner = (
+              <>
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-[13px] font-bold uppercase tracking-wide text-slate-400">{p.name}</p>
+                  {billing === "annual" && saved > 0 && (
+                    <span className="rounded-full bg-[#0051FF]/10 px-2 py-0.5 text-[11px] font-bold text-[#0051FF]">Économisez €{saved}/an</span>
+                  )}
+                </div>
+                <div className="mt-3 flex items-baseline gap-2">
+                  {billing === "annual" && <span className="text-[16px] font-medium leading-none text-slate-400 line-through">€{p.priceMonthly}</span>}
+                  <span className="text-[36px] font-extrabold leading-none text-slate-900">€{price(p)}</span>
                   <span className="text-[14px] text-slate-500">/mo</span>
                 </div>
-                <p className="mt-1 text-[11px] text-slate-400">TVA 20% incluse</p>
+                <p className="mt-1.5 text-[11px] text-slate-400">TVA 20% incluse · {billing === "annual" ? "facturé annuellement" : "facturé mensuellement"}</p>
                 <div className="mt-4 rounded-xl bg-slate-50 px-3 py-2.5 text-[13px]">
                   <p className="font-semibold text-slate-900">{p.monthly.toLocaleString("fr-FR")} crédits/mois</p>
                   <p className="text-slate-500">Renouvelés chaque mois</p>
                 </div>
-
                 <ul className="mt-4 flex-1 space-y-2">
                   {p.features.map((f) => (
                     <li key={f} className="flex items-start gap-2 text-[13px] text-slate-600">
@@ -130,20 +125,30 @@ export default function PlanSelection() {
                     </li>
                   ))}
                 </ul>
-
                 <button
                   onClick={() => subscribe(p.id)}
                   disabled={busy !== null}
-                  className={`mt-5 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:opacity-60 ${
-                    popular
-                      ? "bg-[#0051FF] text-white hover:bg-[#0041cc]"
-                      : "border border-slate-300 text-slate-900 hover:bg-slate-50"
-                  }`}
+                  className={`mt-5 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition disabled:opacity-60 ${popular ? "bg-gradient-to-br from-[#0051FF] to-[#0085FF] text-white shadow-[0_10px_24px_-10px_rgba(0,81,255,0.8)] hover:brightness-110" : "border border-slate-300 text-slate-900 hover:bg-slate-50"}`}
                 >
                   {busy === p.id ? <Loader2 size={16} className="animate-spin" /> : null}
-                  Commencer
+                  {cta}
                 </button>
-              </div>
+              </>
+            );
+            if (popular) {
+              return (
+                <div key={p.id} className="relative md:-translate-y-6">
+                  <div className="overflow-hidden rounded-[24px] bg-gradient-to-b from-[#0051FF] to-[#0085FF] p-[3px] shadow-[0_34px_80px_-30px_rgba(0,81,255,0.7)]">
+                    <div className="flex items-center justify-center gap-1.5 px-5 py-2.5 text-center text-[11px] font-bold uppercase tracking-[0.05em] text-white">
+                      <Star size={12} fill="currentColor" /> {banner}
+                    </div>
+                    <div className="flex flex-col rounded-[21px] bg-white p-6">{inner}</div>
+                  </div>
+                </div>
+              );
+            }
+            return (
+              <div key={p.id} className="flex flex-col rounded-[24px] border border-slate-200 bg-white p-6 transition hover:border-slate-300">{inner}</div>
             );
           })}
         </div>
