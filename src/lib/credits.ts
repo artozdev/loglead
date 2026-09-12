@@ -119,7 +119,14 @@ export const PLAN_CARDS: PlanCard[] = [
     name: "Starter",
     priceMonthly: 29,
     monthly: 2000,
-    features: ["Market (basic)", "500 leads/mo", "Post Generator", "Content Calendar", "Email support"],
+    features: [
+      "500 prospects qualifiés/mois",
+      "Recherche multi-sources (LinkedIn, Google Maps…)",
+      "Emails débloqués",
+      "Scoring IA des prospects",
+      "Export CSV",
+      "Support email",
+    ],
   },
   {
     id: "growth",
@@ -127,14 +134,28 @@ export const PLAN_CARDS: PlanCard[] = [
     priceMonthly: 59,
     monthly: 5000,
     popular: true,
-    features: ["Market Intelligence", "2,000 leads/mo", "Post Generator", "Content Calendar", "Priority support"],
+    features: [
+      "2 000 prospects qualifiés/mois",
+      "Emails + téléphones débloqués",
+      "Détection des signaux d'achat",
+      "Suivi des concurrents",
+      "Messages personnalisés par l'IA",
+      "Support prioritaire",
+    ],
   },
   {
     id: "pro",
     name: "Pro",
     priceMonthly: 99,
     monthly: 10000,
-    features: ["Market Intelligence", "Unlimited leads", "Post Generator", "Content Calendar", "AI Growth Partner", "Dedicated support"],
+    features: [
+      "Prospects illimités",
+      "Enrichissement complet (décideurs + LinkedIn)",
+      "Relances automatiques",
+      "Partenaire de croissance IA",
+      "5 espaces de travail",
+      "Support dédié",
+    ],
   },
 ];
 
