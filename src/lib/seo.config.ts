@@ -6,21 +6,24 @@ export const SITE = {
   url: "https://www.loglead.io",
   locale: "en_US",
   twitter: "@loglead",
-  defaultTitle: "LogLead — The AI Growth Engine for B2B LinkedIn",
+  defaultTitle: "LogLead — Your AI Sales Agent for B2B Prospecting",
   titleTemplate: "%s · LogLead",
   description:
-    "Turn LinkedIn into your #1 B2B acquisition channel. Find qualified prospects, generate converting content and track your AI visibility — all in one platform.",
+    "Describe your ideal client and LogLead finds qualified B2B prospects across LinkedIn, Google Maps, Reddit and the web — enriched with email and phone, scored by AI, contacted and followed up automatically. You only handle the hot replies.",
   // Short "entity definition" used for LLM/GEO clarity.
   entity:
-    "LogLead is an AI-powered B2B growth platform that helps companies generate qualified leads on LinkedIn through market intelligence, prospect discovery and AI-generated content.",
+    "LogLead is an AI sales agent for B2B companies: it finds qualified prospects across LinkedIn, Google Maps, Reddit and the web, enriches their contact details (email and phone), scores them, writes and sends personalized outreach, follows up automatically and surfaces the hot replies.",
   keywords: [
-    "LinkedIn lead generation",
+    "AI sales agent",
+    "B2B prospecting",
     "B2B lead generation",
+    "find B2B clients",
+    "AI prospect finder",
+    "lead enrichment",
+    "sales automation",
+    "AI cold outreach",
+    "Google Maps leads",
     "LinkedIn prospecting",
-    "AI growth engine",
-    "B2B growth platform",
-    "AI visibility",
-    "generative engine optimization",
   ],
   org: {
     legalName: "Arthur Lorthois",

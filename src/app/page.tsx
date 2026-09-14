@@ -11,7 +11,7 @@ import { getActiveWorkspace } from "@/lib/workspace";
 export const metadata: Metadata = {
   title: "LogLead — Your AI Sales Agent for B2B",
   description:
-    "LogLead prospects, messages and follows up automatically. You only see the hot conversations. Start your 7-day free trial.",
+    "Describe your ideal client — LogLead finds qualified prospects across LinkedIn, Google Maps, Reddit and the web, enriches their email and phone, messages them and follows up. You only handle the hot replies.",
   alternates: { canonical: "/" },
   openGraph: {
     title: SITE.defaultTitle,
