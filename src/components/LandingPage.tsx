@@ -756,12 +756,12 @@ export function PricingLanding({ tone = "dark" }: { tone?: "light" | "dark" }) {
     },
   ];
   const reviews = [
-    { name: "Lucas M.", role: t("Sales Director", "Directeur commercial"), text: t("In two weeks we found more qualified prospects than in a whole quarter by hand. The scoring saves us a huge amount of time.", "En deux semaines on a trouvé plus de prospects qualifiés qu'en un trimestre à la main. Le scoring nous fait gagner un temps fou.") },
-    { name: "Camille D.", role: t("Web agency founder", "Fondatrice d'agence web"), text: t("Scout finds exactly the kind of clients we target. We signed 3 agencies in one month.", "Scout trouve exactement le type de clients qu'on cible. On a signé 3 agences en un mois.") },
-    { name: "Thomas R.", role: t("Growth freelancer", "Freelance growth"), text: t("I describe my ideal client and LogLead hands me an enriched list with email and phone. Impressive.", "Je décris mon client idéal, LogLead me sort une liste enrichie avec email et téléphone. Bluffant.") },
-    { name: "Sarah L.", role: t("Head of Sales", "Head of Sales"), text: t("No more copy-pasting into a spreadsheet. Everything is scored, organized by segment, ready to contact.", "Fini le copier-coller dans un tableur. Tout est scoré, organisé par segment, prêt à contacter.") },
-    { name: "Marc V.", role: t("B2B consultant", "Consultant B2B"), text: t("The buying signals let me reach out at the right moment. My reply rate doubled.", "Les signaux d'achat détectés m'ont permis de contacter au bon moment. Mon taux de réponse a doublé.") },
-    { name: "Julie P.", role: t("Startup CEO", "CEO de startup"), text: t("It's like having a full-time SDR. The pipeline fills up on its own.", "C'est comme avoir un SDR à plein temps. Le pipeline se remplit tout seul.") },
+    { name: "Lucas M.", img: "https://randomuser.me/api/portraits/men/32.jpg", role: t("Sales Director", "Directeur commercial"), text: t("In two weeks we found more qualified prospects than in a whole quarter by hand. The scoring saves us a huge amount of time.", "En deux semaines on a trouvé plus de prospects qualifiés qu'en un trimestre à la main. Le scoring nous fait gagner un temps fou.") },
+    { name: "Camille D.", img: "https://randomuser.me/api/portraits/women/68.jpg", role: t("Web agency founder", "Fondatrice d'agence web"), text: t("Scout finds exactly the kind of clients we target. We signed 3 agencies in one month.", "Scout trouve exactement le type de clients qu'on cible. On a signé 3 agences en un mois.") },
+    { name: "Thomas R.", img: "https://randomuser.me/api/portraits/men/75.jpg", role: t("Growth freelancer", "Freelance growth"), text: t("I describe my ideal client and LogLead hands me an enriched list with email and phone. Impressive.", "Je décris mon client idéal, LogLead me sort une liste enrichie avec email et téléphone. Bluffant.") },
+    { name: "Sarah L.", img: "https://randomuser.me/api/portraits/women/90.jpg", role: t("Head of Sales", "Head of Sales"), text: t("No more copy-pasting into a spreadsheet. Everything is scored, organized by segment, ready to contact.", "Fini le copier-coller dans un tableur. Tout est scoré, organisé par segment, prêt à contacter.") },
+    { name: "Marc V.", img: "https://randomuser.me/api/portraits/men/54.jpg", role: t("B2B consultant", "Consultant B2B"), text: t("The buying signals let me reach out at the right moment. My reply rate doubled.", "Les signaux d'achat détectés m'ont permis de contacter au bon moment. Mon taux de réponse a doublé.") },
+    { name: "Julie P.", img: "https://randomuser.me/api/portraits/women/33.jpg", role: t("Startup CEO", "CEO de startup"), text: t("It's like having a full-time SDR. The pipeline fills up on its own.", "C'est comme avoir un SDR à plein temps. Le pipeline se remplit tout seul.") },
   ];
   const initials = (n: string) => n.split(" ").map((x) => x[0]).join("").slice(0, 2).toUpperCase();
   return (
@@ -863,7 +863,11 @@ export function PricingLanding({ tone = "dark" }: { tone?: "light" | "dark" }) {
                           <div className="flex gap-0.5 text-[15px] text-[#F59E0B]" aria-label="5/5">★★★★★</div>
                           <p className={`mt-3 text-[14px] leading-relaxed ${MUTED}`}>“{r.text}”</p>
                           <div className="mt-5 flex items-center gap-3">
-                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#0051FF] text-[12px] font-bold text-white">{initials(r.name)}</span>
+                            <span className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#0051FF] text-[12px] font-bold text-white">
+                              {initials(r.name)}
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={r.img} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover" onError={(e) => { e.currentTarget.style.display = "none"; }} />
+                            </span>
                             <div>
                               <p className={`text-[13px] font-semibold ${FG}`}>{r.name}</p>
                               <p className={`text-[12px] ${FAINT}`}>{r.role}</p>
