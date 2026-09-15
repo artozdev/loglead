@@ -524,6 +524,19 @@ body {
   }
 }
 
+/* Light beam travelling around the floating CTA pill's border. Animating the
+   conic angle (not the element) keeps the pill shape still while the light moves. */
+@property --beam {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+@keyframes v5-beam {
+  to {
+    --beam: 360deg;
+  }
+}
+
 /* White light sweeping left→right across the discount pill, then repeats. */
 @keyframes lp-shine {
   0% {
