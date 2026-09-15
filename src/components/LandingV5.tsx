@@ -182,29 +182,27 @@ function PlatformCycler() {
   );
 }
 
-// Laurel wreath (blue), like the reference mockup.
-function LaurelIcon({ mirror = false }: { mirror?: boolean }) {
-  return (
-    <svg width="26" height="34" viewBox="0 0 32 40" fill="none" aria-hidden className="shrink-0" style={mirror ? { transform: "scaleX(-1)" } : undefined}>
-      <path d="M16 38 C16 38 4 28 4 16 C4 8 10 2 16 2" stroke="#FFFFFF" strokeWidth="1.5" fill="none" />
-      <ellipse cx="8" cy="10" rx="3" ry="4" fill="#FFFFFF" opacity="0.9" transform="rotate(-20 8 10)" />
-      <ellipse cx="6" cy="18" rx="3" ry="4" fill="#FFFFFF" opacity="0.75" transform="rotate(-10 6 18)" />
-      <ellipse cx="7" cy="26" rx="3" ry="4" fill="#FFFFFF" opacity="0.6" transform="rotate(5 7 26)" />
-      <ellipse cx="11" cy="32" rx="3" ry="4" fill="#FFFFFF" opacity="0.45" transform="rotate(20 11 32)" />
-    </svg>
-  );
-}
-
-// Social-proof banner sitting above the hero title — laurels + trust line.
+// Social-proof banner above the hero title — a translucent glass pill with a
+// group of profile photos + a trust line.
+const PROOF_AVATARS = [
+  "https://randomuser.me/api/portraits/men/32.jpg",
+  "https://randomuser.me/api/portraits/women/44.jpg",
+  "https://randomuser.me/api/portraits/men/85.jpg",
+  "https://randomuser.me/api/portraits/women/68.jpg",
+];
 function SocialProofBanner({ t }: { t: Tr }) {
   return (
-    <div className="inline-flex items-center gap-3 px-2 py-1 sm:gap-4">
-      <LaurelIcon />
-      <p className="whitespace-nowrap text-[13px] font-normal text-white/80 sm:text-[15px]">
+    <div className="inline-flex items-center gap-3 rounded-full border border-white/15 bg-white/[0.06] px-3 py-2 backdrop-blur-md sm:px-4">
+      <div className="flex -space-x-2.5">
+        {PROOF_AVATARS.map((src, i) => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img key={i} src={src} alt="" loading="lazy" className="h-8 w-8 rounded-full border-2 border-white/80 object-cover shadow-sm" />
+        ))}
+      </div>
+      <p className="whitespace-nowrap pr-1 text-[13px] font-medium text-white/90 sm:text-[15px]">
         {t("Trusted by over ", "Adopté par plus de ")}
         <strong className="font-bold text-white">{t("50 agencies & founders", "50 agences & fondateurs")}</strong>
       </p>
-      <LaurelIcon mirror />
     </div>
   );
 }
@@ -250,7 +248,7 @@ function Hero() {
   // Auto-resize the textarea.
   useEffect(() => {
     const ta = taRef.current;
-    if (ta) { ta.style.height = "auto"; ta.style.height = `${Math.max(44, ta.scrollHeight)}px`; }
+    if (ta) { ta.style.height = "auto"; ta.style.height = `${Math.max(38, ta.scrollHeight)}px`; }
   }, [query]);
 
   function onType(v: string) {
@@ -293,14 +291,14 @@ function Hero() {
 
         {/* Chat bubble */}
         <Reveal delay={200}>
-          <div className="v5-chat mx-auto mt-9 w-full max-w-[620px] rounded-[20px] border border-[#E2E8F0] bg-white px-5 pb-3 pt-4 text-left shadow-[0_16px_44px_-14px_rgba(15,23,42,0.2)]">
+          <div className="v5-chat mx-auto mt-8 w-full max-w-[540px] rounded-[18px] border border-[#E2E8F0] bg-white px-4 pb-2.5 pt-3.5 text-left shadow-[0_16px_44px_-14px_rgba(15,23,42,0.2)]">
             <textarea
               ref={taRef}
               value={query}
               onChange={(e) => onType(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); find(); } }}
               placeholder={typed || t("Describe your ideal prospect…", "Décrivez votre prospect idéal…")}
-              className="min-h-[44px] w-full resize-none bg-transparent text-[15px] leading-relaxed text-[#0F172A] outline-none placeholder:text-[#94A3B8]"
+              className="min-h-[38px] w-full resize-none bg-transparent text-[14px] leading-relaxed text-[#0F172A] outline-none placeholder:text-[#94A3B8]"
             />
             {/* Bottom bar */}
             <div className="mt-2 flex items-center gap-2">
