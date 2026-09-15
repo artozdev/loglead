@@ -182,6 +182,33 @@ function PlatformCycler() {
   );
 }
 
+// Laurel wreath (blue), like the reference mockup.
+function LaurelIcon({ mirror = false }: { mirror?: boolean }) {
+  return (
+    <svg width="26" height="34" viewBox="0 0 32 40" fill="none" aria-hidden className="shrink-0" style={mirror ? { transform: "scaleX(-1)" } : undefined}>
+      <path d="M16 38 C16 38 4 28 4 16 C4 8 10 2 16 2" stroke="#4F8BFF" strokeWidth="1.5" fill="none" />
+      <ellipse cx="8" cy="10" rx="3" ry="4" fill="#4F8BFF" opacity="0.85" transform="rotate(-20 8 10)" />
+      <ellipse cx="6" cy="18" rx="3" ry="4" fill="#4F8BFF" opacity="0.7" transform="rotate(-10 6 18)" />
+      <ellipse cx="7" cy="26" rx="3" ry="4" fill="#4F8BFF" opacity="0.55" transform="rotate(5 7 26)" />
+      <ellipse cx="11" cy="32" rx="3" ry="4" fill="#4F8BFF" opacity="0.4" transform="rotate(20 11 32)" />
+    </svg>
+  );
+}
+
+// Social-proof banner sitting above the hero title — laurels + trust line.
+function SocialProofBanner({ t }: { t: Tr }) {
+  return (
+    <div className="inline-flex items-center gap-3 rounded-xl border border-[#1E2D4A] bg-[#0D1526] px-6 py-3 sm:gap-4 sm:px-7">
+      <LaurelIcon />
+      <p className="whitespace-nowrap text-[13px] font-normal text-[#8B9EC4] sm:text-[15px]">
+        {t("Trusted by over ", "Adopté par plus de ")}
+        <strong className="font-bold text-[#F0F4FF]">{t("50 agencies & founders", "50 agences & fondateurs")}</strong>
+      </p>
+      <LaurelIcon mirror />
+    </div>
+  );
+}
+
 function Hero() {
   const t = useTr();
   const [query, setQuery] = useState("");
@@ -247,6 +274,11 @@ function Hero() {
       <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent to-white" />
 
       <div className="relative mx-auto max-w-3xl text-center">
+        <Reveal>
+          <div className="mb-6 flex justify-center">
+            <SocialProofBanner t={t} />
+          </div>
+        </Reveal>
         <Reveal>
           <h1 className="mx-auto max-w-3xl text-[27px] font-bold leading-[1.16] tracking-[-0.03em] text-white drop-shadow-[0_2px_20px_rgba(0,0,0,0.25)] sm:text-[42px] lg:text-[48px]">
             {t("Find your ideal clients on", "Trouvez vos clients idéaux sur")}<br />
