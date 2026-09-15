@@ -186,11 +186,11 @@ function PlatformCycler() {
 function LaurelIcon({ mirror = false }: { mirror?: boolean }) {
   return (
     <svg width="26" height="34" viewBox="0 0 32 40" fill="none" aria-hidden className="shrink-0" style={mirror ? { transform: "scaleX(-1)" } : undefined}>
-      <path d="M16 38 C16 38 4 28 4 16 C4 8 10 2 16 2" stroke="#4F8BFF" strokeWidth="1.5" fill="none" />
-      <ellipse cx="8" cy="10" rx="3" ry="4" fill="#4F8BFF" opacity="0.85" transform="rotate(-20 8 10)" />
-      <ellipse cx="6" cy="18" rx="3" ry="4" fill="#4F8BFF" opacity="0.7" transform="rotate(-10 6 18)" />
-      <ellipse cx="7" cy="26" rx="3" ry="4" fill="#4F8BFF" opacity="0.55" transform="rotate(5 7 26)" />
-      <ellipse cx="11" cy="32" rx="3" ry="4" fill="#4F8BFF" opacity="0.4" transform="rotate(20 11 32)" />
+      <path d="M16 38 C16 38 4 28 4 16 C4 8 10 2 16 2" stroke="#FFFFFF" strokeWidth="1.5" fill="none" />
+      <ellipse cx="8" cy="10" rx="3" ry="4" fill="#FFFFFF" opacity="0.9" transform="rotate(-20 8 10)" />
+      <ellipse cx="6" cy="18" rx="3" ry="4" fill="#FFFFFF" opacity="0.75" transform="rotate(-10 6 18)" />
+      <ellipse cx="7" cy="26" rx="3" ry="4" fill="#FFFFFF" opacity="0.6" transform="rotate(5 7 26)" />
+      <ellipse cx="11" cy="32" rx="3" ry="4" fill="#FFFFFF" opacity="0.45" transform="rotate(20 11 32)" />
     </svg>
   );
 }
@@ -198,11 +198,11 @@ function LaurelIcon({ mirror = false }: { mirror?: boolean }) {
 // Social-proof banner sitting above the hero title — laurels + trust line.
 function SocialProofBanner({ t }: { t: Tr }) {
   return (
-    <div className="inline-flex items-center gap-3 rounded-xl border border-[#1E2D4A] bg-[#0D1526] px-6 py-3 sm:gap-4 sm:px-7">
+    <div className="inline-flex items-center gap-3 px-2 py-1 sm:gap-4">
       <LaurelIcon />
-      <p className="whitespace-nowrap text-[13px] font-normal text-[#8B9EC4] sm:text-[15px]">
+      <p className="whitespace-nowrap text-[13px] font-normal text-white/80 sm:text-[15px]">
         {t("Trusted by over ", "Adopté par plus de ")}
-        <strong className="font-bold text-[#F0F4FF]">{t("50 agencies & founders", "50 agences & fondateurs")}</strong>
+        <strong className="font-bold text-white">{t("50 agencies & founders", "50 agences & fondateurs")}</strong>
       </p>
       <LaurelIcon mirror />
     </div>
