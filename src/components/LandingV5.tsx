@@ -313,16 +313,6 @@ function Hero() {
             </div>
           </div>
         </Reveal>
-
-        {/* Social proof */}
-        <Reveal delay={320}>
-          <div className="mt-8 flex items-center justify-center gap-3">
-            <div className="flex -space-x-2">
-              {["#0051FF", "#00A3FF", "#4F8BFF", "#00D4FF", "#1A6BFF"].map((c, i) => <span key={i} className="h-7 w-7 rounded-full border-2 border-white" style={{ background: c }} />)}
-            </div>
-            <span className="text-[13px] text-[#475569]">{t("50+ agencies & founders use LogLead", "+50 agences & fondateurs utilisent LogLead")}</span>
-          </div>
-        </Reveal>
       </div>
     </section>
   );
@@ -1121,6 +1111,48 @@ function StatsStrip() {
   );
 }
 
+// Floating CTA pill — hidden on the hero, slides in once you scroll, stays fixed
+// at the bottom, and hides again near the footer. A blue light orbits the pill.
+function FloatingCta() {
+  const t = useTr();
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    const onScroll = () => {
+      const y = window.scrollY;
+      const docH = document.documentElement.scrollHeight;
+      const winH = window.innerHeight;
+      const nearBottom = y + winH >= docH - 260; // hide when the footer is in view
+      setShow(y > 520 && !nearBottom);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, []);
+  return (
+    <div className={`pointer-events-none fixed inset-x-0 bottom-5 z-[55] flex justify-center px-4 transition-all duration-300 ${show ? "translate-y-0 opacity-100" : "translate-y-5 opacity-0"}`}>
+      <div className="relative">
+        {/* Rotating blue light around the pill */}
+        <div aria-hidden className="absolute -inset-[2px] rounded-full" style={{ background: "conic-gradient(from 0deg, transparent 0deg, #0051FF 40deg, #00D4FF 75deg, transparent 130deg, transparent 360deg)", animation: "v5-spin 2.6s linear infinite" }} />
+        <div aria-hidden className="absolute -inset-2.5 rounded-full bg-[#0051FF]/25 blur-xl" />
+        <Link
+          href={SIGNUP}
+          className={`relative flex items-center gap-2.5 rounded-full bg-white py-2 pl-4 pr-2 shadow-[0_18px_44px_-12px_rgba(15,23,42,0.4)] ${show ? "pointer-events-auto" : ""}`}
+        >
+          <span aria-hidden className="text-[16px]">🎁</span>
+          <span className="whitespace-nowrap text-[13px] font-semibold text-[#0F172A] sm:text-[14px]">{t("Get Started for Free. No credit card required.", "Commencer gratuitement. Sans carte bancaire.")}</span>
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#0051FF] to-[#0085FF] text-white shadow-[0_6px_16px_-6px_rgba(0,81,255,0.7)] sm:h-9 sm:w-9">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M7 17L17 7M7 7h10v10" /></svg>
+          </span>
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 export default function LandingV5() {
   return (
     <LangProvider>
@@ -1134,6 +1166,7 @@ export default function LandingV5() {
         <Reviews />
         <Faq />
         <Footer />
+        <FloatingCta />
       </div>
     </LangProvider>
   );
