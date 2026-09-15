@@ -1122,7 +1122,7 @@ function FloatingCta() {
       const docH = document.documentElement.scrollHeight;
       const winH = window.innerHeight;
       const nearBottom = y + winH >= docH - 260; // hide when the footer is in view
-      setShow(y > 520 && !nearBottom);
+      setShow(y > 40 && !nearBottom); // appears as soon as the user starts scrolling
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -1160,7 +1160,7 @@ function FloatingCta() {
             <path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7" />
             <path d="M7.5 8a2.5 2.5 0 0 1 0-5C9 3 12 5 12 8c0-3 3-5 4.5-5a2.5 2.5 0 0 1 0 5" />
           </svg>
-          <span className="whitespace-nowrap text-[13px] font-semibold text-[#0F172A]">{t("Get Started Free", "Commencer gratuitement")}</span>
+          <span className="whitespace-nowrap text-[13px] font-semibold text-[#0F172A]">{t("Get Started for free", "Commencer gratuitement")}</span>
           <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#0051FF] to-[#0085FF] text-white shadow-[0_6px_16px_-6px_rgba(0,81,255,0.7)]">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M7 17L17 7M7 7h10v10" /></svg>
           </span>
