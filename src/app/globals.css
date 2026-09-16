@@ -474,15 +474,17 @@ body {
 
 /* Button text-roll on hover */
 .lp-roll { position: relative; display: inline-flex; overflow: hidden; line-height: 1.25; }
-.lp-roll > span { display: block; transition: transform 340ms cubic-bezier(0.65, 0, 0.2, 1); }
+.lp-roll > span { display: block; transition: transform 520ms cubic-bezier(0.65, 0, 0.2, 1); }
 .lp-roll > span:nth-child(2) { position: absolute; inset: 0; transform: translateY(115%); }
 .lp-btn-primary:hover .lp-roll > span:nth-child(1),
 .lp-btn-secondary:hover .lp-roll > span:nth-child(1),
 .lp-navcta:hover .lp-roll > span:nth-child(1),
+.lp-roll-btn:hover .lp-roll > span:nth-child(1),
 .lp-navlink:hover .lp-roll > span:nth-child(1) { transform: translateY(-115%); }
 .lp-btn-primary:hover .lp-roll > span:nth-child(2),
 .lp-btn-secondary:hover .lp-roll > span:nth-child(2),
 .lp-navcta:hover .lp-roll > span:nth-child(2),
+.lp-roll-btn:hover .lp-roll > span:nth-child(2),
 .lp-navlink:hover .lp-roll > span:nth-child(2) { transform: translateY(0); }
 @media (prefers-reduced-motion: reduce) {
   .lp-roll > span { transition: none; }

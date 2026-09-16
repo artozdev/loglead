@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { CountUp, Reveal } from "./LandingPage";
+import { CountUp, Reveal, Roll } from "./LandingPage";
 import { LangProvider, useLang, useTr } from "./lpLang";
 
 // ---------------------------------------------------------------------------
@@ -155,11 +155,11 @@ export function Nav({ solid = false }: { solid?: boolean }) {
           </button>
           <Link
             href="/login"
-            className={`hidden rounded-[10px] border px-4 py-2 text-[14px] font-medium backdrop-blur-md transition sm:block ${light ? "border-slate-200 bg-slate-900/[0.04] text-[#0F172A] hover:bg-slate-900/[0.08]" : "border-white/20 bg-white/10 text-white hover:bg-white/20"}`}
+            className={`lp-roll-btn hidden rounded-[10px] border px-4 py-2 text-[14px] font-medium backdrop-blur-md transition sm:block ${light ? "border-slate-200 bg-slate-900/[0.04] text-[#0F172A] hover:bg-slate-900/[0.08]" : "border-white/20 bg-white/10 text-white hover:bg-white/20"}`}
           >
-            {t("Log in", "Se connecter")}
+            <Roll>{t("Log in", "Se connecter")}</Roll>
           </Link>
-          <Link href={SIGNUP} className={`${BTN} !px-5 !py-2 !text-[14px]`}>{t("Free trial", "Essai gratuit")}</Link>
+          <Link href={SIGNUP} className={`${BTN} lp-roll-btn !px-5 !py-2 !text-[14px]`}><Roll>{t("Free trial", "Essai gratuit")}</Roll></Link>
         </div>
       </nav>
     </header>
