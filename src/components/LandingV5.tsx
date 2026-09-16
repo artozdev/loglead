@@ -153,8 +153,13 @@ export function Nav({ solid = false }: { solid?: boolean }) {
           >
             {lang === "fr" ? "FR" : "EN"}
           </button>
-          <Link href="/login" className={`hidden text-[14px] transition sm:block ${light ? "text-[#475569] hover:text-[#0F172A]" : "text-white/85 hover:text-white"}`}>{t("Log in", "Connexion")}</Link>
-          <Link href={SIGNUP} className={`${BTN} !px-5 !py-2.5 !text-[14px]`}>{t("Get started", "Commencer")}</Link>
+          <Link
+            href="/login"
+            className={`hidden rounded-[10px] border px-4 py-2 text-[14px] font-medium backdrop-blur-md transition sm:block ${light ? "border-slate-200 bg-slate-900/[0.04] text-[#0F172A] hover:bg-slate-900/[0.08]" : "border-white/20 bg-white/10 text-white hover:bg-white/20"}`}
+          >
+            {t("Log in", "Se connecter")}
+          </Link>
+          <Link href={SIGNUP} className={`${BTN} !px-5 !py-2 !text-[14px]`}>{t("Free trial", "Essai gratuit")}</Link>
         </div>
       </nav>
     </header>
