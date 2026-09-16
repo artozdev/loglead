@@ -14,7 +14,7 @@ import { LangProvider, useLang, useTr } from "./lpLang";
 type Tr = ReturnType<typeof useTr>;
 
 const SIGNUP = "/signup";
-const BTN = "inline-flex items-center justify-center gap-2 rounded-[10px] bg-gradient-to-br from-[#0051FF] to-[#0085FF] px-5 py-2.5 text-[14px] font-semibold text-white shadow-[0_0_20px_#0051FF40] transition hover:-translate-y-0.5 hover:shadow-[0_0_36px_#0051FF70]";
+const BTN = "lp-roll-btn inline-flex items-center justify-center gap-2 rounded-[10px] bg-gradient-to-br from-[#0051FF] to-[#0085FF] px-5 py-2.5 text-[14px] font-semibold text-white shadow-[0_0_20px_#0051FF40] transition hover:-translate-y-0.5 hover:shadow-[0_0_36px_#0051FF70]";
 const EY ="inline-flex items-center gap-2 rounded-full border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-1 text-[12px] font-medium text-[#475569]";
 
 // A hover dropdown nav menu. Trigger inherits the nav text color; the panel is
@@ -311,9 +311,9 @@ function Hero() {
               <button
                 onClick={find}
                 disabled={!query.trim()}
-                className="ml-auto inline-flex items-center gap-2 rounded-full bg-gradient-to-br from-[#0051FF] to-[#0085FF] px-5 py-2.5 text-[14px] font-semibold text-white shadow-[0_0_16px_#0051FF40] transition hover:-translate-y-0.5 hover:shadow-[0_0_28px_#0051FF70] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
+                className="lp-roll-btn ml-auto inline-flex items-center gap-2 rounded-full bg-gradient-to-br from-[#0051FF] to-[#0085FF] px-5 py-2.5 text-[14px] font-semibold text-white shadow-[0_0_16px_#0051FF40] transition hover:-translate-y-0.5 hover:shadow-[0_0_28px_#0051FF70] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
               >
-                {t("Find them", "Trouvez-les")} <span aria-hidden>➤</span>
+                <Roll>{t("Find them", "Trouvez-les")}</Roll> <span aria-hidden>➤</span>
               </button>
             </div>
           </div>
@@ -749,7 +749,7 @@ function Comparison() {
                 </li>
               ))}
             </ul>
-            <Link href={SIGNUP} className={`${BTN} mt-8 w-full !py-3`}>{t("Get started", "Commencer")}</Link>
+            <Link href={SIGNUP} className={`${BTN} mt-8 w-full !py-3`}><Roll>{t("Get started", "Commencer")}</Roll></Link>
           </div>
         </div>
       </div>
@@ -1091,7 +1091,7 @@ function InteractiveDemo() {
         </div>
 
         <div className="mt-6 text-center">
-          <Link href={SIGNUP} className={BTN}>{t("Run your own search →", "Lancer votre propre recherche →")}</Link>
+          <Link href={SIGNUP} className={BTN}><Roll>{t("Run your own search →", "Lancer votre propre recherche →")}</Roll></Link>
         </div>
       </div>
     </section>
@@ -1161,7 +1161,7 @@ function FloatingCta() {
         />
         <Link
           href={SIGNUP}
-          className={`relative flex items-center gap-2 rounded-full bg-white py-1.5 pl-3.5 pr-1.5 shadow-[0_18px_44px_-12px_rgba(15,23,42,0.4)] ${show ? "pointer-events-auto" : ""}`}
+          className={`lp-roll-btn relative flex items-center gap-2 rounded-full bg-white py-1.5 pl-3.5 pr-1.5 shadow-[0_18px_44px_-12px_rgba(15,23,42,0.4)] ${show ? "pointer-events-auto" : ""}`}
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0051FF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden className="shrink-0">
             <rect x="3" y="8" width="18" height="4" rx="1" />
@@ -1169,7 +1169,7 @@ function FloatingCta() {
             <path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7" />
             <path d="M7.5 8a2.5 2.5 0 0 1 0-5C9 3 12 5 12 8c0-3 3-5 4.5-5a2.5 2.5 0 0 1 0 5" />
           </svg>
-          <span className="whitespace-nowrap text-[13px] font-semibold text-[#0F172A]">{t("Get Started for free", "Commencer gratuitement")}</span>
+          <span className="whitespace-nowrap text-[13px] font-semibold text-[#0F172A]"><Roll>{t("Get Started for free", "Commencer gratuitement")}</Roll></span>
           <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#0051FF] to-[#0085FF] text-white shadow-[0_6px_16px_-6px_rgba(0,81,255,0.7)]">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M7 17L17 7M7 7h10v10" /></svg>
           </span>
