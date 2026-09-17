@@ -126,7 +126,7 @@ export default function OnboardingV2({ firstName }: { firstName: string }) {
             <div className="text-center">
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[#0051FF] to-[#0085FF] text-[22px] font-bold text-white shadow-[0_10px_28px_-8px_rgba(0,81,255,0.6)]">L</div>
               <h1 className="mt-5 text-[23px] font-bold tracking-[-0.01em] text-[#0F172A]">Welcome to LogLead, {firstName}. 👋</h1>
-              <p className="mx-auto mt-3 max-w-md text-[14.5px] leading-relaxed text-[#64748B]">Your AI Sales Agent is almost ready. We just need 4 quick answers to find your first prospects. Takes less than 2 minutes.</p>
+              <p className="mx-auto mt-3 max-w-md text-[14.5px] leading-relaxed text-[#64748B]">Your AI SDR is almost ready. We just need 4 quick answers to find your first prospects. Takes less than 2 minutes.</p>
               <div className="mt-7"><button onClick={() => setStep(1)} className={BTN}>Let&apos;s go →</button></div>
             </div>
           )}

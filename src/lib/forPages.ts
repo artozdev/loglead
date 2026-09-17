@@ -37,7 +37,7 @@ export const FOR_PAGES: Record<ForPage["slug"], ForPage> = {
     slug: "agencies",
     metaTitle: "LogLead for Web Agencies — Find local clients automatically",
     metaDescription:
-      "LogLead finds local businesses without a website, restaurants with bad Google reviews and SMBs needing digital services. Your AI Sales Agent does the prospecting.",
+      "LogLead finds local businesses without a website, restaurants with bad Google reviews and SMBs needing digital services. Your AI SDR does the prospecting.",
     audience: "Web Agencies",
     badge: "For Web Agencies",
     titleTop: "Your agency finds clients",
@@ -99,7 +99,7 @@ export const FOR_PAGES: Record<ForPage["slug"], ForPage> = {
     titleTop: "Fill your pipeline",
     titleGradient: "while you sleep.",
     description:
-      "LogLead finds companies actively hiring sales reps, recently funded startups and businesses using your competitors. Your AI Sales Agent contacts them, follows up and sends you only the conversations worth your time.",
+      "LogLead finds companies actively hiring sales reps, recently funded startups and businesses using your competitors. Your AI SDR contacts them, follows up and sends you only the conversations worth your time.",
     heroCta: "Start building my pipeline →",
     demoUser: "B2B SaaS companies between 20 and 200 employees hiring a sales rep in France",
     demoAgent: ["Scanning LinkedIn Jobs · Google · Web…"],
@@ -141,8 +141,8 @@ export const FOR_PAGES: Record<ForPage["slug"], ForPage> = {
       name: "Camille V.", role: "Account Executive · SaaS B2B · Lyon",
     },
     ctaTitle: "Stop prospecting. Start closing.",
-    ctaSubtitle: "Let your AI Sales Agent fill your pipeline while you focus on deals.",
-    ctaPrimary: "Hire my sales agent →", ctaSecondary: "See how it works",
+    ctaSubtitle: "Let your AI SDR fill your pipeline while you focus on deals.",
+    ctaPrimary: "Hire my AI SDR →", ctaSecondary: "See how it works",
   },
 
   freelancers: {
@@ -211,7 +211,7 @@ export const FOR_PAGES: Record<ForPage["slug"], ForPage> = {
     titleTop: "Find your first 100 clients.",
     titleGradient: "Faster than your competitors.",
     description:
-      "LogLead finds companies that need your product, identifies who uses your competitors and contacts them with a compelling message. Your AI Sales Agent builds your pipeline while you build your product.",
+      "LogLead finds companies that need your product, identifies who uses your competitors and contacts them with a compelling message. Your AI SDR builds your pipeline while you build your product.",
     heroCta: "Start finding customers →",
     demoUser: "Find the clients of [Competitor] who haven't posted about them in 3 months",
     demoAgent: ["Scanning LinkedIn · Reddit · G2 · Capterra…"],

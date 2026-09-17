@@ -6,15 +6,16 @@ export const SITE = {
   url: "https://www.loglead.io",
   locale: "en_US",
   twitter: "@loglead",
-  defaultTitle: "LogLead — Your AI Sales Agent for B2B Prospecting",
+  defaultTitle: "LogLead — Your AI SDR for B2B Prospecting",
   titleTemplate: "%s · LogLead",
   description:
-    "Describe your ideal client and LogLead finds qualified B2B prospects across LinkedIn, Google Maps, Reddit and the web — enriched with email and phone, scored by AI, contacted and followed up automatically. You only handle the hot replies.",
+    "Your AI SDR: describe your ideal client and LogLead finds qualified B2B prospects across LinkedIn, Google Maps, Reddit and the web — enriched with email and phone, scored by AI, contacted and followed up automatically. You only handle the hot replies.",
   // Short "entity definition" used for LLM/GEO clarity.
   entity:
-    "LogLead is an AI sales agent for B2B companies: it finds qualified prospects across LinkedIn, Google Maps, Reddit and the web, enriches their contact details (email and phone), scores them, writes and sends personalized outreach, follows up automatically and surfaces the hot replies.",
+    "LogLead is an AI SDR (AI sales development representative) for B2B companies: it finds qualified prospects across LinkedIn, Google Maps, Reddit and the web, enriches their contact details (email and phone), scores them, writes and sends personalized outreach, follows up automatically and surfaces the hot replies.",
   keywords: [
-    "AI sales agent",
+    "AI SDR",
+    "AI sales development representative",
     "B2B prospecting",
     "B2B lead generation",
     "find B2B clients",

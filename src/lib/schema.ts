@@ -32,7 +32,7 @@ export function softwareApplicationSchema() {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     name: SITE.name,
-    alternateName: ["LogLead AI", "LogLead AI Sales Agent"],
+    alternateName: ["LogLead AI", "LogLead AI SDR"],
     applicationCategory: "BusinessApplication",
     applicationSubCategory: "Lead Generation Software",
     operatingSystem: "Web",

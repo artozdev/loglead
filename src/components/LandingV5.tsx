@@ -290,7 +290,7 @@ function Hero() {
         </Reveal>
         <Reveal delay={120}>
           <p className="mx-auto mt-6 max-w-[500px] text-[17px] leading-[1.7] text-white/85">
-            {t("Describe who you're looking for. Your AI Sales Agent finds them, messages them and sends you only the hot replies.", "Décrivez qui vous cherchez. Votre agent commercial IA les trouve, les contacte et ne vous remonte que les réponses chaudes.")}
+            {t("Describe who you're looking for. Your AI SDR finds them, messages them and sends you only the hot replies.", "Décrivez qui vous cherchez. Votre SDR IA les trouve, les contacte et ne vous remonte que les réponses chaudes.")}
           </p>
         </Reveal>
 
@@ -822,7 +822,7 @@ function Reviews() {
 function Faq() {
   const t = useTr();
   const faqs: [string, string][] = [
-    [t("Is this really a sales agent or just another prospecting tool?", "Est-ce vraiment un agent commercial ou juste un énième outil de prospection ?"), t("LogLead is a true sales agent. It finds prospects, writes personalized messages, sends them, follows up automatically and surfaces only the hot replies. Your only job is closing the conversations it brings you.", "LogLead est un vrai agent commercial. Il trouve les prospects, rédige des messages personnalisés, les envoie, relance automatiquement et ne remonte que les réponses chaudes. Votre seul travail : closer les conversations qu'il vous amène.")],
+    [t("Is this really an AI SDR or just another prospecting tool?", "Est-ce vraiment un SDR IA ou juste un énième outil de prospection ?"), t("LogLead is a true AI SDR. It finds prospects, writes personalized messages, sends them, follows up automatically and surfaces only the hot replies. Your only job is closing the conversations it brings you.", "LogLead est un vrai SDR IA. Il trouve les prospects, rédige des messages personnalisés, les envoie, relance automatiquement et ne remonte que les réponses chaudes. Votre seul travail : closer les conversations qu'il vous amène.")],
     [t("Will the messages sound robotic or AI-generated?", "Les messages vont-ils sonner robotiques ou générés par IA ?"), t("No. Your agent writes messages based on each prospect's specific signals — their Google rating, recent job postings, social activity, funding news. Every message references something real about that prospect. No one can tell it's AI.", "Non. Votre agent rédige à partir des signaux propres à chaque prospect — sa note Google, ses offres d'emploi récentes, son activité sociale, ses levées de fonds. Chaque message évoque quelque chose de réel sur ce prospect. Impossible de deviner que c'est une IA.")],
     [t("What sources does the agent search?", "Quelles sources l'agent explore-t-il ?"), t("LinkedIn (profiles and job postings), Google Maps (local businesses), Reddit, Instagram, TikTok, Facebook and X simultaneously. You can select which sources to activate for each campaign.", "LinkedIn (profils et offres d'emploi), Google Maps (commerces locaux), Reddit, Instagram, TikTok, Facebook et X simultanément. Vous choisissez quelles sources activer pour chaque campagne.")],
     [t("Does the agent actually send messages automatically?", "L'agent envoie-t-il vraiment les messages automatiquement ?"), t("On the Growth and Pro plans, yes. The agent sends via email and LinkedIn DM automatically. On Starter, it generates the messages and you send them manually. Full automation requires a connected LinkedIn account and email.", "Sur les plans Growth et Pro, oui. L'agent envoie automatiquement par email et DM LinkedIn. Sur Starter, il génère les messages et vous les envoyez manuellement. L'automatisation complète nécessite un compte LinkedIn et un email connectés.")],
@@ -888,7 +888,7 @@ export function Footer({ showCta = true }: { showCta?: boolean }) {
       <div className="relative">
         {showCta && (
           <div className="mx-auto max-w-3xl px-5 pt-32 pb-32 text-center sm:px-6">
-            <p className="text-[15px] font-medium text-[#64748B]">{t("AI Sales Agent", "Agent commercial IA")}</p>
+            <p className="text-[15px] font-medium text-[#64748B]">{t("AI SDR", "SDR IA")}</p>
             <h2 className="mt-3 text-[36px] font-bold leading-[1.05] tracking-[-0.03em] text-[#0F172A] sm:text-[52px]">{t("Ready to meet your next clients?", "Prêt à trouver vos prochains clients ?")}</h2>
             <Link href={SIGNUP} className="mx-auto mt-9 block w-full max-w-[620px] rounded-[20px] border border-[#E2E8F0] bg-white px-5 pb-3 pt-4 text-left shadow-[0_16px_44px_-14px_rgba(15,23,42,0.15)] transition hover:shadow-[0_22px_54px_-14px_rgba(15,23,42,0.22)]">
               <span className="block min-h-[44px] text-[15px] text-[#94A3B8]">{t("Ask LogLead to find your ideal clients…", "Demandez à LogLead de trouver vos clients idéaux…")}</span>
@@ -908,7 +908,7 @@ export function Footer({ showCta = true }: { showCta?: boolean }) {
                 <div className="lg:col-span-1">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src="/loglead-logo.svg" alt="LogLead" className="h-7 w-auto" />
-                  <p className="mt-3 text-[12px] leading-relaxed text-[#94A3B8]">{t("Your AI Sales Agent for B2B.", "Votre agent commercial IA pour le B2B.")}</p>
+                  <p className="mt-3 text-[12px] leading-relaxed text-[#94A3B8]">{t("Your AI SDR for B2B.", "Votre SDR IA pour le B2B.")}</p>
                 </div>
                 {cols.map((c) => (
                   <div key={c.t}>
@@ -920,7 +920,7 @@ export function Footer({ showCta = true }: { showCta?: boolean }) {
                 ))}
               </div>
               <div className="mt-12 flex flex-col items-center justify-between gap-2 border-t border-[#E2E8F0] pt-6 text-[12px] text-[#94A3B8] sm:flex-row">
-                <p>{t("© 2026 LogLead · Your AI Sales Agent for B2B", "© 2026 LogLead · Votre agent commercial IA pour le B2B")}</p>
+                <p>{t("© 2026 LogLead · Your AI SDR for B2B", "© 2026 LogLead · Votre SDR IA pour le B2B")}</p>
                 <p>{t("Not affiliated with LinkedIn Corporation. · SIRET 104 040 456 00014", "Non affilié à LinkedIn Corporation. · SIRET 104 040 456 00014")}</p>
               </div>
             </div>

@@ -9,7 +9,7 @@ import { SITE } from "@/lib/seo.config";
 import { getActiveWorkspace } from "@/lib/workspace";
 
 export const metadata: Metadata = {
-  title: "LogLead — Your AI Sales Agent for B2B",
+  title: "LogLead — Your AI SDR for B2B",
   description:
     "Describe your ideal client — LogLead finds qualified prospects across LinkedIn, Google Maps, Reddit and the web, enriches their email and phone, messages them and follows up. You only handle the hot replies.",
   alternates: { canonical: "/" },
