@@ -972,7 +972,7 @@ function FeaturesSection() {
         <div className="flex flex-col items-center text-center">
           <span className={EY}><span className="text-[#0085FF]">✦</span> {t("Product", "Produit")}</span>
           <h2 className="mt-5 text-[30px] font-bold leading-[1.14] tracking-[-0.02em] text-[#0F172A] sm:text-[46px]">
-            {t("An agent that prospects", "Un agent qui prospecte")} <em className="font-serif italic text-[#0051FF]">{t("for you", "pour vous")}</em>
+            {t("An agent that prospects", "Un agent qui prospecte")} <span className="text-[#0051FF]">{t("for you", "pour vous")}</span>
           </h2>
           <p className="mt-4 max-w-xl text-[16px] leading-relaxed text-[#64748B]">{t("From finding prospects to qualifying them, LogLead automates your prospecting end to end.", "De la recherche de prospects à la qualification, LogLead automatise votre prospection de bout en bout.")}</p>
         </div>
@@ -994,10 +994,10 @@ function FeaturesSection() {
         </div>
 
         {/* Demo */}
-        <div className="mt-9 grid overflow-hidden rounded-[20px] border border-[#E9EDF2] bg-white shadow-[0_30px_80px_-40px_rgba(15,23,42,0.25)] lg:grid-cols-[320px_1px_1fr]">
-          <div key={`${active}-c`} className="v5-fade bg-[#FBFCFE] p-6"><FChat t={t} tab={active} /></div>
+        <div className="mt-9 grid overflow-hidden rounded-[20px] border border-[#E9EDF2] bg-white shadow-[0_30px_80px_-40px_rgba(15,23,42,0.25)] lg:min-h-[460px] lg:grid-cols-[340px_1px_1fr]">
+          <div key={`${active}-c`} className="v5-fade bg-[#FBFCFE] p-6 sm:p-7"><FChat t={t} tab={active} /></div>
           <div className="hidden bg-[#E9EDF2] lg:block" />
-          <div key={`${active}-i`} className="v5-fade min-w-0 p-5 sm:p-6"><FInterface t={t} tab={active} /></div>
+          <div key={`${active}-i`} className="v5-fade min-w-0 p-5 sm:p-7"><FInterface t={t} tab={active} /></div>
         </div>
       </div>
     </section>
@@ -1032,32 +1032,88 @@ function FChat({ t, tab }: { t: Tr; tab: FTab }) {
   );
 }
 
+const AV_COLORS = ["#0051FF", "#7C3AED", "#EC4899", "#F59E0B", "#10B981", "#06B6D4"];
+function initials(name: string) {
+  const w = name.replace(/^(Le |La |Les |Chez |Brasserie du |Brasserie )/, "").split(" ").filter(Boolean);
+  return ((w[0]?.[0] ?? "") + (w[1]?.[0] ?? "")).toUpperCase() || name.slice(0, 2).toUpperCase();
+}
+function CompanyAvatar({ name, i }: { name: string; i: number }) {
+  return (
+    <span
+      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[12px] font-bold text-white shadow-[0_4px_10px_-4px_rgba(15,23,42,0.4)]"
+      style={{ background: `linear-gradient(135deg, ${AV_COLORS[i % AV_COLORS.length]}, ${AV_COLORS[(i + 2) % AV_COLORS.length]})` }}
+    >
+      {initials(name)}
+    </span>
+  );
+}
+function FitBars({ s }: { s: number }) {
+  const n = 6;
+  const filled = Math.max(1, Math.round((s / 100) * n));
+  const col = fdot(s);
+  return (
+    <span className="flex items-end gap-[2px]" aria-hidden>
+      {Array.from({ length: n }).map((_, i) => (
+        <span key={i} className="w-[3px] rounded-[1px]" style={{ height: `${5 + i * 2.4}px`, background: i < filled ? col : "#E2E8F0" }} />
+      ))}
+    </span>
+  );
+}
+function LockPill({ label }: { label: string }) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-md border border-dashed border-[#CBD5E1] bg-white px-2 py-1 text-[11px] font-medium text-[#94A3B8]">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" className="shrink-0"><path d="M11 3a5 5 0 015 5v2h1a1 1 0 011 1v8a1 1 0 01-1 1H5a1 1 0 01-1-1v-8a1 1 0 011-1h1V8a5 5 0 015-5z" stroke="#CBD5E1" strokeWidth="2" strokeLinejoin="round" /></svg>
+      {label}
+    </span>
+  );
+}
+
 function FInterface({ t, tab }: { t: Tr; tab: FTab }) {
   if (tab === "enrich") return <EnrichCard t={t} />;
   if (tab === "contact") return <ContactLocked t={t} />;
   const qualify = tab === "qualify";
   return (
-    <div>
-      <div className="mb-3 text-[12px] text-[#64748B]">{qualify ? t("Scored by opportunity level", "Scorés par niveau d'opportunité") : t("34 prospects found · 71% qualified · 4.2 cr/lead", "34 prospects trouvés · 71% qualifiés · 4,2 cr/lead")}</div>
-      <div className="overflow-hidden rounded-xl border border-[#EAECF0]">
-        <div className="grid grid-cols-[52px_1.5fr_1.4fr_72px] border-b border-[#EAECF0] bg-[#F8FAFC] px-4 py-2.5 text-[10px] font-semibold uppercase tracking-wide text-[#94A3B8]">
-          <span>Fit</span><span>{t("Company", "Entreprise")}</span><span>{t("Signal", "Signal")}</span><span className="text-right">{qualify ? "Score" : t("City", "Ville")}</span>
-        </div>
-        {FROWS.map((r, i) => (
-          <div key={r.c} className="v5-fade grid grid-cols-[52px_1.5fr_1.4fr_72px] items-center border-b border-[#F1F5F9] px-4 py-2.5 text-[12px] last:border-b-0" style={{ animationDelay: `${i * 0.14}s` }}>
-            <span className="flex items-center gap-1.5 font-semibold text-[#0F172A]"><span className="h-2 w-2 rounded-full" style={{ background: fdot(r.s) }} />{qualify ? <CountUp to={r.s} /> : r.s}</span>
-            <span className="truncate text-[#334155]">{r.c}</span>
-            <span className="truncate text-[#64748B]">{r.sig}</span>
-            {qualify ? (
-              <span className="flex items-center justify-end gap-1">
-                {r.s > 85 && <span className="text-[11px]" style={{ animation: "fs-pill 1.2s ease-in-out infinite" }}>🔥</span>}
-                <span className="font-semibold" style={{ color: fdot(r.s) }}><CountUp to={r.s} /></span>
-              </span>
-            ) : (
-              <span className="text-right text-[#94A3B8]">{r.city}</span>
-            )}
-          </div>
-        ))}
+    <div className="flex min-h-[380px] flex-col">
+      <div className="mb-3 flex items-center justify-between">
+        <div className="text-[13px] font-medium text-[#334155]">{qualify ? t("Scored by opportunity level", "Scorés par niveau d'opportunité") : t("34 prospects found · 71% qualified", "34 prospects trouvés · 71% qualifiés")}</div>
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#0051FF]/8 px-2.5 py-1 text-[11px] font-semibold text-[#0051FF]">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#0051FF]" style={{ animation: "fs-pill 1.4s ease-in-out infinite" }} /> {t("Live", "En direct")}
+        </span>
+      </div>
+      <div className="overflow-hidden rounded-2xl border border-[#EAECF0] shadow-[0_20px_50px_-32px_rgba(15,23,42,0.35)]">
+        {qualify ? (
+          <>
+            <div className="grid grid-cols-[64px_1fr_1.1fr_96px] border-b border-[#EAECF0] bg-[#F8FAFC] px-4 py-3 text-[10px] font-semibold uppercase tracking-wide text-[#94A3B8]">
+              <span>Fit</span><span>{t("Company", "Entreprise")}</span><span>{t("Signal", "Signal")}</span><span className="text-right">Score</span>
+            </div>
+            {FROWS.map((r, i) => (
+              <div key={r.c} className="v5-fade grid grid-cols-[64px_1fr_1.1fr_96px] items-center border-b border-[#F1F5F9] px-4 py-3.5 text-[12.5px] last:border-b-0" style={{ animationDelay: `${i * 0.14}s` }}>
+                <span className="flex items-center gap-2 font-semibold text-[#0F172A]"><FitBars s={r.s} /><CountUp to={r.s} /></span>
+                <span className="flex min-w-0 items-center gap-2.5"><CompanyAvatar name={r.c} i={i} /><span className="min-w-0"><span className="block truncate font-medium text-[#0F172A]">{r.c}</span><span className="block truncate text-[11px] text-[#94A3B8]">{r.city}</span></span></span>
+                <span className="truncate text-[#64748B]">{r.sig}</span>
+                <span className="flex items-center justify-end gap-1">
+                  {r.s > 85 && <span className="text-[11px]" style={{ animation: "fs-pill 1.2s ease-in-out infinite" }}>🔥</span>}
+                  <span className="font-bold" style={{ color: fdot(r.s) }}><CountUp to={r.s} /></span>
+                </span>
+              </div>
+            ))}
+          </>
+        ) : (
+          <>
+            <div className="grid grid-cols-[56px_1.5fr_104px_104px_1fr] border-b border-[#EAECF0] bg-[#F8FAFC] px-4 py-3 text-[10px] font-semibold uppercase tracking-wide text-[#94A3B8]">
+              <span>Fit</span><span>{t("Company", "Entreprise")}</span><span>Email</span><span>{t("Phone", "Tél.")}</span><span>{t("Signal", "Signal")}</span>
+            </div>
+            {FROWS.map((r, i) => (
+              <div key={r.c} className="v5-fade grid grid-cols-[56px_1.5fr_104px_104px_1fr] items-center border-b border-[#F1F5F9] px-4 py-3.5 text-[12.5px] last:border-b-0" style={{ animationDelay: `${i * 0.14}s` }}>
+                <span className="flex items-center gap-2 font-semibold text-[#0F172A]"><FitBars s={r.s} /></span>
+                <span className="flex min-w-0 items-center gap-2.5"><CompanyAvatar name={r.c} i={i} /><span className="min-w-0"><span className="block truncate font-medium text-[#0F172A]">{r.c}</span><span className="block truncate text-[11px] text-[#94A3B8]">{r.city}</span></span></span>
+                <span><LockPill label={t("Find", "Trouver")} /></span>
+                <span><LockPill label={t("Find", "Trouver")} /></span>
+                <span className="truncate text-[#64748B]">{r.sig}</span>
+              </div>
+            ))}
+          </>
+        )}
       </div>
     </div>
   );
