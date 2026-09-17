@@ -1,5 +1,6 @@
 "use client";
 
+import { Send, Sparkles, Star, Telescope } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { CountUp, Reveal, Roll } from "./LandingPage";
@@ -933,6 +934,221 @@ export function Footer({ showCta = true }: { showCta?: boolean }) {
 
 // ---------------------------------------------------------------------------
 // Interactive demo — pick a query, watch the agent "search" and stream scored
+// ---------------------------------------------------------------------------
+// Features tabs + animated product interface (Adwize-style). Dark showcase band:
+// 4 tabs (Find / Enrich / Qualify / Contact-soon), auto-rotates every 4s + click.
+// Left = chat context, right = the matching LogLead UI, animated. CSS-only.
+// ---------------------------------------------------------------------------
+type FTab = "find" | "enrich" | "qualify" | "contact";
+const FICONS: Record<FTab, React.ComponentType<{ size?: number; className?: string }>> = {
+  find: Telescope, enrich: Sparkles, qualify: Star, contact: Send,
+};
+const FROWS = [
+  { s: 93, c: "Le Bistrot du Port", sig: "No web · 3.6★", city: "Lyon 2e" },
+  { s: 88, c: "Chez Antoine", sig: "No web · 3.8★", city: "Lyon 1er" },
+  { s: 85, c: "La Table de Marie", sig: "No web · 3.4★", city: "Lyon 6e" },
+  { s: 82, c: "Le Comptoir Lyon", sig: "No web · 3.7★", city: "Lyon 3e" },
+  { s: 79, c: "Brasserie du Parc", sig: "No web · 3.5★", city: "Lyon 5e" },
+];
+const fdot = (s: number) => (s > 85 ? "#22C55E" : s >= 70 ? "#F59E0B" : "#EF4444");
+
+function FeaturesSection() {
+  const t = useTr();
+  const tabs: { id: FTab; label: string; soon?: boolean }[] = [
+    { id: "find", label: t("Find", "Trouver") },
+    { id: "enrich", label: t("Enrich", "Enrichir") },
+    { id: "qualify", label: t("Qualify", "Qualifier") },
+    { id: "contact", label: "Contact", soon: true },
+  ];
+  const [active, setActive] = useState<FTab>("find");
+  useEffect(() => {
+    const auto: FTab[] = ["find", "enrich", "qualify"];
+    const id = setInterval(() => setActive((p) => auto[(Math.max(0, auto.indexOf(p)) + 1) % auto.length]), 7000);
+    return () => clearInterval(id);
+  }, []);
+  return (
+    <section className="bg-white px-5 py-24 sm:px-6">
+      <div className="mx-auto max-w-[1100px]">
+        <div className="flex flex-col items-center text-center">
+          <span className={EY}><span className="text-[#0085FF]">✦</span> {t("Product", "Produit")}</span>
+          <h2 className="mt-5 text-[30px] font-bold leading-[1.14] tracking-[-0.02em] text-[#0F172A] sm:text-[46px]">
+            {t("An agent that prospects", "Un agent qui prospecte")} <em className="font-serif italic text-[#0051FF]">{t("for you", "pour vous")}</em>
+          </h2>
+          <p className="mt-4 max-w-xl text-[16px] leading-relaxed text-[#64748B]">{t("From finding prospects to qualifying them, LogLead automates your prospecting end to end.", "De la recherche de prospects à la qualification, LogLead automatise votre prospection de bout en bout.")}</p>
+        </div>
+
+        {/* Tabs */}
+        <div className="mt-8 flex justify-center">
+          <div className="inline-flex flex-wrap justify-center gap-1 rounded-2xl border border-[#E9EDF2] bg-[#F8FAFC] p-1.5 sm:rounded-full">
+            {tabs.map((tb) => {
+              const Icon = FICONS[tb.id];
+              const on = active === tb.id;
+              return (
+                <button key={tb.id} onClick={() => setActive(tb.id)} className={`flex items-center gap-2 rounded-full px-4 py-2 text-[13.5px] font-medium transition ${on ? "bg-white font-semibold text-[#0F172A] shadow-[0_2px_10px_-4px_rgba(15,23,42,0.22)]" : "text-[#64748B] hover:text-[#0F172A]"}`}>
+                  <Icon size={15} className={on ? "text-[#0051FF]" : "text-[#94A3B8]"} /> {tb.label}
+                  {tb.soon && <span className="rounded-full bg-[#F59E0B]/12 px-1.5 py-0.5 text-[10px] font-bold text-[#D97706]">Soon</span>}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Demo */}
+        <div className="mt-9 grid overflow-hidden rounded-[20px] border border-[#E9EDF2] bg-white shadow-[0_30px_80px_-40px_rgba(15,23,42,0.25)] lg:grid-cols-[320px_1px_1fr]">
+          <div key={`${active}-c`} className="v5-fade bg-[#FBFCFE] p-6"><FChat t={t} tab={active} /></div>
+          <div className="hidden bg-[#E9EDF2] lg:block" />
+          <div key={`${active}-i`} className="v5-fade min-w-0 p-5 sm:p-6"><FInterface t={t} tab={active} /></div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function FChat({ t, tab }: { t: Tr; tab: FTab }) {
+  const C: Record<FTab, { head: string; user: string; agent: string; result: string; resultColor: string }> = {
+    find: { head: "Scout · Prospect Search", user: t("Find restaurants in Lyon with a Google rating under 4★ and no website", "Trouve des restaurants à Lyon avec une note Google sous 4★ et sans site web"), agent: t("Searching Google Maps, LinkedIn, Reddit…", "Recherche sur Google Maps, LinkedIn, Reddit…"), result: t("34 prospects found · 71% qualified", "34 prospects trouvés · 71% qualifiés"), resultColor: "#16A34A" },
+    enrich: { head: "Lead Intelligence · Enrichment", user: t("Enrich the top 10 prospects with email and phone", "Enrichis les 10 meilleurs prospects avec email et téléphone"), agent: t("Enriching via FullEnrich…", "Enrichissement via FullEnrich…"), result: t("9/10 emails · 7/10 phones found", "9/10 emails · 7/10 téléphones trouvés"), resultColor: "#16A34A" },
+    qualify: { head: "Lead Intelligence · Scoring", user: t("Show me the most promising prospects this week", "Montre-moi les prospects les plus prometteurs cette semaine"), agent: t("Analyzing 34 prospects, scoring by opportunity level…", "Analyse de 34 prospects, scoring par niveau d'opportunité…"), result: t("8 hot prospects · Score > 85", "8 prospects chauds · Score > 85"), resultColor: "#D97706" },
+    contact: { head: t("Contact · Coming soon", "Contact · Bientôt"), user: t("Show me who to contact today and what to say", "Montre-moi qui contacter aujourd'hui et quoi dire"), agent: t("🔒 This feature is coming soon. Contact will centralize your conversations and tell you who to reach out to and when.", "🔒 Cette fonctionnalité arrive bientôt. Contact centralisera vos conversations et vous dira qui contacter et quand."), result: "", resultColor: "#D97706" },
+  };
+  const c = C[tab];
+  return (
+    <div className="flex h-full flex-col">
+      <div className="mb-5 flex items-center gap-2 text-[12px] text-[#94A3B8]">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/loglead-logo.svg" alt="LogLead" className="h-4 w-auto" /> · {c.head}
+      </div>
+      <div className={`ml-auto max-w-[240px] rounded-[12px_12px_4px_12px] bg-gradient-to-br from-[#0051FF] to-[#0085FF] px-3.5 py-2.5 text-[13px] leading-relaxed text-white ${tab === "contact" ? "opacity-60" : ""}`}>{c.user}</div>
+      <div className="mt-3.5 flex items-start gap-2">
+        <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-[#0051FF] to-[#0085FF] text-[10px] font-bold text-white">L</span>
+        <p className="text-[13px] leading-relaxed text-[#64748B]">{c.agent}</p>
+      </div>
+      {c.result && (
+        <div className="mt-3 inline-flex w-fit items-center gap-1.5 rounded-lg border border-[#E9EDF2] bg-[#F8FAFC] px-2.5 py-1.5 text-[12px] font-medium" style={{ color: c.resultColor }}>
+          <span className="h-1.5 w-1.5 rounded-full" style={{ background: c.resultColor }} /> {c.result}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FInterface({ t, tab }: { t: Tr; tab: FTab }) {
+  if (tab === "enrich") return <EnrichCard t={t} />;
+  if (tab === "contact") return <ContactLocked t={t} />;
+  const qualify = tab === "qualify";
+  return (
+    <div>
+      <div className="mb-3 text-[12px] text-[#64748B]">{qualify ? t("Scored by opportunity level", "Scorés par niveau d'opportunité") : t("34 prospects found · 71% qualified · 4.2 cr/lead", "34 prospects trouvés · 71% qualifiés · 4,2 cr/lead")}</div>
+      <div className="overflow-hidden rounded-xl border border-[#EAECF0]">
+        <div className="grid grid-cols-[52px_1.5fr_1.4fr_72px] border-b border-[#EAECF0] bg-[#F8FAFC] px-4 py-2.5 text-[10px] font-semibold uppercase tracking-wide text-[#94A3B8]">
+          <span>Fit</span><span>{t("Company", "Entreprise")}</span><span>{t("Signal", "Signal")}</span><span className="text-right">{qualify ? "Score" : t("City", "Ville")}</span>
+        </div>
+        {FROWS.map((r, i) => (
+          <div key={r.c} className="v5-fade grid grid-cols-[52px_1.5fr_1.4fr_72px] items-center border-b border-[#F1F5F9] px-4 py-2.5 text-[12px] last:border-b-0" style={{ animationDelay: `${i * 0.14}s` }}>
+            <span className="flex items-center gap-1.5 font-semibold text-[#0F172A]"><span className="h-2 w-2 rounded-full" style={{ background: fdot(r.s) }} />{qualify ? <CountUp to={r.s} /> : r.s}</span>
+            <span className="truncate text-[#334155]">{r.c}</span>
+            <span className="truncate text-[#64748B]">{r.sig}</span>
+            {qualify ? (
+              <span className="flex items-center justify-end gap-1">
+                {r.s > 85 && <span className="text-[11px]" style={{ animation: "fs-pill 1.2s ease-in-out infinite" }}>🔥</span>}
+                <span className="font-semibold" style={{ color: fdot(r.s) }}><CountUp to={r.s} /></span>
+              </span>
+            ) : (
+              <span className="text-right text-[#94A3B8]">{r.city}</span>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function EnrichCard({ t }: { t: Tr }) {
+  const [revealed, setRevealed] = useState(false);
+  useEffect(() => {
+    const id = setTimeout(() => setRevealed(true), 550);
+    return () => clearTimeout(id);
+  }, []);
+  const Field = ({ label, masked, real, warn = false }: { label: string; masked: string; real: string; warn?: boolean }) => (
+    <div className="flex items-center gap-2 text-[12px]">
+      <span className="w-[64px] shrink-0 text-[#94A3B8]">{label}</span>
+      <span className={`min-w-0 flex-1 truncate font-mono ${warn ? "text-[#D97706]" : "text-[#334155]"}`}>{revealed ? real : masked}</span>
+      <span className={`transition-opacity duration-300 ${revealed ? "opacity-100" : "opacity-0"}`}>{warn ? "⚠️" : "✅"}</span>
+    </div>
+  );
+  return (
+    <div className="mx-auto max-w-[420px] rounded-2xl border border-[#EAECF0] bg-[#FBFCFE] p-5">
+      <div className="flex items-center gap-3">
+        <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#0051FF]/10 text-[13px] font-bold text-[#0051FF]">LB</span>
+        <div><p className="text-[14px] font-semibold text-[#0F172A]">Le Bistrot du Port</p><p className="text-[12px] text-[#64748B]">Restaurant · Lyon 2e</p></div>
+      </div>
+      <div className="mt-4">
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-[#94A3B8]">Fit score</p>
+        <div className="mt-1.5 flex items-center gap-2">
+          <span className="text-[15px] font-bold text-[#16A34A]"><CountUp to={93} />/100</span>
+          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#EAECF0]"><div className="h-full rounded-full bg-gradient-to-r from-[#0051FF] to-[#00D4FF]" style={{ animation: "fs-progress 0.9s ease forwards" }} /></div>
+          <span>🔥</span>
+        </div>
+      </div>
+      <div className="mt-4 space-y-2 border-t border-[#EAECF0] pt-4">
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-[#94A3B8]">Contact</p>
+        <Field label="Email" masked="••••••@••••••.fr" real="contact@bistrot-port.fr" />
+        <Field label={t("Phone", "Tél.")} masked="+33 4 •• •• •• ••" real="+33 4 78 62 14 09" />
+        <Field label="Website" masked="•••••••••••" real={t("No website found", "Aucun site détecté")} warn />
+      </div>
+    </div>
+  );
+}
+
+function ContactLocked({ t }: { t: Tr }) {
+  const [email, setEmail] = useState("");
+  const [done, setDone] = useState(false);
+  const [busy, setBusy] = useState(false);
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (busy || !email.trim()) return;
+    setBusy(true);
+    try {
+      await fetch("/api/waitlist-contact", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) });
+      setDone(true);
+    } catch {
+      /* ignore */
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <div className="relative min-h-[280px] overflow-hidden rounded-xl border border-[#EAECF0]">
+      <div aria-hidden className="pointer-events-none select-none p-4 opacity-50 blur-[5px]">
+        <div className="mb-3 flex items-center justify-between text-[12px] text-[#64748B]"><span>{t("To do", "À faire")}</span><span className="rounded-full bg-[#F1F5F9] px-2 py-0.5 font-semibold text-[#0F172A]">836</span></div>
+        {[["Thomas Robert", "Relancer", "#F59E0B"], ["Camille Vernet", "Répondre", "#0051FF"], ["Marc Lambert", "Vérifier", "#94A3B8"], ["Julie Martin", "Relancer", "#F59E0B"]].map(([n, a, col]) => (
+          <div key={n} className="flex items-center gap-2.5 border-b border-[#F1F5F9] py-2.5">
+            <span className="h-7 w-7 rounded-full bg-[#E9EDF2]" />
+            <span className="flex-1 text-[13px] text-[#334155]">{n}</span>
+            <span className="text-[12px]" style={{ color: col as string }}>{a}</span>
+          </div>
+        ))}
+      </div>
+      <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 px-6 text-center backdrop-blur-[2px]">
+        <div className="text-[26px]">🔒</div>
+        <p className="mt-1 text-[15px] font-semibold text-[#0F172A]">{t("Coming in V1.2", "Bientôt en V1.2")}</p>
+        {done ? (
+          <p className="mt-2 text-[13px] font-medium text-[#16A34A]">{t("You're on the list — we'll notify you 🎉", "Tu es sur la liste — on te préviendra 🎉")}</p>
+        ) : (
+          <>
+            <p className="mt-1 max-w-xs text-[12px] text-[#64748B]">{t("Be the first to know when it launches.", "Sois le premier informé du lancement.")}</p>
+            <form onSubmit={submit} className="mt-3 flex w-full max-w-xs items-center gap-2">
+              <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t("Enter your email", "Ton email")} className="min-w-0 flex-1 rounded-lg border border-[#E2E8F0] bg-white px-3 py-2 text-[13px] text-[#0F172A] outline-none placeholder:text-[#94A3B8]" />
+              <button type="submit" disabled={busy} className="shrink-0 rounded-lg bg-gradient-to-br from-[#0051FF] to-[#0085FF] px-3 py-2 text-[13px] font-semibold text-white transition hover:brightness-110 disabled:opacity-60">{t("Notify me", "Préviens-moi")}</button>
+            </form>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // prospects. Fully client-side (mock data), no API. Auto-plays when in view.
 // ---------------------------------------------------------------------------
 function InteractiveDemo() {
@@ -1186,8 +1402,7 @@ export default function LandingV5() {
         <Nav />
         <Hero />
         <StatsStrip />
-        <HowItWorks />
-        <InteractiveDemo />
+        <FeaturesSection />
         <Comparison />
         <Reviews />
         <Faq />
