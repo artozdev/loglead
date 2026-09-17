@@ -1,6 +1,6 @@
 "use client";
 
-import { Send, Sparkles, Star, Telescope } from "lucide-react";
+import { Gift, Send, Sparkles, Star, Telescope } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { CountUp, Reveal, Roll } from "./LandingPage";
@@ -944,11 +944,11 @@ const FICONS: Record<FTab, React.ComponentType<{ size?: number; className?: stri
   find: Telescope, enrich: Sparkles, qualify: Star, contact: Send,
 };
 const FROWS = [
-  { s: 93, c: "Le Bistrot du Port", sig: "No web · 3.6★", city: "Lyon 2e" },
-  { s: 88, c: "Chez Antoine", sig: "No web · 3.8★", city: "Lyon 1er" },
-  { s: 85, c: "La Table de Marie", sig: "No web · 3.4★", city: "Lyon 6e" },
-  { s: 82, c: "Le Comptoir Lyon", sig: "No web · 3.7★", city: "Lyon 3e" },
-  { s: 79, c: "Brasserie du Parc", sig: "No web · 3.5★", city: "Lyon 5e" },
+  { s: 93, c: "Le Bistrot du Port", sig: "Sans site web", city: "Lyon 2e", seg: "Restaurants Lyon" },
+  { s: 88, c: "Chez Antoine", sig: "Sans site web", city: "Lyon 1er", seg: "Restaurants Lyon" },
+  { s: 85, c: "La Table de Marie", sig: "Note < 4★", city: "Lyon 6e", seg: "Restaurants Lyon" },
+  { s: 82, c: "Le Comptoir Lyon", sig: "Sans site web", city: "Lyon 3e", seg: "Restaurants Lyon" },
+  { s: 79, c: "Brasserie du Parc", sig: "Note < 4★", city: "Lyon 5e", seg: "Restaurants Lyon" },
 ];
 const fdot = (s: number) => (s > 85 ? "#22C55E" : s >= 70 ? "#F59E0B" : "#EF4444");
 
@@ -999,6 +999,13 @@ function FeaturesSection() {
           <div className="hidden bg-[#E9EDF2] lg:block" />
           <div key={`${active}-i`} className="v5-fade min-w-0 p-5 sm:p-7"><FInterface t={t} tab={active} /></div>
         </div>
+
+        <div className="mt-8 flex justify-center">
+          <Link href={SIGNUP} className="lp-roll-btn inline-flex items-center gap-2.5 rounded-full bg-gradient-to-br from-[#0051FF] to-[#0085FF] px-6 py-3 text-[15px] font-semibold text-white shadow-[0_14px_34px_-14px_rgba(0,81,255,0.7)] transition hover:brightness-110">
+            <Roll>{t("Free trial", "Essai gratuit")}</Roll>
+            <Gift size={18} className="shrink-0" />
+          </Link>
+        </div>
       </div>
     </section>
   );
@@ -1032,88 +1039,117 @@ function FChat({ t, tab }: { t: Tr; tab: FTab }) {
   );
 }
 
-const AV_COLORS = ["#0051FF", "#7C3AED", "#EC4899", "#F59E0B", "#10B981", "#06B6D4"];
-function initials(name: string) {
-  const w = name.replace(/^(Le |La |Les |Chez |Brasserie du |Brasserie )/, "").split(" ").filter(Boolean);
-  return ((w[0]?.[0] ?? "") + (w[1]?.[0] ?? "")).toUpperCase() || name.slice(0, 2).toUpperCase();
-}
-function CompanyAvatar({ name, i }: { name: string; i: number }) {
-  return (
-    <span
-      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[12px] font-bold text-white shadow-[0_4px_10px_-4px_rgba(15,23,42,0.4)]"
-      style={{ background: `linear-gradient(135deg, ${AV_COLORS[i % AV_COLORS.length]}, ${AV_COLORS[(i + 2) % AV_COLORS.length]})` }}
-    >
-      {initials(name)}
-    </span>
-  );
-}
+// Fit-score bars — identical to the dashboard LeadsBoard (10 bars, /10 number).
 function FitBars({ s }: { s: number }) {
-  const n = 6;
-  const filled = Math.max(1, Math.round((s / 100) * n));
-  const col = fdot(s);
+  const v = Math.round(s / 10);
+  const color = v > 8 ? "#22C55E" : v >= 5 ? "#F59E0B" : "#EF4444";
   return (
-    <span className="flex items-end gap-[2px]" aria-hidden>
-      {Array.from({ length: n }).map((_, i) => (
-        <span key={i} className="w-[3px] rounded-[1px]" style={{ height: `${5 + i * 2.4}px`, background: i < filled ? col : "#E2E8F0" }} />
-      ))}
+    <span className="flex items-center gap-1.5">
+      <span className="flex items-end gap-[2px]">
+        {Array.from({ length: 10 }).map((_, i) => (
+          <span key={i} className="w-[3px] rounded-full" style={{ height: 6 + i, background: i < v ? color : "#E2E8F0" }} />
+        ))}
+      </span>
+      <span className="text-[12px] font-semibold text-[#0F172A]">{v}</span>
     </span>
   );
 }
-function LockPill({ label }: { label: string }) {
+function FindPill({ label }: { label: string }) {
+  return <span className="inline-flex whitespace-nowrap rounded-full border border-[#EAECF0] px-2 py-0.5 text-[11px] font-medium text-[#94A3B8]">{label}</span>;
+}
+function SegChip({ label }: { label: string }) {
   return (
-    <span className="inline-flex items-center gap-1 rounded-md border border-dashed border-[#CBD5E1] bg-white px-2 py-1 text-[11px] font-medium text-[#94A3B8]">
-      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" className="shrink-0"><path d="M11 3a5 5 0 015 5v2h1a1 1 0 011 1v8a1 1 0 01-1 1H5a1 1 0 01-1-1v-8a1 1 0 011-1h1V8a5 5 0 015-5z" stroke="#CBD5E1" strokeWidth="2" strokeLinejoin="round" /></svg>
-      {label}
+    <span className="inline-flex max-w-[150px] items-center gap-1.5 whitespace-nowrap rounded-full bg-[#F8FAFC] px-2 py-0.5 text-[11px] font-medium text-[#334155]">
+      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#0051FF]" /><span className="truncate">{label}</span>
     </span>
+  );
+}
+
+// "Trouver" — the request is shown, then LogLead generates the Leads table row
+// by row (exact dashboard interface: Fit bars, Find email/phone, Segment…).
+function FindTable({ t }: { t: Tr }) {
+  // The request is shown (left panel), then rows stream in via CSS-staggered
+  // fade — robust even when timers are throttled. Header flips generating→done.
+  const [done, setDone] = useState(false);
+  useEffect(() => {
+    setDone(false);
+    const id = setTimeout(() => setDone(true), FROWS.length * 300 + 500);
+    return () => clearTimeout(id);
+  }, []);
+  return (
+    <div className="flex min-h-[380px] flex-col">
+      <div className="mb-3 flex items-center justify-between">
+        <div className="flex items-center gap-2 text-[13px] font-medium text-[#334155]">
+          {done ? (
+            t("34 prospects found · 71% qualified", "34 prospects trouvés · 71% qualifiés")
+          ) : (
+            <><span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#0051FF]/25 border-t-[#0051FF]" />{t("Generating…", "Génération en cours…")}</>
+          )}
+        </div>
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#0051FF]/8 px-2.5 py-1 text-[11px] font-semibold text-[#0051FF]">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#0051FF]" style={{ animation: "fs-pill 1.4s ease-in-out infinite" }} /> {t("Live", "En direct")}
+        </span>
+      </div>
+      <div className="overflow-x-auto overflow-y-hidden rounded-2xl border border-[#EAECF0] shadow-[0_20px_50px_-32px_rgba(15,23,42,0.35)]">
+        <table className="w-full min-w-[620px] text-left text-[12px]">
+          <thead>
+            <tr className="border-b border-[#EAECF0] bg-[#F8FAFC] text-[10px] font-semibold uppercase tracking-wide text-[#94A3B8]">
+              <th className="px-3 py-3 font-semibold">Fit</th>
+              <th className="px-3 py-3 font-semibold">Lead</th>
+              <th className="px-3 py-3 font-semibold">{t("Company", "Entreprise")}</th>
+              <th className="px-3 py-3 font-semibold">Email</th>
+              <th className="px-3 py-3 font-semibold">{t("Phone", "Tél.")}</th>
+              <th className="px-3 py-3 font-semibold">Segment</th>
+              <th className="px-3 py-3 font-semibold">Signal</th>
+            </tr>
+          </thead>
+          <tbody>
+            {FROWS.map((r, i) => (
+              <tr key={r.c} className="v5-fade border-b border-[#F1F5F9] last:border-b-0" style={{ animationDelay: `${i * 0.3}s` }}>
+                <td className="px-3 py-3"><FitBars s={r.s} /></td>
+                <td className="px-3 py-3 text-[#94A3B8]">—</td>
+                <td className="whitespace-nowrap px-3 py-3 font-medium text-[#334155]">{r.c}</td>
+                <td className="px-3 py-3"><FindPill label={t("Find email", "Trouver email")} /></td>
+                <td className="px-3 py-3"><FindPill label={t("Find phone", "Trouver tél.")} /></td>
+                <td className="px-3 py-3"><SegChip label={r.seg} /></td>
+                <td className="whitespace-nowrap px-3 py-3 text-[#64748B]">{r.sig}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 }
 
 function FInterface({ t, tab }: { t: Tr; tab: FTab }) {
   if (tab === "enrich") return <EnrichCard t={t} />;
   if (tab === "contact") return <ContactLocked t={t} />;
-  const qualify = tab === "qualify";
+  if (tab === "find") return <FindTable t={t} />;
+  // qualify — same dashboard table, scored by opportunity level
   return (
     <div className="flex min-h-[380px] flex-col">
       <div className="mb-3 flex items-center justify-between">
-        <div className="text-[13px] font-medium text-[#334155]">{qualify ? t("Scored by opportunity level", "Scorés par niveau d'opportunité") : t("34 prospects found · 71% qualified", "34 prospects trouvés · 71% qualifiés")}</div>
+        <div className="text-[13px] font-medium text-[#334155]">{t("Scored by opportunity level", "Scorés par niveau d'opportunité")}</div>
         <span className="inline-flex items-center gap-1.5 rounded-full bg-[#0051FF]/8 px-2.5 py-1 text-[11px] font-semibold text-[#0051FF]">
           <span className="h-1.5 w-1.5 rounded-full bg-[#0051FF]" style={{ animation: "fs-pill 1.4s ease-in-out infinite" }} /> {t("Live", "En direct")}
         </span>
       </div>
       <div className="overflow-hidden rounded-2xl border border-[#EAECF0] shadow-[0_20px_50px_-32px_rgba(15,23,42,0.35)]">
-        {qualify ? (
-          <>
-            <div className="grid grid-cols-[64px_1fr_1.1fr_96px] border-b border-[#EAECF0] bg-[#F8FAFC] px-4 py-3 text-[10px] font-semibold uppercase tracking-wide text-[#94A3B8]">
-              <span>Fit</span><span>{t("Company", "Entreprise")}</span><span>{t("Signal", "Signal")}</span><span className="text-right">Score</span>
-            </div>
-            {FROWS.map((r, i) => (
-              <div key={r.c} className="v5-fade grid grid-cols-[64px_1fr_1.1fr_96px] items-center border-b border-[#F1F5F9] px-4 py-3.5 text-[12.5px] last:border-b-0" style={{ animationDelay: `${i * 0.14}s` }}>
-                <span className="flex items-center gap-2 font-semibold text-[#0F172A]"><FitBars s={r.s} /><CountUp to={r.s} /></span>
-                <span className="flex min-w-0 items-center gap-2.5"><CompanyAvatar name={r.c} i={i} /><span className="min-w-0"><span className="block truncate font-medium text-[#0F172A]">{r.c}</span><span className="block truncate text-[11px] text-[#94A3B8]">{r.city}</span></span></span>
-                <span className="truncate text-[#64748B]">{r.sig}</span>
-                <span className="flex items-center justify-end gap-1">
-                  {r.s > 85 && <span className="text-[11px]" style={{ animation: "fs-pill 1.2s ease-in-out infinite" }}>🔥</span>}
-                  <span className="font-bold" style={{ color: fdot(r.s) }}><CountUp to={r.s} /></span>
-                </span>
-              </div>
-            ))}
-          </>
-        ) : (
-          <>
-            <div className="grid grid-cols-[56px_1.5fr_104px_104px_1fr] border-b border-[#EAECF0] bg-[#F8FAFC] px-4 py-3 text-[10px] font-semibold uppercase tracking-wide text-[#94A3B8]">
-              <span>Fit</span><span>{t("Company", "Entreprise")}</span><span>Email</span><span>{t("Phone", "Tél.")}</span><span>{t("Signal", "Signal")}</span>
-            </div>
-            {FROWS.map((r, i) => (
-              <div key={r.c} className="v5-fade grid grid-cols-[56px_1.5fr_104px_104px_1fr] items-center border-b border-[#F1F5F9] px-4 py-3.5 text-[12.5px] last:border-b-0" style={{ animationDelay: `${i * 0.14}s` }}>
-                <span className="flex items-center gap-2 font-semibold text-[#0F172A]"><FitBars s={r.s} /></span>
-                <span className="flex min-w-0 items-center gap-2.5"><CompanyAvatar name={r.c} i={i} /><span className="min-w-0"><span className="block truncate font-medium text-[#0F172A]">{r.c}</span><span className="block truncate text-[11px] text-[#94A3B8]">{r.city}</span></span></span>
-                <span><LockPill label={t("Find", "Trouver")} /></span>
-                <span><LockPill label={t("Find", "Trouver")} /></span>
-                <span className="truncate text-[#64748B]">{r.sig}</span>
-              </div>
-            ))}
-          </>
-        )}
+        <div className="grid grid-cols-[72px_1fr_1.1fr_96px] border-b border-[#EAECF0] bg-[#F8FAFC] px-4 py-3 text-[10px] font-semibold uppercase tracking-wide text-[#94A3B8]">
+          <span>Fit</span><span>{t("Company", "Entreprise")}</span><span>{t("Signal", "Signal")}</span><span className="text-right">Score</span>
+        </div>
+        {FROWS.map((r, i) => (
+          <div key={r.c} className="v5-fade grid grid-cols-[72px_1fr_1.1fr_96px] items-center border-b border-[#F1F5F9] px-4 py-3.5 text-[12.5px] last:border-b-0" style={{ animationDelay: `${i * 0.14}s` }}>
+            <FitBars s={r.s} />
+            <span className="min-w-0"><span className="block truncate font-medium text-[#334155]">{r.c}</span><span className="block truncate text-[11px] text-[#94A3B8]">{r.city}</span></span>
+            <span className="truncate text-[#64748B]">{r.sig}</span>
+            <span className="flex items-center justify-end gap-1">
+              {r.s > 85 && <span className="text-[11px]" style={{ animation: "fs-pill 1.2s ease-in-out infinite" }}>🔥</span>}
+              <span className="font-bold" style={{ color: fdot(r.s) }}><CountUp to={r.s} /></span>
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   );
