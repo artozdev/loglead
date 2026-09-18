@@ -1725,7 +1725,6 @@ export default function LandingV5() {
         <StatsStrip />
         <FeaturesSection />
         <Comparison />
-        <ProcessSection />
         <Reviews />
         <Faq />
         <Footer />
