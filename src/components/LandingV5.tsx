@@ -944,13 +944,19 @@ const FICONS: Record<FTab, React.ComponentType<{ size?: number; className?: stri
   find: Telescope, enrich: Sparkles, qualify: Star, contact: Send,
 };
 const FROWS = [
-  { s: 93, c: "Le Bistrot du Port", sig: "Sans site web", city: "Lyon 2e", seg: "Restaurants Lyon" },
-  { s: 88, c: "Chez Antoine", sig: "Sans site web", city: "Lyon 1er", seg: "Restaurants Lyon" },
-  { s: 85, c: "La Table de Marie", sig: "Note < 4★", city: "Lyon 6e", seg: "Restaurants Lyon" },
-  { s: 82, c: "Le Comptoir Lyon", sig: "Sans site web", city: "Lyon 3e", seg: "Restaurants Lyon" },
-  { s: 79, c: "Brasserie du Parc", sig: "Note < 4★", city: "Lyon 5e", seg: "Restaurants Lyon" },
+  { s: 93, c: "Le Bistrot du Port", sig: "Sans site web", city: "Lyon 2e", seg: "Restaurants Lyon", email: "contact@bistrot-port.fr", phone: "+33 4 78 62 14 09" },
+  { s: 88, c: "Chez Antoine", sig: "Sans site web", city: "Lyon 1er", seg: "Restaurants Lyon", email: "hello@chez-antoine.fr", phone: "+33 4 72 41 08 33" },
+  { s: 85, c: "La Table de Marie", sig: "Note < 4★", city: "Lyon 6e", seg: "Restaurants Lyon", email: "resa@table-marie.fr", phone: "+33 4 78 30 55 21" },
+  { s: 82, c: "Le Comptoir Lyon", sig: "Sans site web", city: "Lyon 3e", seg: "Restaurants Lyon", email: "contact@comptoir-lyon.fr", phone: "+33 4 72 19 44 70" },
+  { s: 79, c: "Brasserie du Parc", sig: "Note < 4★", city: "Lyon 5e", seg: "Restaurants Lyon", email: "bonjour@brasserie-parc.fr", phone: "+33 4 78 95 62 10" },
 ];
 const fdot = (s: number) => (s > 85 ? "#22C55E" : s >= 70 ? "#F59E0B" : "#EF4444");
+const FQUERIES: Record<FTab, { en: string; fr: string }> = {
+  find: { en: "Find restaurants in Lyon with no website", fr: "Trouve des restaurants à Lyon sans site web" },
+  enrich: { en: "Enrich this list — get their email and phone", fr: "Enrichis cette liste — trouve leur email et téléphone" },
+  qualify: { en: "Show me the hottest prospects this week", fr: "Montre-moi les prospects les plus chauds cette semaine" },
+  contact: { en: "Who should I contact today, and what to say?", fr: "Qui contacter aujourd'hui, et quoi dire ?" },
+};
 
 function FeaturesSection() {
   const t = useTr();
@@ -963,7 +969,7 @@ function FeaturesSection() {
   const [active, setActive] = useState<FTab>("find");
   useEffect(() => {
     const auto: FTab[] = ["find", "enrich", "qualify"];
-    const id = setInterval(() => setActive((p) => auto[(Math.max(0, auto.indexOf(p)) + 1) % auto.length]), 7000);
+    const id = setInterval(() => setActive((p) => auto[(Math.max(0, auto.indexOf(p)) + 1) % auto.length]), 9000);
     return () => clearInterval(id);
   }, []);
   return (
@@ -993,11 +999,10 @@ function FeaturesSection() {
           </div>
         </div>
 
-        {/* Demo */}
-        <div className="mt-9 grid overflow-hidden rounded-[20px] border border-[#E9EDF2] bg-white shadow-[0_30px_80px_-40px_rgba(15,23,42,0.25)] lg:min-h-[460px] lg:grid-cols-[340px_1px_1fr]">
-          <div key={`${active}-c`} className="v5-fade bg-[#FBFCFE] p-6 sm:p-7"><FChat t={t} tab={active} /></div>
-          <div className="hidden bg-[#E9EDF2] lg:block" />
-          <div key={`${active}-i`} className="v5-fade min-w-0 p-5 sm:p-7"><FInterface t={t} tab={active} /></div>
+        {/* Demo — realistic LogAgent panel: the request types itself in the
+            chat bar, then LogLead generates / enriches / scores the results. */}
+        <div className="mt-9 overflow-hidden rounded-[22px] border border-[#E9EDF2] bg-white shadow-[0_40px_90px_-45px_rgba(15,23,42,0.3)]">
+          <div key={active} className="v5-fade p-4 sm:p-6"><FDemo t={t} tab={active} /></div>
         </div>
 
         <div className="mt-8 flex justify-center">
@@ -1011,46 +1016,89 @@ function FeaturesSection() {
   );
 }
 
-function FChat({ t, tab }: { t: Tr; tab: FTab }) {
-  const C: Record<FTab, { head: string; user: string; agent: string; result: string; resultColor: string }> = {
-    find: { head: "Scout · Prospect Search", user: t("Find restaurants in Lyon with a Google rating under 4★ and no website", "Trouve des restaurants à Lyon avec une note Google sous 4★ et sans site web"), agent: t("Searching Google Maps, LinkedIn, Reddit…", "Recherche sur Google Maps, LinkedIn, Reddit…"), result: t("34 prospects found · 71% qualified", "34 prospects trouvés · 71% qualifiés"), resultColor: "#16A34A" },
-    enrich: { head: "Lead Intelligence · Enrichment", user: t("Enrich the top 10 prospects with email and phone", "Enrichis les 10 meilleurs prospects avec email et téléphone"), agent: t("Enriching via FullEnrich…", "Enrichissement via FullEnrich…"), result: t("9/10 emails · 7/10 phones found", "9/10 emails · 7/10 téléphones trouvés"), resultColor: "#16A34A" },
-    qualify: { head: "Lead Intelligence · Scoring", user: t("Show me the most promising prospects this week", "Montre-moi les prospects les plus prometteurs cette semaine"), agent: t("Analyzing 34 prospects, scoring by opportunity level…", "Analyse de 34 prospects, scoring par niveau d'opportunité…"), result: t("8 hot prospects · Score > 85", "8 prospects chauds · Score > 85"), resultColor: "#D97706" },
-    contact: { head: t("Contact · Coming soon", "Contact · Bientôt"), user: t("Show me who to contact today and what to say", "Montre-moi qui contacter aujourd'hui et quoi dire"), agent: t("🔒 This feature is coming soon. Contact will centralize your conversations and tell you who to reach out to and when.", "🔒 Cette fonctionnalité arrive bientôt. Contact centralisera vos conversations et vous dira qui contacter et quand."), result: "", resultColor: "#D97706" },
-  };
-  const c = C[tab];
+type FPhase = "typing" | "generating" | "done";
+
+function FDemo({ t, tab }: { t: Tr; tab: FTab }) {
+  const q = t(FQUERIES[tab].en, FQUERIES[tab].fr);
+  const [typed, setTyped] = useState("");
+  const [phase, setPhase] = useState<FPhase>("typing");
+  useEffect(() => {
+    setTyped("");
+    setPhase("typing");
+    let i = 0;
+    let pause: ReturnType<typeof setTimeout>;
+    let done: ReturnType<typeof setTimeout>;
+    const genMs = tab === "find" ? FROWS.length * 300 + 500 : 1700;
+    const type = setInterval(() => {
+      i += 1;
+      setTyped(q.slice(0, i));
+      if (i >= q.length) {
+        clearInterval(type);
+        pause = setTimeout(() => {
+          setPhase("generating");
+          done = setTimeout(() => setPhase("done"), genMs);
+        }, 480);
+      }
+    }, 32);
+    return () => { clearInterval(type); clearTimeout(pause); clearTimeout(done); };
+  }, [q, tab]);
+  const sent = phase !== "typing";
   return (
-    <div className="flex h-full flex-col">
-      <div className="mb-5 flex items-center gap-2 text-[12px] text-[#94A3B8]">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/loglead-logo.svg" alt="LogLead" className="h-4 w-auto" /> · {c.head}
-      </div>
-      <div className={`ml-auto max-w-[240px] rounded-[12px_12px_4px_12px] bg-gradient-to-br from-[#0051FF] to-[#0085FF] px-3.5 py-2.5 text-[13px] leading-relaxed text-white ${tab === "contact" ? "opacity-60" : ""}`}>{c.user}</div>
-      <div className="mt-3.5 flex items-start gap-2">
-        <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-[#0051FF] to-[#0085FF] text-[10px] font-bold text-white">L</span>
-        <p className="text-[13px] leading-relaxed text-[#64748B]">{c.agent}</p>
-      </div>
-      {c.result && (
-        <div className="mt-3 inline-flex w-fit items-center gap-1.5 rounded-lg border border-[#E9EDF2] bg-[#F8FAFC] px-2.5 py-1.5 text-[12px] font-medium" style={{ color: c.resultColor }}>
-          <span className="h-1.5 w-1.5 rounded-full" style={{ background: c.resultColor }} /> {c.result}
+    <div className="flex min-h-[460px] flex-col">
+      {/* app chrome */}
+      <div className="mb-4 flex items-center justify-between border-b border-[#F1F5F9] pb-3">
+        <div className="flex items-center gap-2">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[#0051FF] to-[#0085FF] text-[12px] font-bold text-white">L</span>
+          <span className="text-[13.5px] font-semibold text-[#0F172A]">LogAgent</span>
+          <span className="rounded-full bg-[#0051FF]/8 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-[#0051FF]">New</span>
         </div>
-      )}
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#0051FF]/8 px-2.5 py-1 text-[11px] font-semibold text-[#0051FF]">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#0051FF]" style={{ animation: "fs-pill 1.4s ease-in-out infinite" }} /> {t("Live", "En direct")}
+        </span>
+      </div>
+
+      {/* results */}
+      <div className="flex-1">
+        <FResults t={t} tab={tab} phase={phase} />
+      </div>
+
+      {/* chat bar — the request types itself here */}
+      <div className="mt-4 flex items-center gap-2.5 rounded-2xl border border-[#E9EDF2] bg-white px-3 py-2.5 shadow-[0_14px_34px_-22px_rgba(15,23,42,0.45)]">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[#EAECF0] text-[17px] leading-none text-[#94A3B8]">+</span>
+        <div className="min-w-0 flex-1 truncate text-[13.5px] text-[#0F172A]">
+          {typed ? typed : <span className="text-[#94A3B8]">{t("Ask LogLead…", "Demandez à LogLead…")}</span>}
+          {phase === "typing" && <span className="ml-[1px] inline-block h-[15px] w-[2px] translate-y-[3px] rounded-full bg-[#0051FF]" style={{ animation: "fs-pill 0.9s steps(2, jump-none) infinite" }} />}
+        </div>
+        <span className="hidden shrink-0 items-center gap-1 rounded-lg px-2 py-1 text-[12px] font-medium text-[#64748B] sm:flex">{t("Search", "Rechercher")}<svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="#94A3B8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></span>
+        <button aria-hidden className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white transition ${sent ? "bg-gradient-to-br from-[#0051FF] to-[#0085FF]" : "bg-[#CBD5E1]"}`}>
+          {phase === "generating" ? (
+            <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+          ) : (
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          )}
+        </button>
+      </div>
     </div>
   );
 }
 
 // Fit-score bars — identical to the dashboard LeadsBoard (10 bars, /10 number).
-function FitBars({ s }: { s: number }) {
+function FitBars({ s, muted = false, hot = false, animate = false }: { s: number; muted?: boolean; hot?: boolean; animate?: boolean }) {
   const v = Math.round(s / 10);
   const color = v > 8 ? "#22C55E" : v >= 5 ? "#F59E0B" : "#EF4444";
   return (
     <span className="flex items-center gap-1.5">
       <span className="flex items-end gap-[2px]">
         {Array.from({ length: 10 }).map((_, i) => (
-          <span key={i} className="w-[3px] rounded-full" style={{ height: 6 + i, background: i < v ? color : "#E2E8F0" }} />
+          <span key={i} className="w-[3px] rounded-full" style={{ height: 6 + i, background: !muted && i < v ? color : "#E2E8F0" }} />
         ))}
       </span>
-      <span className="text-[12px] font-semibold text-[#0F172A]">{v}</span>
+      {muted ? (
+        <span className="text-[12px] font-semibold text-[#CBD5E1]">–</span>
+      ) : (
+        <span className="text-[12px] font-semibold text-[#0F172A]">{animate ? <CountUp to={v} /> : v}</span>
+      )}
+      {hot && <span className="text-[11px]" style={{ animation: "fs-pill 1.2s ease-in-out infinite" }}>🔥</span>}
     </span>
   );
 }
@@ -1064,130 +1112,84 @@ function SegChip({ label }: { label: string }) {
     </span>
   );
 }
-
-// "Trouver" — the request is shown, then LogLead generates the Leads table row
-// by row (exact dashboard interface: Fit bars, Find email/phone, Segment…).
-function FindTable({ t }: { t: Tr }) {
-  // The request is shown (left panel), then rows stream in via CSS-staggered
-  // fade — robust even when timers are throttled. Header flips generating→done.
-  const [done, setDone] = useState(false);
-  useEffect(() => {
-    setDone(false);
-    const id = setTimeout(() => setDone(true), FROWS.length * 300 + 500);
-    return () => clearTimeout(id);
-  }, []);
+// A contact value that was missing and just got enriched — fades in with a ✓.
+function RevealCell({ value, i, blue = false }: { value: string; i: number; blue?: boolean }) {
   return (
-    <div className="flex min-h-[380px] flex-col">
-      <div className="mb-3 flex items-center justify-between">
-        <div className="flex items-center gap-2 text-[13px] font-medium text-[#334155]">
-          {done ? (
-            t("34 prospects found · 71% qualified", "34 prospects trouvés · 71% qualifiés")
-          ) : (
-            <><span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#0051FF]/25 border-t-[#0051FF]" />{t("Generating…", "Génération en cours…")}</>
-          )}
-        </div>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#0051FF]/8 px-2.5 py-1 text-[11px] font-semibold text-[#0051FF]">
-          <span className="h-1.5 w-1.5 rounded-full bg-[#0051FF]" style={{ animation: "fs-pill 1.4s ease-in-out infinite" }} /> {t("Live", "En direct")}
-        </span>
-      </div>
-      <div className="overflow-x-auto overflow-y-hidden rounded-2xl border border-[#EAECF0] shadow-[0_20px_50px_-32px_rgba(15,23,42,0.35)]">
-        <table className="w-full min-w-[620px] text-left text-[12px]">
-          <thead>
-            <tr className="border-b border-[#EAECF0] bg-[#F8FAFC] text-[10px] font-semibold uppercase tracking-wide text-[#94A3B8]">
-              <th className="px-3 py-3 font-semibold">Fit</th>
-              <th className="px-3 py-3 font-semibold">Lead</th>
-              <th className="px-3 py-3 font-semibold">{t("Company", "Entreprise")}</th>
-              <th className="px-3 py-3 font-semibold">Email</th>
-              <th className="px-3 py-3 font-semibold">{t("Phone", "Tél.")}</th>
-              <th className="px-3 py-3 font-semibold">Segment</th>
-              <th className="px-3 py-3 font-semibold">Signal</th>
-            </tr>
-          </thead>
-          <tbody>
-            {FROWS.map((r, i) => (
-              <tr key={r.c} className="v5-fade border-b border-[#F1F5F9] last:border-b-0" style={{ animationDelay: `${i * 0.3}s` }}>
-                <td className="px-3 py-3"><FitBars s={r.s} /></td>
-                <td className="px-3 py-3 text-[#94A3B8]">—</td>
-                <td className="whitespace-nowrap px-3 py-3 font-medium text-[#334155]">{r.c}</td>
-                <td className="px-3 py-3"><FindPill label={t("Find email", "Trouver email")} /></td>
-                <td className="px-3 py-3"><FindPill label={t("Find phone", "Trouver tél.")} /></td>
-                <td className="px-3 py-3"><SegChip label={r.seg} /></td>
-                <td className="whitespace-nowrap px-3 py-3 text-[#64748B]">{r.sig}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <span className="v5-fade inline-flex items-center gap-1.5 whitespace-nowrap rounded-md bg-[#22C55E]/8 px-1.5 py-0.5" style={{ animationDelay: `${i * 0.12}s` }}>
+      <span className={blue ? "text-[#0051FF]" : "text-[#0F172A]"}>{value}</span>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="shrink-0"><path d="M20 6L9 17l-5-5" stroke="#22C55E" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>
+    </span>
   );
 }
 
-function FInterface({ t, tab }: { t: Tr; tab: FTab }) {
-  if (tab === "enrich") return <EnrichCard t={t} />;
+function FResults({ t, tab, phase }: { t: Tr; tab: FTab; phase: FPhase }) {
   if (tab === "contact") return <ContactLocked t={t} />;
-  if (tab === "find") return <FindTable t={t} />;
-  // qualify — same dashboard table, scored by opportunity level
-  return (
-    <div className="flex min-h-[380px] flex-col">
-      <div className="mb-3 flex items-center justify-between">
-        <div className="text-[13px] font-medium text-[#334155]">{t("Scored by opportunity level", "Scorés par niveau d'opportunité")}</div>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#0051FF]/8 px-2.5 py-1 text-[11px] font-semibold text-[#0051FF]">
-          <span className="h-1.5 w-1.5 rounded-full bg-[#0051FF]" style={{ animation: "fs-pill 1.4s ease-in-out infinite" }} /> {t("Live", "En direct")}
-        </span>
-      </div>
-      <div className="overflow-hidden rounded-2xl border border-[#EAECF0] shadow-[0_20px_50px_-32px_rgba(15,23,42,0.35)]">
-        <div className="grid grid-cols-[72px_1fr_1.1fr_96px] border-b border-[#EAECF0] bg-[#F8FAFC] px-4 py-3 text-[10px] font-semibold uppercase tracking-wide text-[#94A3B8]">
-          <span>Fit</span><span>{t("Company", "Entreprise")}</span><span>{t("Signal", "Signal")}</span><span className="text-right">Score</span>
-        </div>
-        {FROWS.map((r, i) => (
-          <div key={r.c} className="v5-fade grid grid-cols-[72px_1fr_1.1fr_96px] items-center border-b border-[#F1F5F9] px-4 py-3.5 text-[12.5px] last:border-b-0" style={{ animationDelay: `${i * 0.14}s` }}>
-            <FitBars s={r.s} />
-            <span className="min-w-0"><span className="block truncate font-medium text-[#334155]">{r.c}</span><span className="block truncate text-[11px] text-[#94A3B8]">{r.city}</span></span>
-            <span className="truncate text-[#64748B]">{r.sig}</span>
-            <span className="flex items-center justify-end gap-1">
-              {r.s > 85 && <span className="text-[11px]" style={{ animation: "fs-pill 1.2s ease-in-out infinite" }}>🔥</span>}
-              <span className="font-bold" style={{ color: fdot(r.s) }}><CountUp to={r.s} /></span>
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+  const sent = phase !== "typing";
+  const enrich = tab === "enrich";
+  const qualify = tab === "qualify";
 
-function EnrichCard({ t }: { t: Tr }) {
-  const [revealed, setRevealed] = useState(false);
-  useEffect(() => {
-    const id = setTimeout(() => setRevealed(true), 550);
-    return () => clearTimeout(id);
-  }, []);
-  const Field = ({ label, masked, real, warn = false }: { label: string; masked: string; real: string; warn?: boolean }) => (
-    <div className="flex items-center gap-2 text-[12px]">
-      <span className="w-[64px] shrink-0 text-[#94A3B8]">{label}</span>
-      <span className={`min-w-0 flex-1 truncate font-mono ${warn ? "text-[#D97706]" : "text-[#334155]"}`}>{revealed ? real : masked}</span>
-      <span className={`transition-opacity duration-300 ${revealed ? "opacity-100" : "opacity-0"}`}>{warn ? "⚠️" : "✅"}</span>
-    </div>
-  );
+  // Status line above the table (spinner while generating).
+  let status: React.ReactNode;
+  if (tab === "find") {
+    status = phase === "done" ? t("34 prospects found · 71% qualified", "34 prospects trouvés · 71% qualifiés")
+      : phase === "generating" ? t("Searching Google Maps, LinkedIn, Reddit…", "Recherche Google Maps, LinkedIn, Reddit…")
+      : t("Describe your prospect below", "Décris ton prospect ci-dessous");
+  } else if (enrich) {
+    status = phase === "done" ? t("5 leads enriched · email + phone found", "5 leads enrichis · email + téléphone trouvés")
+      : phase === "generating" ? t("Enriching your list…", "Enrichissement de ta liste…")
+      : t("5 prospects · missing contact data", "5 prospects · données de contact manquantes");
+  } else {
+    status = phase === "done" ? t("3 hot prospects · Score > 85", "3 prospects chauds · Score > 85")
+      : phase === "generating" ? t("Scoring by opportunity level…", "Scoring par niveau d'opportunité…")
+      : t("5 prospects · not scored yet", "5 prospects · pas encore scorés");
+  }
+
+  const showTable = tab !== "find" || sent;
   return (
-    <div className="mx-auto max-w-[420px] rounded-2xl border border-[#EAECF0] bg-[#FBFCFE] p-5">
-      <div className="flex items-center gap-3">
-        <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#0051FF]/10 text-[13px] font-bold text-[#0051FF]">LB</span>
-        <div><p className="text-[14px] font-semibold text-[#0F172A]">Le Bistrot du Port</p><p className="text-[12px] text-[#64748B]">Restaurant · Lyon 2e</p></div>
+    <div className="flex flex-col">
+      <div className="mb-3 flex items-center gap-2 text-[13px] font-medium text-[#334155]">
+        {phase === "generating" && <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#0051FF]/25 border-t-[#0051FF]" />}
+        {phase === "done" && <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#22C55E]/15"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="#22C55E" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" /></svg></span>}
+        <span className="truncate">{status}</span>
       </div>
-      <div className="mt-4">
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-[#94A3B8]">Fit score</p>
-        <div className="mt-1.5 flex items-center gap-2">
-          <span className="text-[15px] font-bold text-[#16A34A]"><CountUp to={93} />/100</span>
-          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#EAECF0]"><div className="h-full rounded-full bg-gradient-to-r from-[#0051FF] to-[#00D4FF]" style={{ animation: "fs-progress 0.9s ease forwards" }} /></div>
-          <span>🔥</span>
+
+      {showTable ? (
+        <div className="overflow-x-auto overflow-y-hidden rounded-2xl border border-[#EAECF0] shadow-[0_20px_50px_-32px_rgba(15,23,42,0.35)]">
+          <table className="w-full min-w-[660px] text-left text-[12px]">
+            <thead>
+              <tr className="border-b border-[#EAECF0] bg-[#F8FAFC] text-[10px] font-semibold uppercase tracking-wide text-[#94A3B8]">
+                <th className="px-3 py-3 font-semibold">Fit</th>
+                <th className="px-3 py-3 font-semibold">Lead</th>
+                <th className="px-3 py-3 font-semibold">{t("Company", "Entreprise")}</th>
+                <th className="px-3 py-3 font-semibold">Email</th>
+                <th className="px-3 py-3 font-semibold">{t("Phone", "Tél.")}</th>
+                <th className="px-3 py-3 font-semibold">Segment</th>
+                <th className="px-3 py-3 font-semibold">Signal</th>
+              </tr>
+            </thead>
+            <tbody>
+              {FROWS.map((r, i) => (
+                <tr key={r.c} className={`border-b border-[#F1F5F9] last:border-b-0 ${tab === "find" ? "v5-fade" : ""}`} style={tab === "find" ? { animationDelay: `${i * 0.3}s` } : undefined}>
+                  <td className="px-3 py-3"><FitBars s={r.s} muted={qualify && !sent} hot={qualify && sent && r.s > 85} animate={qualify && sent} /></td>
+                  <td className="px-3 py-3 text-[#94A3B8]">—</td>
+                  <td className="whitespace-nowrap px-3 py-3 font-medium text-[#334155]">{r.c}</td>
+                  <td className="px-3 py-3">{enrich && sent ? <RevealCell key={`e-${phase}-${i}`} value={r.email} i={i} blue /> : <FindPill label={t("Find email", "Trouver email")} />}</td>
+                  <td className="px-3 py-3">{enrich && sent ? <RevealCell key={`p-${phase}-${i}`} value={r.phone} i={i} /> : <FindPill label={t("Find phone", "Trouver tél.")} />}</td>
+                  <td className="px-3 py-3"><SegChip label={r.seg} /></td>
+                  <td className="whitespace-nowrap px-3 py-3 text-[#64748B]">{r.sig}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-      </div>
-      <div className="mt-4 space-y-2 border-t border-[#EAECF0] pt-4">
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-[#94A3B8]">Contact</p>
-        <Field label="Email" masked="••••••@••••••.fr" real="contact@bistrot-port.fr" />
-        <Field label={t("Phone", "Tél.")} masked="+33 4 •• •• •• ••" real="+33 4 78 62 14 09" />
-        <Field label="Website" masked="•••••••••••" real={t("No website found", "Aucun site détecté")} warn />
-      </div>
+      ) : (
+        <div className="flex min-h-[300px] flex-col items-center justify-center rounded-2xl border border-dashed border-[#E2E8F0] bg-[#FBFCFE] text-center">
+          <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#F1F5F9]">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#94A3B8" strokeWidth="2" /><path d="M21 21l-4-4" stroke="#94A3B8" strokeWidth="2" strokeLinecap="round" /></svg>
+          </span>
+          <p className="mt-3 text-[13px] text-[#94A3B8]">{t("Your results will appear here.", "Les résultats de ta recherche apparaîtront ici.")}</p>
+        </div>
+      )}
     </div>
   );
 }
