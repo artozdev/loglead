@@ -694,3 +694,10 @@ body {
 .v5-fade { animation: v5-fade 0.45s ease both; }
 @keyframes v5-pop { 0% { opacity: 0; transform: translateY(8px) scale(0.96); } 60% { transform: translateY(-1px) scale(1.01); } 100% { opacity: 1; transform: none; } }
 .v5-pop { animation: v5-pop 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.2) both; }
+
+/* Process section (sticky 3-step) animations */
+@keyframes pr-spin { to { transform: rotate(360deg); } }
+@keyframes pr-draw { to { stroke-dashoffset: 0; } }
+@keyframes pr-scalein { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+.pr-scalein { animation: pr-scalein 0.35s ease both; }
+@keyframes pr-found { 0% { opacity: 0; transform: translate(-50%, 4px) scale(0.85); } 20% { opacity: 1; transform: translate(-50%, 0) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -4px) scale(0.95); } }

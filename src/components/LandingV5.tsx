@@ -1489,6 +1489,233 @@ function FloatingCta() {
   );
 }
 
+// ---------------------------------------------------------------------------
+// Process — sticky 3-step "get started" section (Weespy style). The left text
+// scrolls; the right illustration stays pinned and swaps with the active step.
+// ---------------------------------------------------------------------------
+function ProcessSection() {
+  const t = useTr();
+  const [active, setActive] = useState(1);
+  const refs = useRef<(HTMLDivElement | null)[]>([]);
+  useEffect(() => {
+    const obs = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) setActive(Number(e.target.getAttribute("data-step")) || 1);
+        });
+      },
+      { rootMargin: "-50% 0px -50% 0px", threshold: 0 },
+    );
+    refs.current.forEach((el) => el && obs.observe(el));
+    return () => obs.disconnect();
+  }, []);
+  const steps = [
+    { n: 1, title: t("Find leads everywhere on the web.", "Recherche des leads partout sur le web."), desc: t("Describe your ideal client in one sentence. LogLead scans LinkedIn, Google Maps, Reddit, Instagram, Facebook, TikTok and the whole web at once to find every relevant prospect — in under 2 minutes.", "Décrivez votre client idéal en une phrase. LogLead scanne simultanément LinkedIn, Google Maps, Reddit, Instagram, Facebook, TikTok et l'ensemble du web pour trouver chaque prospect pertinent — en moins de 2 minutes.") },
+    { n: 2, title: t("Qualified prospects, ready to contact.", "Des prospects qualifiés prêts à contacter."), desc: t("No more guessing who to reach first. LogLead enriches every prospect with their email, phone and company data — then scores them 0 to 100 by intent level. Your hottest leads always come first.", "Plus besoin de deviner qui contacter en premier. LogLead enrichit chaque prospect avec son email, son téléphone et les données de son entreprise — puis attribue un score de 0 à 100 selon son niveau d'intérêt. Vos leads les plus chauds toujours en premier.") },
+    { n: 3, title: t("Track your growth.", "Suivez votre croissance."), desc: t("Watch your pipeline grow in real time. While your competitors prospect by hand, your AI SDR runs 24/7 — and your growth curve shows it.", "Visualisez en temps réel l'évolution de votre pipeline. Pendant que vos concurrents prospectent à la main, votre AI SDR tourne 24/7 — et votre courbe de croissance le montre clairement.") },
+  ];
+  const illus = (n: number) => (n === 1 ? <RadarIllus /> : n === 2 ? <LeadCardIllus /> : <GrowthIllus />);
+  return (
+    <section className="bg-white px-5 py-24 sm:px-6">
+      <div className="mx-auto max-w-[1100px]">
+        {/* Header */}
+        <div className="flex flex-col items-center text-center">
+          <span className={EY}><span className="text-[#0085FF]">✦</span> {t("How it works", "Comment ça marche")}</span>
+          <h2 className="mt-5 max-w-2xl text-[30px] font-bold leading-[1.14] tracking-[-0.02em] text-[#0F172A] sm:text-[42px]">{t("Get started with LogLead in 3 steps.", "Démarrez avec LogLead en 3 étapes.")}</h2>
+          <p className="mt-4 max-w-xl text-[16px] leading-relaxed text-[#64748B]">{t("No setup. No technical skills. Results in under 2 minutes.", "Aucune installation. Aucune compétence technique. Des résultats en moins de 2 minutes.")}</p>
+          <Link href={SIGNUP} className="lp-roll-btn mt-8 inline-flex items-center gap-2 rounded-[10px] bg-gradient-to-br from-[#0051FF] to-[#0085FF] px-6 py-3 text-[14px] font-semibold text-white shadow-[0_0_22px_rgba(0,81,255,0.32)] transition hover:brightness-110">
+            <Roll>{t("Start searching now", "Lancer une recherche")}</Roll>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          </Link>
+        </div>
+
+        {/* Sticky grid */}
+        <div className="mt-16 lg:mt-24 lg:grid lg:grid-cols-[45%_55%] lg:gap-16">
+          {/* Left — scrolling text */}
+          <div>
+            {steps.map((s) => (
+              <div key={s.n} data-step={s.n} ref={(el) => { refs.current[s.n - 1] = el; }} className="flex flex-col justify-center py-10 lg:min-h-[80vh] lg:py-16">
+                <span className="mb-4 text-[13px] font-semibold text-[#0051FF]">{s.n}/3</span>
+                <h3 className="text-[26px] font-bold leading-[1.25] tracking-[-0.01em] text-[#0F172A] sm:text-[34px]">{s.title}</h3>
+                <p className="mt-4 max-w-[440px] text-[15px] leading-[1.75] text-[#64748B]">{s.desc}</p>
+                {/* Mobile illustration under each step */}
+                <div className="mt-8 flex justify-center lg:hidden">{illus(s.n)}</div>
+              </div>
+            ))}
+          </div>
+          {/* Right — sticky illustration (desktop) */}
+          <div className="hidden lg:block">
+            <div className="sticky top-[100px] flex h-[calc(100vh-160px)] items-center justify-center">
+              <div key={active} className="pr-scalein">{illus(active)}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// Step 1 — animated radar scanning 6 sources.
+const RADAR_SOURCES = [
+  { label: "in", name: "LinkedIn", color: "#0A66C2", angle: 0 },
+  { label: "G", name: "Google", color: "#4285F4", angle: 60 },
+  { label: "M", name: "Maps", color: "#EA4335", angle: 120 },
+  { label: "r/", name: "Reddit", color: "#FF4500", angle: 180 },
+  { label: "IG", name: "Instagram", color: "#E1306C", angle: 240 },
+  { label: "f", name: "Facebook", color: "#1877F2", angle: 300 },
+];
+function RadarIllus() {
+  const [lit, setLit] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setLit((l) => (l + 1) % RADAR_SOURCES.length), 500);
+    return () => clearInterval(id);
+  }, []);
+  const C = 190;
+  const R = 158;
+  return (
+    <div className="relative flex h-[340px] w-[340px] items-center justify-center rounded-[20px] border border-[#E2E8F0] bg-white shadow-[0_24px_60px_-34px_rgba(15,23,42,0.3)] sm:h-[380px] sm:w-[380px]">
+      {[120, 220, 320].map((d) => (
+        <span key={d} className="absolute rounded-full border border-dashed border-[#E2E8F0]" style={{ width: d, height: d }} />
+      ))}
+      <span className="absolute h-[320px] w-[320px] rounded-full" style={{ background: "conic-gradient(from 0deg, transparent 70%, rgba(0,81,255,0.08) 80%, rgba(0,81,255,0.32) 95%, transparent 100%)", animation: "pr-spin 3s linear infinite" }} />
+      {/* center logo */}
+      <span className="relative z-10 flex h-14 w-14 items-center justify-center rounded-[14px] bg-gradient-to-br from-[#0051FF] to-[#0085FF] text-[22px] font-bold text-white shadow-[0_0_24px_rgba(0,81,255,0.6)]">L</span>
+      {/* sources */}
+      {RADAR_SOURCES.map((s, i) => {
+        const a = (s.angle * Math.PI) / 180;
+        const x = C + R * Math.sin(a);
+        const y = C - R * Math.cos(a);
+        const on = i === lit;
+        return (
+          <div key={s.name} className="absolute" style={{ left: x, top: y, transform: "translate(-50%, -50%)" }}>
+            {on && (
+              <span className="absolute left-1/2 -top-6 whitespace-nowrap rounded-full bg-[#22C55E] px-2 py-0.5 text-[9px] font-bold text-white" style={{ transform: "translateX(-50%)", animation: "pr-found 0.8s ease both" }}>● Found</span>
+            )}
+            <span
+              className="flex h-11 w-11 items-center justify-center rounded-[12px] border bg-white text-[15px] font-bold transition-all duration-300"
+              style={{ borderColor: on ? s.color : "#E2E8F0", color: s.color, transform: on ? "scale(1.25)" : "scale(1)", boxShadow: on ? `0 0 16px ${s.color}66` : "0 4px 10px -6px rgba(15,23,42,0.3)" }}
+            >
+              {s.label}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// Step 2 — enriched lead card that loops (score fills, email unmasks, signals).
+function Unmask({ real, delayMs = 0 }: { real: string; delayMs?: number }) {
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    setN(0);
+    let i = 0;
+    let iv: ReturnType<typeof setInterval>;
+    const to = setTimeout(() => {
+      iv = setInterval(() => {
+        i += 1;
+        setN(i);
+        if (i >= real.length) clearInterval(iv);
+      }, Math.max(14, 420 / real.length));
+    }, delayMs);
+    return () => { clearTimeout(to); clearInterval(iv); };
+  }, [real, delayMs]);
+  return (
+    <span className="font-mono text-[12.5px] text-[#0F172A]">
+      {real.slice(0, n)}
+      <span className="text-[#CBD5E1]">{"•".repeat(Math.max(0, real.length - n))}</span>
+    </span>
+  );
+}
+function LeadCardInner() {
+  const [on, setOn] = useState(false);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setOn(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
+  return (
+    <div className="w-[340px] rounded-[16px] border border-[#E2E8F0] bg-white p-5 shadow-[0_24px_60px_-34px_rgba(15,23,42,0.3)] sm:w-[380px]">
+      {/* header */}
+      <div className="flex items-center gap-3">
+        <span className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-[#0051FF]/10 text-[13px] font-bold text-[#0051FF]">LB</span>
+        <div>
+          <p className="text-[14px] font-semibold text-[#0F172A]">Le Bistrot du Port</p>
+          <p className="text-[12px] text-[#64748B]">Restaurant · Lyon 2e</p>
+        </div>
+      </div>
+      {/* fit score */}
+      <div className="mt-5">
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-[#64748B]">Fit score</span>
+          <span className="text-[14px] font-bold text-[#0F172A]"><span className="text-[#22C55E]">●</span> {on ? <CountUp to={93} /> : 0} / 100 🔥</span>
+        </div>
+        <div className="mt-2 h-2 overflow-hidden rounded-full bg-[#F1F5F9]">
+          <div className="h-full rounded-full bg-gradient-to-r from-[#0051FF] to-[#0085FF]" style={{ width: on ? "93%" : "0%", transition: "width 0.9s cubic-bezier(0.22,1,0.36,1)" }} />
+        </div>
+      </div>
+      {/* enrichment */}
+      <div className="mt-5 space-y-2 border-t border-[#F1F5F9] pt-4">
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-[#94A3B8]">{"Enrichment"}</p>
+        <div className="v5-fade flex items-center gap-2" style={{ animationDelay: "0.9s" }}>
+          <span className="w-[52px] shrink-0 text-[12px] text-[#94A3B8]">Email</span>
+          {on ? <Unmask real="contact@bistrot-port.fr" delayMs={900} /> : <span className="font-mono text-[12.5px] text-[#CBD5E1]">••••••@••••.fr</span>}
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="ml-auto shrink-0"><path d="M20 6L9 17l-5-5" stroke="#22C55E" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </div>
+        <div className="v5-fade flex items-center gap-2" style={{ animationDelay: "1.25s" }}>
+          <span className="w-[52px] shrink-0 text-[12px] text-[#94A3B8]">Phone</span>
+          <span className="font-mono text-[12.5px] text-[#0F172A]">+33 4 78 62 14 09</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="ml-auto shrink-0"><path d="M20 6L9 17l-5-5" stroke="#22C55E" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </div>
+      </div>
+      {/* signals */}
+      <div className="mt-4 space-y-2 border-t border-[#F1F5F9] pt-4">
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-[#94A3B8]">Signals</p>
+        <div className="v5-fade flex items-center gap-2 text-[12.5px] text-[#D97706]" style={{ animationDelay: "1.55s" }}>⚠️ <span className="text-[#64748B]">No website found</span></div>
+        <div className="v5-fade flex items-center gap-2 text-[12.5px]" style={{ animationDelay: "1.7s" }}>⭐ <span className="text-[#64748B]">Google 3.6/5 · 47 reviews</span></div>
+      </div>
+    </div>
+  );
+}
+function LeadCardIllus() {
+  const [cycle, setCycle] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setCycle((c) => c + 1), 5200);
+    return () => clearInterval(id);
+  }, []);
+  return <div key={cycle} className="v5-fade"><LeadCardInner /></div>;
+}
+
+// Step 3 — growth chart that draws itself (You vs competitors).
+function GrowthIllus() {
+  return (
+    <div className="relative w-[340px] rounded-[16px] border border-[#E2E8F0] bg-white p-6 shadow-[0_24px_60px_-34px_rgba(15,23,42,0.3)] sm:w-[420px]">
+      <span className="absolute right-6 top-6 rounded-[8px] bg-[#0051FF] px-3.5 py-1.5 text-[13px] font-semibold text-white shadow-[0_4px_12px_rgba(0,81,255,0.35)]">You</span>
+      <svg viewBox="0 0 500 280" width="100%" height="100%" className="overflow-visible">
+        <line x1="40" y1="240" x2="480" y2="240" stroke="#E2E8F0" strokeWidth="1" />
+        <line x1="40" y1="20" x2="40" y2="240" stroke="#E2E8F0" strokeWidth="1" />
+        {[
+          "M40,238 C120,220 200,210 280,200 C360,195 420,185 480,180",
+          "M40,238 C120,225 200,218 280,210 C360,205 420,195 480,190",
+          "M40,238 C120,230 200,225 280,218 C360,212 420,205 480,200",
+          "M40,238 C120,234 200,230 280,226 C360,220 420,215 480,210",
+        ].map((d, i) => (
+          <path key={i} d={d} fill="none" stroke="#CBD5E1" strokeWidth="1.5" pathLength={1} style={{ strokeDasharray: 1, strokeDashoffset: 1, animation: `pr-draw 1.4s ease-out forwards`, animationDelay: `${0.3 + i * 0.1}s` }} />
+        ))}
+        <defs>
+          <linearGradient id="prBlueGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#0051FF" stopOpacity="0.16" />
+            <stop offset="100%" stopColor="#0051FF" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <path d="M40,238 C120,235 180,220 240,180 C300,140 380,80 460,30 L460,240 L40,240 Z" fill="url(#prBlueGrad)" className="v5-fade" style={{ animationDelay: "1s" }} />
+        <path d="M40,238 C120,235 180,220 240,180 C300,140 380,80 460,30" fill="none" stroke="#0051FF" strokeWidth="3" strokeLinecap="round" filter="drop-shadow(0 0 8px rgba(0,81,255,0.4))" pathLength={1} style={{ strokeDasharray: 1, strokeDashoffset: 1, animation: "pr-draw 1.5s ease-out forwards" }} />
+        <circle cx="460" cy="30" r="6" fill="#0051FF" className="v5-fade" style={{ animationDelay: "1.2s", filter: "drop-shadow(0 0 6px rgba(0,81,255,0.5))" }} />
+        <text x="486" y="196" fill="#94A3B8" fontSize="12">{"Competitors"}</text>
+      </svg>
+    </div>
+  );
+}
+
 export default function LandingV5() {
   return (
     <LangProvider>
@@ -1498,6 +1725,7 @@ export default function LandingV5() {
         <StatsStrip />
         <FeaturesSection />
         <Comparison />
+        <ProcessSection />
         <Reviews />
         <Faq />
         <Footer />
